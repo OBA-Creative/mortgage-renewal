@@ -12,10 +12,10 @@ export default function PropertyPage() {
   } = useForm({
     defaultValues: {
       city: "",
-      usage: "primary residence",
-      purchasePrice: 0,
-      heloc: "no",
-      helocBalance: 0,
+      usage: "",
+      purchasePrice: "",
+      heloc: "",
+      helocBalance: "",
     },
   });
 
@@ -30,10 +30,10 @@ export default function PropertyPage() {
   };
 
   const usageOptions = [
-    "primary residence",
-    "second home",
-    "rental property",
-    "investment property",
+    "Primary Residence",
+    "Second Home",
+    "Owner-occupied and Rental",
+    "Rental / Investment",
   ];
 
   const helocOptions = ["yes", "no"];
@@ -101,8 +101,6 @@ export default function PropertyPage() {
                 </span>
                 <input
                   id="helocBalance"
-                  type="number"
-                  step="0.01"
                   {...register("helocBalance", {
                     required: "HELOC balance is required",
                     valueAsNumber: true,
@@ -130,8 +128,6 @@ export default function PropertyPage() {
             </span>
             <input
               id="purchasePrice"
-              type="number"
-              step="0.01"
               {...register("purchasePrice", {
                 required: "Purchase price is required",
                 valueAsNumber: true,

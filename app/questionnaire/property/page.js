@@ -12,9 +12,9 @@ export default function PropertyPage() {
   } = useForm({
     defaultValues: {
       city: "",
-      usage: "e",
+      usage: "",
       purchasePrice: "",
-      heloc: "no",
+      heloc: "",
       helocBalance: "",
     },
   });

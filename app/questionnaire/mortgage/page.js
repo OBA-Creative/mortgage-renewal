@@ -11,8 +11,9 @@ export default function MortgagePage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      belowOneMillion: "no",
+      belowOneMillion: "",
       lender: "",
+      mortgageBalance: "",
       otherLender: "",
       maturityDate: "",
     },
@@ -75,6 +76,31 @@ export default function MortgagePage() {
           {errors.belowOneMillion && (
             <p className="text-red-600 mt-1">
               {errors.belowOneMillion.message}
+            </p>
+          )}
+        </div>
+
+        {/* Current Mortgage Balance */}
+        <div className="flex flex-col space-y-4">
+          <label htmlFor="purchasePrice" className="text-2xl">
+            Current mortgage balance?
+          </label>
+          <div className="relative border rounded-md border-gray-300 bg-white">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-lg text-gray-400">
+              $
+            </span>
+            <input
+              id="mortgageBalance"
+              {...register("mortgageBalance", {
+                required: "Purchase price is required",
+                valueAsNumber: true,
+              })}
+              className="w-full rounded-md pl-7 pr-5 py-4 text-lg"
+            />
+          </div>
+          {errors.mortgageBalance && (
+            <p className="text-red-600 mt-1">
+              {errors.mortgageBalance.message}
             </p>
           )}
         </div>
