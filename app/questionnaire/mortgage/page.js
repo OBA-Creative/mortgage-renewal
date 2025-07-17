@@ -13,14 +13,21 @@ export default function MortgagePage() {
     defaultValues: {
       belowOneMillion: "no",
       lender: "",
+      otherLender: "",
       maturityDate: "",
     },
   });
 
   const router = useRouter();
+  const selectedLender = watch("lender");
 
   const onSubmit = (data) => {
-    console.log("Mortgage data:", data);
+    // If 'Other' is selected, use the custom lender value
+    const payload = {
+      ...data,
+      lender: data.lender === "Other" ? data.otherLender : data.lender,
+    };
+    console.log("Mortgage data:", payload);
     router.push("/questionnaire/contact-info");
   };
 
@@ -111,6 +118,28 @@ export default function MortgagePage() {
           </div>
           {errors.lender && (
             <p className="text-red-600 mt-1">{errors.lender.message}</p>
+          )}
+
+          {/* Conditional 'Other' Input */}
+          {selectedLender === "Other" && (
+            <div className="flex flex-col space-y-2 mt-8">
+              <label htmlFor="otherLender" className="text-2xl">
+                Please specify your lender
+              </label>
+              <input
+                id="otherLender"
+                type="text"
+                {...register("otherLender", {
+                  required: "Please specify your lender",
+                })}
+                className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
+              />
+              {errors.otherLender && (
+                <p className="text-red-600 mt-1">
+                  {errors.otherLender.message}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
