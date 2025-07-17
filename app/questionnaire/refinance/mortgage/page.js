@@ -1,9 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { HelpCircle } from "lucide-react";
 
 export default function MortgagePage() {
+  const [activeHelp, setActiveHelp] = useState(null);
+  const helpTexts = {
+    lender:
+      "Select your current lender from the list, or pick 'Other' to specify a different one.",
+    mortgageBalance:
+      "Enter your outstanding mortgage balance at the time of renewal.",
+    maturityDate: "Provide the date when your current mortgage term expires.",
+  };
+  const toggleHelp = (key) => {
+    setActiveHelp((prev) => (prev === key ? null : key));
+  };
+
   const {
     register,
     handleSubmit,
@@ -14,6 +28,7 @@ export default function MortgagePage() {
       lender: "",
       mortgageBalance: "",
       maturityDate: "",
+      otherLender: "",
     },
   });
 
@@ -21,7 +36,6 @@ export default function MortgagePage() {
   const selectedLender = watch("lender");
 
   const onSubmit = (data) => {
-    // If 'Other' is selected, use the custom lender value
     const payload = {
       ...data,
       lender: data.lender === "Other" ? data.otherLender : data.lender,
@@ -43,16 +57,30 @@ export default function MortgagePage() {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center my-8 max-w-2xl">
+      <h1 className="text-4xl font-semibold text-center my-8">
         {"Now let's learn about your mortgage"}
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Lender Select */}
         <div className="flex flex-col space-y-2">
-          <label htmlFor="lender" className="text-2xl">
-            Who is the lender?
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="lender" className="text-2xl">
+              Who is the lender?
+            </label>
+            <button
+              type="button"
+              onClick={() => toggleHelp("lender")}
+              className="p-1 rounded-full  hover:bg-blue-600 cursor-pointer hover:text-white text-gray-500"
+            >
+              <HelpCircle className="w-6 h-6  " />
+            </button>
+          </div>
+          {activeHelp === "lender" && (
+            <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+              {helpTexts.lender}
+            </div>
+          )}
           <div className="relative border rounded-md border-gray-300 bg-white">
             <select
               id="lender"
@@ -62,9 +90,9 @@ export default function MortgagePage() {
               <option value="" disabled>
                 Select your lender
               </option>
-              {lenderOptions.map((lender) => (
-                <option key={lender} value={lender}>
-                  {lender}
+              {lenderOptions.map((l) => (
+                <option key={l} value={l}>
+                  {l}
                 </option>
               ))}
             </select>
@@ -91,7 +119,7 @@ export default function MortgagePage() {
 
           {/* Conditional 'Other' Input */}
           {selectedLender === "Other" && (
-            <div className="flex flex-col space-y-2 mt-8">
+            <div className="flex flex-col space-y-2 mt-4">
               <label htmlFor="otherLender" className="text-2xl">
                 Please specify your lender
               </label>
@@ -114,9 +142,23 @@ export default function MortgagePage() {
 
         {/* Current Mortgage Balance */}
         <div className="flex flex-col space-y-4">
-          <label htmlFor="purchasePrice" className="text-2xl">
-            Current mortgage balance?
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="mortgageBalance" className="text-2xl">
+              Current mortgage balance?
+            </label>
+            <button
+              type="button"
+              onClick={() => toggleHelp("mortgageBalance")}
+              className="p-1 rounded-full  hover:bg-blue-600 cursor-pointer hover:text-white text-gray-500"
+            >
+              <HelpCircle className="w-6 h-6" />
+            </button>
+          </div>
+          {activeHelp === "mortgageBalance" && (
+            <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+              {helpTexts.mortgageBalance}
+            </div>
+          )}
           <div className="relative border rounded-md border-gray-300 bg-white">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-lg text-gray-400">
               $
@@ -124,7 +166,7 @@ export default function MortgagePage() {
             <input
               id="mortgageBalance"
               {...register("mortgageBalance", {
-                required: "Purchase price is required",
+                required: "Mortgage balance is required",
                 valueAsNumber: true,
               })}
               className="w-full rounded-md pl-7 pr-5 py-4 text-lg"
@@ -139,9 +181,23 @@ export default function MortgagePage() {
 
         {/* Maturity Date */}
         <div className="flex flex-col space-y-2">
-          <label htmlFor="maturityDate" className="text-2xl">
-            Maturity date
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="maturityDate" className="text-2xl">
+              Maturity date
+            </label>
+            <button
+              type="button"
+              onClick={() => toggleHelp("maturityDate")}
+              className="p-1 rounded-full  hover:bg-blue-600 cursor-pointer hover:text-white text-gray-500"
+            >
+              <HelpCircle className="w-6 h-6 " />
+            </button>
+          </div>
+          {activeHelp === "maturityDate" && (
+            <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+              {helpTexts.maturityDate}
+            </div>
+          )}
           <input
             id="maturityDate"
             type="date"
