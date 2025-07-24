@@ -32,7 +32,7 @@ export default function PropertyPage() {
   const usageOptions = [
     "Primary Residence",
     "Second Home",
-    "Owner-occupied and Rental",
+    "Primary Residence With Suite",
     "Rental / Investment",
   ];
 
@@ -114,29 +114,6 @@ export default function PropertyPage() {
                 </p>
               )}
             </div>
-          )}
-        </div>
-
-        {/* Property Value */}
-        <div className="flex flex-col space-y-4">
-          <label htmlFor="purchasePrice" className="text-2xl">
-            Property value?
-          </label>
-          <div className="relative border rounded-md border-gray-300 bg-white">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-lg text-gray-400">
-              $
-            </span>
-            <input
-              id="purchasePrice"
-              {...register("purchasePrice", {
-                required: "Purchase price is required",
-                valueAsNumber: true,
-              })}
-              className="w-full rounded-md pl-7 pr-5 py-4 text-lg"
-            />
-          </div>
-          {errors.purchasePrice && (
-            <p className="text-red-600 mt-1">{errors.purchasePrice.message}</p>
           )}
         </div>
 
