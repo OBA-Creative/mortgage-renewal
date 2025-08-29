@@ -1,33 +1,53 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import MapRadio from "@/components/form-elements/map-radio";
+import NextButton from "@/components/form-elements/next-button";
+import { useMortgageStore } from "@/stores/useMortgageStore";
+import { useCallback, useState } from "react";
+import DollarInput from "@/components/form-elements/dollar-input";
+
+const helpTexts = {
+  helocBalance:
+    "Enter your current HELOC balance. This is the amount you currently owe on your HELOC.",
+};
 
 export default function PropertyPage() {
+  const router = useRouter();
+  const { formData, setFormData } = useMortgageStore();
+
+  const [helocBalanceInput, setHelocBalanceInput] = useState("");
+
   const {
     register,
     handleSubmit,
+    control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
       city: "",
-      usage: "",
+      propertyUsage: "",
       purchasePrice: "",
       heloc: "",
       helocBalance: "",
     },
   });
 
-  const router = useRouter();
-
   // Watch HELOC selection
   const heloc = watch("heloc");
+  const helocBalance = useWatch({ control, name: "helocBalance" });
 
-  const onSubmit = (data) => {
-    console.log("Form data:", data);
-    router.push("/questionnaire/refinance/mortgage");
-  };
+  const onSubmit = useCallback(
+    (data) => {
+      setFormData({ ...formData, ...data });
+      console.log("Mortgage data:", data);
+      router.push("/questionnaire/refinance/mortgage");
+    },
+    [formData, router, setFormData]
+  );
 
   const usageOptions = [
     "Primary Residence",
@@ -46,86 +66,41 @@ export default function PropertyPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Usage Radio Select as selectable cards */}
-        <div className="flex flex-col space-y-4">
-          <p className="text-2xl">How do you use your property?</p>
-          <div className="grid grid-cols-2 gap-4">
-            {usageOptions.map((option) => (
-              <label key={option} className="block">
-                <input
-                  type="radio"
-                  value={option}
-                  {...register("usage", { required: "Select usage" })}
-                  className="sr-only peer"
-                />
-                <div className="cursor-pointer rounded-md border bg-white border-gray-300 p-4 peer-checked:border-blue-600 peer-checked:ring ring-blue-600 peer-checked:bg-blue-100 hover:bg-blue-100 text-center">
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </div>
-              </label>
-            ))}
-          </div>
-          {errors.usage && (
-            <p className="text-red-600 mt-1">{errors.usage.message}</p>
-          )}
-        </div>
-
+        <MapRadio
+          id="propertyUsage"
+          label="How do you use your property?"
+          options={usageOptions}
+          register={register}
+          requiredText="Select how you use your property"
+          error={errors.propertyUsage}
+        />
         {/* HELOC Question */}
         <div className="flex flex-col space-y-4">
-          <p className="text-2xl">Do you have a HELOC?</p>
-          <div className="grid grid-cols-2 gap-4">
-            {helocOptions.map((option) => (
-              <label key={option} className="block">
-                <input
-                  type="radio"
-                  value={option}
-                  {...register("heloc", { required: "Select an option" })}
-                  className="sr-only peer"
-                />
-                <div className="cursor-pointer rounded-md border bg-white border-gray-300 p-4 peer-checked:border-blue-600 peer-checked:ring ring-blue-600 peer-checked:bg-blue-100 hover:bg-blue-100 text-center">
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </div>
-              </label>
-            ))}
-          </div>
-          {errors.heloc && (
-            <p className="text-red-600 mt-1">{errors.heloc.message}</p>
-          )}
+          <MapRadio
+            id="heloc"
+            register={register}
+            requiredText="Select an option"
+            label="Do you have a HELOC?"
+            options={helocOptions}
+            error={errors.heloc}
+          />
 
           {heloc === "yes" && (
-            <div className="flex flex-col space-y-2">
-              <label htmlFor="helocBalance" className="text-2xl block">
-                What is your current HELOC balance?
-              </label>
-              <div className="relative border rounded-md border-gray-300 bg-white">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-lg text-gray-400">
-                  $
-                </span>
-                <input
-                  id="helocBalance"
-                  {...register("helocBalance", {
-                    required: "HELOC balance is required",
-                    valueAsNumber: true,
-                  })}
-                  className="w-full rounded-md pl-7 pr-5 py-4 text-lg"
-                />
-              </div>
-              {errors.helocBalance && (
-                <p className="text-red-600 mt-1">
-                  {errors.helocBalance.message}
-                </p>
-              )}
-            </div>
+            <DollarInput
+              id="helocBalance"
+              setValue={setValue}
+              label="What is your current HELOC balance?"
+              valueState={helocBalanceInput}
+              setValueState={setHelocBalanceInput}
+              register={register}
+              helpTexts={helpTexts.helocBalance}
+              requiredText="Current HELOC balance is required"
+              error={errors.helocBalance}
+            />
           )}
         </div>
-
         {/* Submit Button */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white rounded-full hover:bg-blue-500 font-semibold py-3 px-12"
-          >
-            Continue
-          </button>
-        </div>
+        <NextButton label="Continue" />
       </form>
     </div>
   );

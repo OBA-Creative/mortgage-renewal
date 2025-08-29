@@ -3,6 +3,9 @@
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 
+import TextInput from "@/components/form-elements/text-input";
+import NextButton from "@/components/form-elements/next-button";
+
 export default function ContactInfoPage() {
   const {
     register,
@@ -31,61 +34,38 @@ export default function ContactInfoPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Name */}
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="name" className="text-2xl">
-            Full name
-          </label>
-          <input
-            id="name"
-            type="text"
-            {...register("name", { required: "Name is required" })}
-            className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
-          />
-          {errors.name && (
-            <p className="text-red-600 mt-1">{errors.name.message}</p>
-          )}
-        </div>
+        <TextInput
+          type="text"
+          label="Full name"
+          id="name"
+          register={register}
+          requiredText="Name is required"
+          error={errors.name}
+        />
 
         {/* Phone Number */}
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="phone" className="text-2xl">
-            Phone number
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            {...register("phone", { required: "Phone number is required" })}
-            className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
-          />
-          {errors.phone && (
-            <p className="text-red-600 mt-1">{errors.phone.message}</p>
-          )}
-        </div>
+        <TextInput
+          type="tel"
+          label="Phone number"
+          id="phone"
+          register={register}
+          requiredText="Phone number is required"
+          error={errors.phone}
+        />
 
         {/* Email */}
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="email" className="text-2xl">
-            Email address
-          </label>
-          <input
-            id="email"
-            type="email"
-            {...register("email", { required: "Email is required" })}
-            className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
-          />
-          {errors.email && (
-            <p className="text-red-600 mt-1">{errors.email.message}</p>
-          )}
-        </div>
+        <TextInput
+          type="email"
+          label="Email address"
+          id="email"
+          register={register}
+          requiredText="Email is required"
+          error={errors.email}
+        />
 
         {/* Submit */}
         <div className="flex justify-end">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white rounded-full hover:bg-blue-500 font-semibold py-3 px-12"
-          >
-            Show me rates
-          </button>
+          <NextButton label="Show me rates" />
         </div>
       </form>
     </div>

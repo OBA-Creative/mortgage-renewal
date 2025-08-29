@@ -1,24 +1,27 @@
 export default function RateCard({
   percentage,
-  monthyPayment,
+  monthlyPayment,
   term,
-  dateValidUntil,
+  onInquire,
 }) {
   return (
-    <div>
-      <div className="flex flex-col items-center border-t-1 border-gray-400 border-x-1 rounded-t-xl p-4  bg-white">
+    <div className="flex border-gray-300 border-b-1 py-4 space-x-10 items-center px-4">
+      <div className="flex flex-col items-center grow">
         <p>{term}</p>
         <p className=" text-6xl font-bold ">{percentage}</p>
-        <div className="flex flex-row items-center space-x-2  text-sm">
-          <div className="border-b-1 border-gray-400 w-12"></div>
-          <p>monthy payment</p>
-          <div className="border-b-1 border-gray-400 w-12"></div>
-        </div>
-        <p className="text-lg font-semibold">{monthyPayment}</p>
       </div>
-      <button className="flex flex-col items-center px-6 py-3 bg-blue-600 w-full rounded-b-xl text-white font-semibold hover:bg-blue-500 transition-colors duration-200 cursor-pointer">
-        inquire
-      </button>
+      <div className="text-center space-y-2 flex flex-col">
+        <div>
+          <p className="text-sm">monthly payment</p>
+          <p className="text-lg font-semibold">{monthlyPayment}</p>
+        </div>
+        <button
+          onClick={onInquire}
+          className=" flex items-center justify-center bg-blue-600 min-w-34 rounded-md h-10 text-l text-white font-semibold hover:bg-blue-500 transition-colors duration-200 cursor-pointer "
+        >
+          inquire
+        </button>
+      </div>
     </div>
   );
 }
