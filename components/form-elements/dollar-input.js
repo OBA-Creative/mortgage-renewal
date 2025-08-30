@@ -1,10 +1,21 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { HelpCircle } from "lucide-react";
 
 const formatNumber = (value) => {
-  const raw = value.replace(/\D/g, "");
+  // Remove all non-digit characters first
+  const raw = String(value).replace(/\D/g, "");
   if (!raw) return "";
+
+  // Add commas for thousands separator
   return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+const parseNumber = (formattedValue) => {
+  // Remove commas and convert to number
+  const raw = String(formattedValue).replace(/,/g, "");
+  const parsed = parseFloat(raw);
+  // Return 0 for invalid numbers instead of empty string, or the parsed number
+  return isNaN(parsed) ? 0 : parsed;
 };
 
 export default function DollarInput({
@@ -17,8 +28,19 @@ export default function DollarInput({
   requiredText,
   helpTexts,
   error,
+  defaultValue, // Add support for default values
 }) {
   const [activeHelp, setActiveHelp] = useState(null);
+
+  // Handle default value on mount
+  useEffect(() => {
+    if (defaultValue && !valueState) {
+      const formatted = formatNumber(defaultValue);
+      setValueState(formatted);
+      const numericValue = parseNumber(formatted);
+      setValue(id, numericValue, { shouldValidate: false });
+    }
+  }, [defaultValue, valueState, setValueState, setValue, id]);
 
   const toggleHelp = useCallback(
     (key) => setActiveHelp((prev) => (prev === key ? null : key)),
@@ -55,10 +77,16 @@ export default function DollarInput({
           value={valueState}
           {...register(id, rules)}
           onChange={(e) => {
-            const formatted = formatNumber(e.target.value);
+            const inputValue = e.target.value;
+            // Format the display value (add commas)
+            const formatted = formatNumber(inputValue);
             setValueState(formatted);
-            const numeric = formatted.replace(/,/g, "");
-            setValue(id, numeric ? parseFloat(numeric) : "");
+            // Set the numeric value for form submission
+            const numericValue = parseNumber(formatted);
+            setValue(id, numericValue, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
           }}
           className="w-full rounded-md pl-7 pr-5 py-4 text-lg"
         />

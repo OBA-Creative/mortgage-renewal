@@ -17,3 +17,8 @@ body {
     -moz-appearance: textfield;
   }
 }
+
+/* globals.css */
+.pac-container {
+  z-index: 9999 !important; /* bring suggestions to front */
+}

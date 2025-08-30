@@ -5,17 +5,17 @@ import { create } from "zustand";
 export const useMortgageStore = create((set) => ({
   formData: {
     propertyUsage: "",
-    downpaymentValue: "",
+    downpaymentValue: null, // Changed to number
     heloc: "",
-    helocBalance: "",
+    helocBalance: null, // Changed to number
     city: "",
     province: "",
-    propertyValue: "",
+    propertyValue: null, // Changed to number
     belowOneMillion: "",
-    mortgageBalance: "",
+    mortgageBalance: null, // Changed to number
     borrowAdditionalFunds: "",
-    borrowAdditionalAmount: "",
-    amortizationPeriod: null,
+    borrowAdditionalAmount: null, // Changed to number
+    amortizationPeriod: null, // Changed to number
     lender: "",
     otherLender: "",
     maturityDate: "",
@@ -31,16 +31,16 @@ export const useMortgageStore = create((set) => ({
     set({
       formData: {
         propertyUsage: "",
-        downpaymentValue: "",
+        downpaymentValue: null,
         heloc: "",
-        helocBalance: "",
+        helocBalance: null,
         city: "",
         province: "",
-        propertyValue: "",
+        propertyValue: null,
         belowOneMillion: "",
-        mortgageBalance: "",
+        mortgageBalance: null,
         borrowAdditionalFunds: "",
-        borrowAdditionalAmount: "",
+        borrowAdditionalAmount: null,
         amortizationPeriod: null,
         lender: "",
         otherLender: "",

@@ -1,4 +1,6 @@
 import "./globals.css";
+import Script from "next/script";
+
 import MainHeader from "@/components/main-header/main-header";
 
 export const metadata = {
@@ -14,6 +16,11 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://use.typekit.net/uzv7jan.css"
         ></link>
+        <Script
+          id="gmaps"
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places&loading=async&v=weekly`}
+          strategy="afterInteractive"
+        />
       </head>
       <body>
         <MainHeader />

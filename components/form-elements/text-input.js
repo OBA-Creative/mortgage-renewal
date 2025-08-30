@@ -1,10 +1,11 @@
 export default function TextInput({
-  type,
+  type = "text",
   label,
   id,
   register,
   requiredText,
   error,
+  defaultValue = "", // Add default prop
 }) {
   const rules = requiredText ? { required: requiredText } : undefined;
   return (
@@ -15,6 +16,7 @@ export default function TextInput({
       <input
         id={id}
         type={type}
+        defaultValue={defaultValue} // Use it here if not using react-hook-form defaultValues
         {...register(id, rules)}
         className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
       />

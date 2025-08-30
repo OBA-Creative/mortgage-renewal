@@ -13,6 +13,14 @@ const helpTexts = {
     "Enter your current HELOC balance. This is the amount you currently owe on your HELOC.",
 };
 
+const parseNumber = (formattedValue) => {
+  // Remove commas and convert to number
+  const raw = String(formattedValue).replace(/,/g, "");
+  const parsed = parseFloat(raw);
+  // Return 0 for invalid numbers instead of empty string, or the parsed number
+  return isNaN(parsed) ? 0 : parsed;
+};
+
 export default function PropertyPage() {
   const router = useRouter();
   const { formData, setFormData } = useMortgageStore();
@@ -22,28 +30,28 @@ export default function PropertyPage() {
   const {
     register,
     handleSubmit,
-    control,
     watch,
     setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      city: "",
-      propertyUsage: "",
-      purchasePrice: "",
-      heloc: "",
-      helocBalance: "",
+      propertyUsage: formData.propertyUsage,
+      heloc: formData.heloc,
+      helocBalance: formData.helocBalance,
     },
   });
 
   // Watch HELOC selection
   const heloc = watch("heloc");
-  const helocBalance = useWatch({ control, name: "helocBalance" });
 
   const onSubmit = useCallback(
     (data) => {
-      setFormData({ ...formData, ...data });
-      console.log("Mortgage data:", data);
+      const payload = {
+        ...data,
+        helocBalance: parseNumber(data.helocBalance),
+      };
+      setFormData({ ...formData, ...payload });
+      console.log("Mortgage data:", payload);
       router.push("/questionnaire/refinance/mortgage");
     },
     [formData, router, setFormData]
