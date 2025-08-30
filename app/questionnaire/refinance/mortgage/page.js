@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import "react-datepicker/dist/react-datepicker.css";
@@ -38,11 +38,30 @@ const parseNumber = (formattedValue) => {
 
 export default function MortgagePage() {
   const [activeHelp, setActiveHelp] = useState(null);
+
+  const { formData, setFormData } = useMortgageStore();
+
+  // Initialize state variables with formatted values from store
   const [propertyInput, setPropertyInput] = useState("");
   const [balanceInput, setBalanceInput] = useState("");
   const [borrowInput, setBorrowInput] = useState("");
 
-  const { formData, setFormData } = useMortgageStore();
+  // Initialize input states with store values when component mounts or formData changes
+  useEffect(() => {
+    if (formData.propertyValue) {
+      setPropertyInput(formatNumber(formData.propertyValue.toString()));
+    }
+    if (formData.mortgageBalance) {
+      setBalanceInput(formatNumber(formData.mortgageBalance.toString()));
+    }
+    if (formData.borrowAdditionalAmount) {
+      setBorrowInput(formatNumber(formData.borrowAdditionalAmount.toString()));
+    }
+  }, [
+    formData.propertyValue,
+    formData.mortgageBalance,
+    formData.borrowAdditionalAmount,
+  ]);
 
   const helpTexts = {
     lender:
@@ -78,18 +97,34 @@ export default function MortgagePage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      city: formData?.city,
-      province: formData.province,
-      lender: formData.lender,
-      otherLender: formData.otherLender,
-      propertyValue: formData.propertyValue,
-      mortgageBalance: formData.mortgageBalance,
-      borrowAdditionalFunds: formData.borrowAdditionalFunds,
-      borrowAdditionalAmount: formData.borrowAdditionalAmount,
-      amortizationPeriod: formData.amortizationPeriod,
-      maturityDate: parseStoredDate(formData.maturityDate),
+      city: formData?.city || "",
+      province: formData?.province || "",
+      lender: formData?.lender || "",
+      otherLender: formData?.otherLender || "",
+      propertyValue: formData?.propertyValue || 0,
+      mortgageBalance: formData?.mortgageBalance || 0,
+      borrowAdditionalFunds: formData?.borrowAdditionalFunds || "",
+      borrowAdditionalAmount: formData?.borrowAdditionalAmount || 0,
+      amortizationPeriod: formData?.amortizationPeriod || 0,
+      maturityDate: parseStoredDate(formData?.maturityDate),
     },
   });
+
+  // Update form values when formData changes (e.g., when navigating back)
+  useEffect(() => {
+    if (formData && Object.keys(formData).length > 0) {
+      setValue("city", formData.city || "");
+      setValue("province", formData.province || "");
+      setValue("lender", formData.lender || "");
+      setValue("otherLender", formData.otherLender || "");
+      setValue("propertyValue", formData.propertyValue || 0);
+      setValue("mortgageBalance", formData.mortgageBalance || 0);
+      setValue("borrowAdditionalFunds", formData.borrowAdditionalFunds || "");
+      setValue("borrowAdditionalAmount", formData.borrowAdditionalAmount || 0);
+      setValue("amortizationPeriod", formData.amortizationPeriod || 0);
+      setValue("maturityDate", parseStoredDate(formData.maturityDate));
+    }
+  }, [formData, setValue]);
 
   const router = useRouter();
   const propertyValue = useWatch({ control, name: "propertyValue" });
@@ -186,6 +221,7 @@ export default function MortgagePage() {
           setError={setError}
           clearErrors={clearErrors}
           provinceFieldId="province" // 👈 hidden field name
+          defaultValue={formData?.city || ""}
         />
 
         {/* Lender Select */}
@@ -226,6 +262,7 @@ export default function MortgagePage() {
             helpTexts={helpTexts.propertyValue}
             requiredText="Property value is required"
             error={errors.propertyValue}
+            defaultValue={formData?.propertyValue}
           />
           {/* Mortgage Balance */}
           <DollarInput
@@ -238,6 +275,7 @@ export default function MortgagePage() {
             helpTexts={helpTexts.mortgageBalance}
             requiredText="Current mortgage balance is required"
             error={errors.mortgageBalance}
+            defaultValue={formData?.mortgageBalance}
           />
         </div>
 
@@ -277,6 +315,7 @@ export default function MortgagePage() {
                 register={register}
                 requiredText="Current mortgage balance is required"
                 error={errors.borrowAdditionalAmount}
+                defaultValue={formData?.borrowAdditionalAmount}
               />
             )}
             {/* Conditional borrow table*/}

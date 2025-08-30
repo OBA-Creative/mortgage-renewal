@@ -14,6 +14,7 @@ export default function PlacesAutocompleteInput({
   onCityProvince, // optional: ({ city, province, placeId, lat, lng }) => void
   provinceFieldId, // 👈 name for the hidden province field
   country = "ca",
+  defaultValue = "", // Add default value support
 }) {
   const inputRef = useRef(null);
   const containerRef = useRef(null);
@@ -23,6 +24,7 @@ export default function PlacesAutocompleteInput({
   const [predictions, setPredictions] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
+  const [isGoogleMapsReady, setIsGoogleMapsReady] = useState(false);
 
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [lastSelectedLabel, setLastSelectedLabel] = useState("");
@@ -39,11 +41,51 @@ export default function PlacesAutocompleteInput({
   };
 
   const ensureSessionToken = () => {
-    if (window?.google && !sessionTokenRef.current) {
+    if (
+      window?.google?.maps?.places?.AutocompleteSessionToken &&
+      !sessionTokenRef.current
+    ) {
       sessionTokenRef.current =
         new window.google.maps.places.AutocompleteSessionToken();
     }
   };
+
+  // Check if Google Maps API is ready
+  useEffect(() => {
+    const checkGoogleMapsReady = () => {
+      if (window?.google?.maps?.places?.AutocompleteService) {
+        setIsGoogleMapsReady(true);
+        return true;
+      }
+      return false;
+    };
+
+    if (checkGoogleMapsReady()) {
+      return;
+    }
+
+    // Poll for Google Maps API availability
+    const interval = setInterval(() => {
+      if (checkGoogleMapsReady()) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Initialize with default value
+  useEffect(() => {
+    if (defaultValue && !query) {
+      setQuery(defaultValue);
+      setValue(id, defaultValue, { shouldValidate: false });
+      // Mark this as a selected value to prevent popup and clearing
+      setSelectedPlaceId("default");
+      setLastSelectedLabel(defaultValue);
+      // Suppress fetch for this initial load
+      suppressFetchRef.current = true;
+    }
+  }, [defaultValue, query, setValue, id]);
 
   useEffect(() => {
     const onDocClick = (e) => {
@@ -59,7 +101,13 @@ export default function PlacesAutocompleteInput({
 
   // Debounced predictions
   useEffect(() => {
-    if (!window?.google) return;
+    // Check if Google Maps API is available
+    if (
+      !isGoogleMapsReady ||
+      !window?.google?.maps?.places?.AutocompleteService
+    ) {
+      return;
+    }
 
     if (suppressFetchRef.current) {
       suppressFetchRef.current = false;
@@ -87,7 +135,7 @@ export default function PlacesAutocompleteInput({
         (res, status) => {
           setLoading(false);
           if (
-            status === window.google.maps.places.PlacesServiceStatus.OK &&
+            status === window.google?.maps?.places?.PlacesServiceStatus?.OK &&
             Array.isArray(res)
           ) {
             setPredictions(res);
@@ -108,11 +156,11 @@ export default function PlacesAutocompleteInput({
         timeoutIdRef.current = null;
       }
     };
-  }, [query, country]);
+  }, [query, country, isGoogleMapsReady]);
 
   const fetchDetails = (placeId) =>
     new Promise((resolve) => {
-      if (!window?.google) return resolve(null);
+      if (!window?.google?.maps?.places?.PlacesService) return resolve(null);
       const svc = new window.google.maps.places.PlacesService(
         document.createElement("div")
       );
@@ -127,7 +175,7 @@ export default function PlacesAutocompleteInput({
       svc.getDetails(
         { placeId, fields, sessionToken: sessionTokenRef.current },
         (details, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK)
+          if (status === window.google?.maps?.places?.PlacesServiceStatus?.OK)
             resolve(details);
           else resolve(null);
         }
@@ -262,28 +310,36 @@ export default function PlacesAutocompleteInput({
         className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
         autoComplete="off"
         value={query}
+        disabled={!isGoogleMapsReady}
+        placeholder={!isGoogleMapsReady ? "Loading..." : ""}
         onChange={(e) => {
           const v = e.target.value;
           setQuery(v);
           setValue(id, v, { shouldDirty: true });
-          if (!open) setOpen(true);
 
-          // user typed -> invalidate prior selection & clear hidden province
-          if (selectedPlaceId) setSelectedPlaceId(null);
-          if (provinceFieldId)
-            setValue(provinceFieldId, "", { shouldDirty: true });
+          // Only open popup and invalidate selection if user is actually typing
+          // (not when we're setting default value)
+          if (v !== lastSelectedLabel) {
+            if (!open) setOpen(true);
 
-          setError?.(id, {
-            type: "manual",
-            message: "Please select a city from the suggestions",
-          });
+            // user typed -> invalidate prior selection & clear hidden province
+            if (selectedPlaceId) setSelectedPlaceId(null);
+            if (provinceFieldId)
+              setValue(provinceFieldId, "", { shouldDirty: true });
+
+            setError?.(id, {
+              type: "manual",
+              message: "Please select a city from the suggestions",
+            });
+          }
         }}
         onFocus={() => {
-          if (predictions.length) setOpen(true);
+          // Only show predictions on focus if user hasn't selected a value
+          // and we have predictions to show
+          if (predictions.length && !selectedPlaceId) setOpen(true);
         }}
         onKeyDown={onKeyDown}
         onBlur={onBlur}
-        placeholder=""
       />
 
       {/* 👇 hidden province field that submits with the form */}
