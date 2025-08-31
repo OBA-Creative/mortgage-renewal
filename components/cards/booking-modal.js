@@ -81,7 +81,7 @@ export default function BookingModal({ open, onClose, calendlyUrl }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl overflow-hidden">
+      <div className="w-full max-w-3xl rounded-xl bg-white shadow-xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-blue-600">
           <div className="flex items-center gap-3">
