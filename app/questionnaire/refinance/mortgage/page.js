@@ -206,7 +206,7 @@ export default function MortgagePage() {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center my-8">
+      <h1 className="text-4xl font-semibold text-center mb-8">
         {"Now let's learn about your mortgage"}
       </h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">

@@ -5,12 +5,24 @@ import { useRouter } from "next/navigation";
 import MapRadio from "@/components/form-elements/map-radio";
 import NextButton from "@/components/form-elements/next-button";
 import { useMortgageStore } from "@/stores/useMortgageStore";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import DollarInput from "@/components/form-elements/dollar-input";
 
 const helpTexts = {
   helocBalance:
     "Enter your current HELOC balance. This is the amount you currently owe on your HELOC.",
+};
+
+// Safe number formatting that handles both strings and numbers
+const formatNumber = (value) => {
+  if (!value && value !== 0) return "";
+
+  // Convert to string and remove all non-digits
+  const raw = String(value).replace(/\D/g, "");
+  if (!raw) return "";
+
+  // Add commas for thousands separator
+  return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 
 const parseNumber = (formattedValue) => {
@@ -27,6 +39,13 @@ export default function PropertyPage() {
 
   const [helocBalanceInput, setHelocBalanceInput] = useState("");
 
+  // Initialize input state with store values when component mounts or formData changes
+  useEffect(() => {
+    if (formData.helocBalance) {
+      setHelocBalanceInput(formatNumber(formData.helocBalance.toString()));
+    }
+  }, [formData.helocBalance]);
+
   const {
     register,
     handleSubmit,
@@ -35,11 +54,20 @@ export default function PropertyPage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      propertyUsage: formData.propertyUsage,
-      heloc: formData.heloc,
-      helocBalance: formData.helocBalance,
+      propertyUsage: formData.propertyUsage || "",
+      heloc: formData.heloc || "",
+      helocBalance: formData.helocBalance || 0,
     },
   });
+
+  // Update form values when formData changes (e.g., when navigating back)
+  useEffect(() => {
+    if (formData && Object.keys(formData).length > 0) {
+      setValue("propertyUsage", formData.propertyUsage || "");
+      setValue("heloc", formData.heloc || "");
+      setValue("helocBalance", formData.helocBalance || 0);
+    }
+  }, [formData, setValue]);
 
   // Watch HELOC selection
   const heloc = watch("heloc");
@@ -68,7 +96,7 @@ export default function PropertyPage() {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center my-8 max-w-2xl">
+      <h1 className="text-4xl font-semibold text-center mb-8 max-w-2xl">
         {"Let's learn about your property"}
       </h1>
 
@@ -104,6 +132,7 @@ export default function PropertyPage() {
               helpTexts={helpTexts.helocBalance}
               requiredText="Current HELOC balance is required"
               error={errors.helocBalance}
+              defaultValue={formData?.helocBalance}
             />
           )}
         </div>

@@ -718,16 +718,16 @@ export default function RatesPage() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center my-8 max-w-2xl mx-auto">
-        Here are the best rates that match your profile
-      </h1>
-
-      <p className="text-xl text-center">
-        {`If we lock in your rate today, you will be protected from future rate increases until ${formattedDate}`}
-      </p>
-
-      <div className="flex items-start space-x-10">
+    <div className="max-w-7xl xl:min-w-5xl mx-auto p-6">
+      <div>
+        <h1 className="text-4xl font-semibold text-center  max-w-3xl mx-auto">
+          Here are the best rates that match your profile
+        </h1>
+        <p className="text-xl text-center mt-4">
+          {`If we lock in your rate today, you will be protected from future rate increases until ${formattedDate}`}
+        </p>
+      </div>
+      <div className="flex items-start justify-between space-x-10 mt-4">
         {/* Left column: form */}
         <div className="flex flex-col mt-7 mb-4 bg-white rounded-md border border-gray-200 p-4 w-full max-w-md">
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -779,7 +779,7 @@ export default function RatesPage() {
         </div>
 
         {/* Right column: rates */}
-        <div className="flex flex-col mt-8 border-t border-gray-300">
+        <div className="flex flex-col mt-8 border-t border-gray-300 ">
           {/* Pass onInquire to RateCard; it should call this when its "Inquire" button is clicked */}
           <RateCard
             percentage={fmtRate(r3F)}
