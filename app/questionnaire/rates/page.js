@@ -5,6 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import RateCard from "@/components/cards/rate-card";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import CurrencyField from "@/components/form-elements/currency-element";
+import BookingModal from "@/components/cards/booking-modal";
 
 // Rates object architecture
 // Each key is a province, and each value is an object mapping loan types to their rates
@@ -552,10 +553,9 @@ function calcMonthlyPayment(balance, annualNominalRatePct, years) {
 
 export default function RatesPage() {
   const { formData } = useMortgageStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const openModal = useCallback(() => setIsModalOpen(true), []);
-  const closeModal = useCallback(() => setIsModalOpen(false), []);
+  const [open, setOpen] = useState(false);
+  const handleInquire = () => setOpen(true);
 
   const defaultMortgageBalance =
     formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? "";
@@ -785,66 +785,42 @@ export default function RatesPage() {
             percentage={fmtRate(r3F)}
             monthlyPayment={fmtMoney(pay3F)}
             term="3-yr fixed"
-            onInquire={openModal}
+            onInquire={handleInquire}
           />
           <RateCard
             percentage={fmtRate(r4F)}
             monthlyPayment={fmtMoney(pay4F)}
             term="4-yr fixed"
-            onInquire={openModal}
+            onInquire={handleInquire}
           />
           <RateCard
             percentage={fmtRate(r5F)}
             monthlyPayment={fmtMoney(pay5F)}
             term="5-yr fixed"
-            onInquire={openModal}
+            onInquire={handleInquire}
           />
           <RateCard
             percentage={fmtRate(r3V)}
             monthlyPayment={fmtMoney(pay3V)}
             term="3-yr variable"
-            onInquire={openModal}
+            onInquire={handleInquire}
           />
           <RateCard
             percentage={fmtRate(r5V)}
             monthlyPayment={fmtMoney(pay5V)}
             term="5-yr variable"
-            onInquire={openModal}
+            onInquire={handleInquire}
           />
         </div>
       </div>
 
       {/* Full-screen modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="inquire-title"
-        >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50" onClick={closeModal} />
-
-          {/* Modal content */}
-          <div className="relative z-10 w-[min(900px,92vw)] max-h-[90vh] overflow-auto rounded-2xl bg-white shadow-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 id="inquire-title" className="text-2xl font-semibold">
-                Current formData
-              </h2>
-              <button
-                onClick={closeModal}
-                className="rounded-md px-3 py-1.5 border border-gray-300 hover:bg-gray-100"
-                aria-label="Close"
-              >
-                Close
-              </button>
-            </div>
-
-            <pre className="text-sm leading-6 bg-gray-50 border border-gray-200 rounded-md p-4 overflow-auto">
-              {JSON.stringify(formData ?? {}, null, 2)}
-            </pre>
-          </div>
-        </div>
+      {open && (
+        <BookingModal
+          open={open}
+          onClose={() => setOpen(false)}
+          calendlyUrl="https://calendly.com/obacreative/mortgage-discusion"
+        />
       )}
     </div>
   );

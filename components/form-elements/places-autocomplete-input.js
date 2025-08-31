@@ -32,6 +32,7 @@ export default function PlacesAutocompleteInput({
   const sessionTokenRef = useRef(null);
   const timeoutIdRef = useRef(null);
   const suppressFetchRef = useRef(false);
+  const isSettingDefaultRef = useRef(false);
 
   const rules = requiredText ? { required: requiredText } : undefined;
   const { ref: registerRef, ...registerRest } = register(id, rules);
@@ -77,6 +78,7 @@ export default function PlacesAutocompleteInput({
   // Initialize with default value
   useEffect(() => {
     if (defaultValue && !query) {
+      isSettingDefaultRef.current = true;
       setQuery(defaultValue);
       setValue(id, defaultValue, { shouldValidate: false });
       // Mark this as a selected value to prevent popup and clearing
@@ -84,6 +86,10 @@ export default function PlacesAutocompleteInput({
       setLastSelectedLabel(defaultValue);
       // Suppress fetch for this initial load
       suppressFetchRef.current = true;
+      // Reset the flag after a short delay to allow the onChange to process
+      setTimeout(() => {
+        isSettingDefaultRef.current = false;
+      }, 0);
     }
   }, [defaultValue, query, setValue, id]);
 
@@ -317,9 +323,8 @@ export default function PlacesAutocompleteInput({
           setQuery(v);
           setValue(id, v, { shouldDirty: true });
 
-          // Only open popup and invalidate selection if user is actually typing
-          // (not when we're setting default value)
-          if (v !== lastSelectedLabel) {
+          // Only skip popup/validation logic if we're programmatically setting default
+          if (!isSettingDefaultRef.current) {
             if (!open) setOpen(true);
 
             // user typed -> invalidate prior selection & clear hidden province
@@ -334,9 +339,10 @@ export default function PlacesAutocompleteInput({
           }
         }}
         onFocus={() => {
-          // Only show predictions on focus if user hasn't selected a value
-          // and we have predictions to show
-          if (predictions.length && !selectedPlaceId) setOpen(true);
+          // Show predictions on focus if we have some and it's not a fresh default value
+          if (predictions.length && selectedPlaceId !== "default") {
+            setOpen(true);
+          }
         }}
         onKeyDown={onKeyDown}
         onBlur={onBlur}
