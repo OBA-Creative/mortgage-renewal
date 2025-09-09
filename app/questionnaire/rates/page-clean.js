@@ -40,18 +40,74 @@ export default function RatesPage() {
     fetchRates();
   }, []);
 
-  // Calculate rate lock expiry date (120 days from today)
-  const rateLockExpiryDate = useMemo(() => {
-    const today = new Date();
-    const expiryDate = new Date(today);
-    expiryDate.setDate(today.getDate() + 120);
+  // Helper to create LTV-based rate structure
+  const createLTVRates = useCallback(
+    (baseRate, isVariable = false) => {
+      const base = parseFloat(baseRate);
+      if (isNaN(base)) return {};
 
-    return expiryDate.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+      if (isVariable) {
+        // Variable rates: add to prime rate with LTV adjustments
+        const primeNum = parseFloat(prime) || 6.95;
+        return {
+          under65: (primeNum + base + 0.0).toFixed(2),
+          under70: (primeNum + base + 0.1).toFixed(2),
+          under75: (primeNum + base + 0.2).toFixed(2),
+          under80: (primeNum + base + 0.3).toFixed(2),
+          over80: (primeNum + base + 0.4).toFixed(2),
+        };
+      } else {
+        // Fixed rates: add LTV adjustments
+        return {
+          under65: (base + 0.0).toFixed(2),
+          under70: (base + 0.1).toFixed(2),
+          under75: (base + 0.2).toFixed(2),
+          under80: (base + 0.3).toFixed(2),
+          over80: (base + 0.4).toFixed(2),
+        };
+      }
+    },
+    [prime]
+  );
+
+  // Create rates object from database data
+  const transformedRates = useMemo(() => {
+    if (!rates) return null;
+
+    const transformed = {};
+    const provinces = [
+      "AB",
+      "BC",
+      "MB",
+      "NB",
+      "NL",
+      "NS",
+      "NT",
+      "NU",
+      "ON",
+      "PE",
+      "QC",
+      "SK",
+      "YT",
+    ];
+
+    provinces.forEach((province) => {
+      if (rates[province]) {
+        transformed[province] = {
+          threeYrFixed: createLTVRates(rates[province].threeYrFixed),
+          fourYrFixed: createLTVRates(rates[province].fourYrFixed),
+          fiveYrFixed: createLTVRates(rates[province].fiveYrFixed),
+          threeYrVariable: createLTVRates(
+            rates[province].threeYrVariable,
+            true
+          ),
+          fiveYrVariable: createLTVRates(rates[province].fiveYrVariable, true),
+        };
+      }
     });
-  }, []);
+
+    return transformed;
+  }, [rates, createLTVRates]);
 
   // Safe number formatting that handles both strings and numbers
   const formatNumber = (value) => {
@@ -143,7 +199,6 @@ export default function RatesPage() {
   const watchedBorrowAmt = sanitizeMoney(
     watched?.borrowAdditionalAmount ?? defaultBorrowAmount
   );
-  const helocBalance = sanitizeMoney(formData?.helocBalance) || 0;
   const yearsNum =
     Number(watched?.amortizationPeriod ?? formData?.amortizationPeriod ?? 0) ||
     0;
@@ -154,8 +209,20 @@ export default function RatesPage() {
       ? isNaN(watchedBorrowAmt)
         ? 0
         : watchedBorrowAmt
-      : 0) +
-    (isNaN(helocBalance) ? 0 : helocBalance);
+      : 0);
+
+  // Calculate rate lock expiry date (120 days from today)
+  const rateLockExpiryDate = useMemo(() => {
+    const today = new Date();
+    const expiryDate = new Date(today);
+    expiryDate.setDate(today.getDate() + 120);
+
+    return expiryDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }, []);
 
   // Show loading or error states
   if (loading) return <div className="p-8 text-center">Loading rates...</div>;
@@ -165,11 +232,12 @@ export default function RatesPage() {
         Error loading rates: {error}
       </div>
     );
-  if (!rates) return <div className="p-8 text-center">No rates available</div>;
+  if (!transformedRates)
+    return <div className="p-8 text-center">No rates available</div>;
 
   // Get rates for the user's province/city
   const prov = formData?.province ?? "ON"; // Default to ON if no province
-  const cityBasedRates = rates[prov];
+  const cityBasedRates = transformedRates[prov];
 
   if (!cityBasedRates) {
     return (
@@ -231,7 +299,7 @@ export default function RatesPage() {
       <div className="flex space-x-20 ">
         {/* Current Mortgage Balance */}
         <form>
-          <div className="min-w-72">
+          <div className="space-y-6 mb-8">
             <CurrencyField
               name="currentMortgageBalance"
               label="Current Mortgage Balance"
@@ -248,51 +316,17 @@ export default function RatesPage() {
               />
             )}
             {/* Amortization Period */}
-            <div className="mt-4">
+            <div>
               <label
                 htmlFor="amortizationPeriod"
-                className="block font-semibold mb-2"
+                className="block  font-semibold mb-2"
               >
-                Amortization Period:{" "}
-                <span className="font-normal">
-                  {watched?.amortizationPeriod ||
-                    formData?.amortizationPeriod ||
-                    25}{" "}
-                  years
-                </span>
+                Amortization Period (years)
               </label>
               <input
-                type="range"
-                min="1"
-                max="30"
                 {...register("amortizationPeriod")}
-                className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
-              />
-              <div className="flex justify-between text-sm text-gray-700 mt-1">
-                <span>1 yr</span>
-                <span>30 yrs</span>
-              </div>
-              <style jsx>{`
-                .slider::-webkit-slider-thumb {
-                  appearance: none;
-                  height: 20px;
-                  width: 20px;
-                  border-radius: 50%;
-                  background: #3b82f6;
-                  cursor: pointer;
-                  border: 2px solid #ffffff;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                }
-                .slider::-moz-range-thumb {
-                  height: 20px;
-                  width: 20px;
-                  border-radius: 50%;
-                  background: #3b82f6;
-                  cursor: pointer;
-                  border: 2px solid #ffffff;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                }
-              `}</style>
+                className="w-full border rounded px-4 py-2 bg-white border-gray-300 h-14 text-lg"
+              ></input>
             </div>
           </div>
         </form>

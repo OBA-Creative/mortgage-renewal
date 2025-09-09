@@ -5,7 +5,7 @@ export default function RateCard({
   onInquire,
 }) {
   return (
-    <div className="flex border-gray-300 border-b-1 py-4 space-x-10 items-center px-4">
+    <div className="flex  space-x-10 items-center px-4">
       <div className="flex flex-col items-center grow">
         <p>{term}</p>
         <p className=" text-6xl font-bold ">{percentage}</p>
