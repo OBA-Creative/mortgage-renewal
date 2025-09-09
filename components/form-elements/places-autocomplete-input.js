@@ -1,6 +1,47 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+
+// Helper function to get user location from IP
+const getLocationFromIP = async () => {
+  try {
+    // Using ipapi.co service (free tier allows 30,000 requests/month)
+    const response = await fetch("https://ipapi.co/json/");
+    const data = await response.json();
+
+    if (data.city && data.region) {
+      // Format to match Canadian province codes
+      const provinceMap = {
+        Alberta: "AB",
+        "British Columbia": "BC",
+        Manitoba: "MB",
+        "New Brunswick": "NB",
+        "Newfoundland and Labrador": "NL",
+        "Northwest Territories": "NT",
+        "Nova Scotia": "NS",
+        Nunavut: "NU",
+        Ontario: "ON",
+        "Prince Edward Island": "PE",
+        Quebec: "QC",
+        Saskatchewan: "SK",
+        Yukon: "YT",
+      };
+
+      const province = provinceMap[data.region] || data.region_code;
+      const formattedLocation = `${data.city}, ${province}`;
+
+      return {
+        city: data.city,
+        province: province,
+        formatted: formattedLocation,
+        country: data.country_code,
+      };
+    }
+  } catch (error) {
+    console.warn("Failed to get location from IP:", error);
+  }
+  return null;
+};
 
 export default function PlacesAutocompleteInput({
   label,
@@ -25,6 +66,8 @@ export default function PlacesAutocompleteInput({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
   const [isGoogleMapsReady, setIsGoogleMapsReady] = useState(false);
+  const [ipLocation, setIpLocation] = useState(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [lastSelectedLabel, setLastSelectedLabel] = useState("");
@@ -33,6 +76,7 @@ export default function PlacesAutocompleteInput({
   const timeoutIdRef = useRef(null);
   const suppressFetchRef = useRef(false);
   const isSettingDefaultRef = useRef(false);
+  const hasInitializedRef = useRef(false);
 
   const rules = requiredText ? { required: requiredText } : undefined;
   const { ref: registerRef, ...registerRest } = register(id, rules);
@@ -75,23 +119,73 @@ export default function PlacesAutocompleteInput({
     return () => clearInterval(interval);
   }, []);
 
-  // Initialize with default value
+  // Fetch IP-based location on component mount
   useEffect(() => {
-    if (defaultValue && !query) {
+    // Only fetch IP location if no default value is provided (meaning no store value)
+    if (!defaultValue) {
+      setIsLoadingLocation(true);
+      getLocationFromIP().then((location) => {
+        if (location && location.country === "CA") {
+          // Only use Canadian locations
+          setIpLocation(location);
+        }
+        setIsLoadingLocation(false);
+      });
+    }
+  }, [defaultValue]);
+
+  // Initialize with default value or IP location
+  useEffect(() => {
+    // Prevent re-initialization if we've already set a value
+    if (hasInitializedRef.current || query) {
+      return;
+    }
+
+    // Priority: 1. Store value (defaultValue), 2. IP location, 3. Empty
+    const valueToUse = defaultValue || ipLocation?.formatted;
+
+    if (valueToUse) {
+      hasInitializedRef.current = true;
       isSettingDefaultRef.current = true;
-      setQuery(defaultValue);
-      setValue(id, defaultValue, { shouldValidate: false });
-      // Mark this as a selected value to prevent popup and clearing
-      setSelectedPlaceId("default");
-      setLastSelectedLabel(defaultValue);
-      // Suppress fetch for this initial load
+
+      setQuery(valueToUse);
+      setValue(id, valueToUse, { shouldValidate: false });
+
+      // If using IP location, also set the province field
+      if (!defaultValue && ipLocation) {
+        if (provinceFieldId) {
+          setValue(provinceFieldId, ipLocation.province, {
+            shouldValidate: false,
+          });
+        }
+        // Call the callback if provided
+        onCityProvince?.({
+          city: ipLocation.city,
+          province: ipLocation.province,
+          placeId: null,
+          lat: null,
+          lng: null,
+        });
+      }
+
+      // Mark this as a selected value
+      setSelectedPlaceId(defaultValue ? "default" : "ip-location");
+      setLastSelectedLabel(valueToUse);
       suppressFetchRef.current = true;
-      // Reset the flag after a short delay to allow the onChange to process
+
       setTimeout(() => {
         isSettingDefaultRef.current = false;
       }, 0);
     }
-  }, [defaultValue, query, setValue, id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValue, ipLocation]);
+
+  // Reset initialization flag when user starts typing
+  useEffect(() => {
+    if (query && !isSettingDefaultRef.current) {
+      hasInitializedRef.current = false;
+    }
+  }, [query]);
 
   useEffect(() => {
     const onDocClick = (e) => {
@@ -287,6 +381,11 @@ export default function PlacesAutocompleteInput({
 
       // hard enforce selection; clear province if invalid
       if (!selectedPlaceId || query !== lastSelectedLabel) {
+        // Allow IP location to be valid without Google Places selection
+        if (selectedPlaceId === "ip-location" && query === lastSelectedLabel) {
+          return; // IP location is valid, don't clear it
+        }
+
         setSelectedPlaceId(null);
         setLastSelectedLabel("");
         setQuery("");
@@ -316,8 +415,14 @@ export default function PlacesAutocompleteInput({
         className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
         autoComplete="off"
         value={query}
-        disabled={!isGoogleMapsReady}
-        placeholder={!isGoogleMapsReady ? "Loading..." : ""}
+        disabled={!isGoogleMapsReady || isLoadingLocation}
+        placeholder={
+          isLoadingLocation
+            ? "Getting your location..."
+            : !isGoogleMapsReady
+            ? "Loading..."
+            : ""
+        }
         onChange={(e) => {
           const v = e.target.value;
           setQuery(v);
@@ -328,7 +433,10 @@ export default function PlacesAutocompleteInput({
             if (!open) setOpen(true);
 
             // user typed -> invalidate prior selection & clear hidden province
-            if (selectedPlaceId) setSelectedPlaceId(null);
+            if (selectedPlaceId) {
+              setSelectedPlaceId(null);
+              setLastSelectedLabel("");
+            }
             if (provinceFieldId)
               setValue(provinceFieldId, "", { shouldDirty: true });
 

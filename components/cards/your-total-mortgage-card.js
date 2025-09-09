@@ -1,7 +1,7 @@
 const formatNumber = (value) => {
-  return new Intl.NumberFormat("us-US", {
+  return new Intl.NumberFormat("en-CA", {
     style: "currency",
-    currency: "USD",
+    currency: "CAD",
   }).format(value);
 };
 

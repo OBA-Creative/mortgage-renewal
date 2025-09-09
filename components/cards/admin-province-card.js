@@ -300,10 +300,7 @@ const AdminProvinceCard = ({ province, rates }) => {
 
           <RateSection title="4-Year Fixed" rates={rates.fourYrFixed} />
 
-          <RateSection
-            title="5-Year Fixed (Popular)"
-            rates={rates.fiveYrFixed}
-          />
+          <RateSection title="5-Year Fixed" rates={rates.fiveYrFixed} />
 
           <RateSection title="3-Year Variable" rates={rates.threeYrVariable} />
 
