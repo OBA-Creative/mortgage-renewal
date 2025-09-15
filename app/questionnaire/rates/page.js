@@ -194,11 +194,15 @@ export default function RatesPage() {
   }
 
   // Get the specific rates for the LTV category
-  const r3F = cityBasedRates.threeYrFixed[rateCategory];
-  const r4F = cityBasedRates.fourYrFixed[rateCategory];
-  const r5F = cityBasedRates.fiveYrFixed[rateCategory];
-  const r3V = cityBasedRates.threeYrVariable[rateCategory];
-  const r5V = cityBasedRates.fiveYrVariable[rateCategory];
+  // Fixed rates: extract rate value from rate/lender object
+  const r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
+  const r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
+  const r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
+  
+  // Variable rates: calculate from prime rate with discounts
+  const primeRate = cityBasedRates.prime?.rate || 0;
+  const r3V = Math.max(0, primeRate - 0.8); // 3-year variable = prime - 0.8%
+  const r5V = Math.max(0, primeRate - 0.9); // 5-year variable = prime - 0.9%
 
   // Calculate monthly payments
   const pay3F = calcMonthlyPayment(totalMortgageRequired, r3F, yearsNum);

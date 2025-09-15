@@ -60,6 +60,8 @@ export default function AdminLogin() {
       const data = await response.json();
 
       if (data.success) {
+        console.log("Fetched rates data:", data.rates);
+        console.log("Sample province ON:", data.rates.ON);
         setRates(data.rates);
         setEffectiveDate(new Date(data.effectiveDate));
       } else {
@@ -233,41 +235,6 @@ export default function AdminLogin() {
                   ></path>
                 </svg>
                 Loading rates...
-              </div>
-            </div>
-          )}
-
-          {/* Prime Rate Card */}
-          {rates && (
-            <div className="mb-6">
-              <div className="bg-white border-1 border-gray-300 p-4 rounded-md relative">
-                {/* Update Button */}
-                <button
-                  onClick={openPrimeModal}
-                  className="absolute top-3 right-3 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors duration-200 cursor-pointer"
-                  title="Update prime rate"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </button>
-
-                <div className="flex items-baseline space-x-2">
-                  <h3 className="text-xl font-medium ">Prime Rate:</h3>
-                  <p className="text-xl font-bold">
-                    {formatRate(rates.prime)}%
-                  </p>
-                </div>
               </div>
             </div>
           )}

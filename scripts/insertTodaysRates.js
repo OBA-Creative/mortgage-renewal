@@ -5,28 +5,28 @@ import Rate from "../models/ratesModel.js";
 // Load environment variables
 dotenv.config({ path: ".env.local" });
 
-// Generate realistic mortgage rates with LTV adjustments (in percentages)
+// Generate realistic mortgage rates with LTV adjustments and lender info
 function generateRealisticRates() {
   const baseRate = 5.0; // Base rate around 5%
   const variableDiscount = 0.5; // Variable rates typically lower than fixed
+
+  // Sample lenders for variety
+  const lenders = [
+    "TD Bank",
+    "RBC",
+    "BMO",
+    "Scotiabank",
+    "CIBC",
+    "National Bank",
+    "Credit Union",
+    "Alternative Lender",
+  ];
 
   // Generate base rates for each term
   const baseRates = {
     threeYrFixed: +(baseRate + Math.random() * 0.6 - 0.3).toFixed(2),
     fourYrFixed: +(baseRate + Math.random() * 0.4 - 0.2).toFixed(2),
     fiveYrFixed: +(baseRate + Math.random() * 0.3 - 0.15).toFixed(2),
-    threeYrVariable: +(
-      baseRate -
-      variableDiscount +
-      Math.random() * 0.4 -
-      0.2
-    ).toFixed(2),
-    fiveYrVariable: +(
-      baseRate -
-      variableDiscount +
-      Math.random() * 0.3 -
-      0.15
-    ).toFixed(2),
   };
 
   // Create LTV structure for each rate type
@@ -35,14 +35,44 @@ function generateRealisticRates() {
   Object.keys(baseRates).forEach((rateType) => {
     const base = baseRates[rateType];
     ltvRates[rateType] = {
-      under65: +(base + 0.0).toFixed(2), // Best rate for lowest LTV
-      under70: +(base + 0.1).toFixed(2), // Small premium
-      under75: +(base + 0.2).toFixed(2), // Medium premium
-      under80: +(base + 0.3).toFixed(2), // Higher premium
-      over80: +(base + 0.4).toFixed(2), // Highest premium for high LTV
-      refinance: +(base + 0.15).toFixed(2), // Special refinance rate (between under70 and under75)
+      under65: {
+        rate: +(base + 0.0).toFixed(2),
+        lender: lenders[Math.floor(Math.random() * lenders.length)],
+      },
+      under70: {
+        rate: +(base + 0.1).toFixed(2),
+        lender: lenders[Math.floor(Math.random() * lenders.length)],
+      },
+      under75: {
+        rate: +(base + 0.2).toFixed(2),
+        lender: lenders[Math.floor(Math.random() * lenders.length)],
+      },
+      under80: {
+        rate: +(base + 0.3).toFixed(2),
+        lender: lenders[Math.floor(Math.random() * lenders.length)],
+      },
+      over80: {
+        rate: +(base + 0.4).toFixed(2),
+        lender: lenders[Math.floor(Math.random() * lenders.length)],
+      },
+      refinance: {
+        under25: {
+          rate: +(base + 0.15).toFixed(2),
+          lender: lenders[Math.floor(Math.random() * lenders.length)],
+        },
+        over25: {
+          rate: +(base + 0.25).toFixed(2),
+          lender: lenders[Math.floor(Math.random() * lenders.length)],
+        },
+      },
     };
   });
+
+  // Add prime rate with lender (separate from LTV structure)
+  ltvRates.prime = {
+    rate: +(6.5 + Math.random() * 0.5 - 0.25).toFixed(2),
+    lender: lenders[Math.floor(Math.random() * lenders.length)],
+  };
 
   return ltvRates;
 }
@@ -88,15 +118,19 @@ async function insertTodaysRates() {
 
     provinces.forEach((province) => {
       rateData[province] = generateRealisticRates();
-      console.log(`📊 Generated LTV rates for ${province}`);
+      console.log(`📊 Generated rates for ${province}`);
       console.log(
-        `   5-Yr Fixed: ${rateData[province].fiveYrFixed.under65}% (best) to ${rateData[province].fiveYrFixed.over80}% (high LTV)`
+        `   5-Yr Fixed <65% LTV: ${rateData[province].fiveYrFixed.under65.rate}% (${rateData[province].fiveYrFixed.under65.lender})`
+      );
+      console.log(
+        `   5-Yr Fixed >80% LTV: ${rateData[province].fiveYrFixed.over80.rate}% (${rateData[province].fiveYrFixed.over80.lender})`
+      );
+      console.log(
+        `   Prime Rate: ${rateData[province].prime.rate}% (${rateData[province].prime.lender})`
       );
     });
 
-    // Add prime rate
-    rateData.prime = +(6.5 + Math.random() * 0.5 - 0.25).toFixed(2);
-    console.log(`🏦 Prime rate: ${rateData.prime}%`);
+    console.log(`🏦 Sample province rates generated successfully!`);
 
     // Insert or update rates
     let savedRates;
@@ -121,43 +155,61 @@ async function insertTodaysRates() {
     console.log("================");
     provinces.forEach((province) => {
       console.log(`\n${province} Province:`);
+      console.log(
+        `  Prime Rate: ${savedRates[province].prime.rate}% (${savedRates[province].prime.lender})`
+      );
+
       console.log(`  3-Year Fixed:`);
       console.log(
-        `    <65% LTV: ${savedRates[province].threeYrFixed.under65}%`
+        `    <65% LTV: ${savedRates[province].threeYrFixed.under65.rate}% (${savedRates[province].threeYrFixed.under65.lender})`
       );
       console.log(
-        `    65-70% LTV: ${savedRates[province].threeYrFixed.under70}%`
+        `    65-70% LTV: ${savedRates[province].threeYrFixed.under70.rate}% (${savedRates[province].threeYrFixed.under70.lender})`
       );
       console.log(
-        `    70-75% LTV: ${savedRates[province].threeYrFixed.under75}%`
+        `    70-75% LTV: ${savedRates[province].threeYrFixed.under75.rate}% (${savedRates[province].threeYrFixed.under75.lender})`
       );
       console.log(
-        `    75-80% LTV: ${savedRates[province].threeYrFixed.under80}%`
+        `    75-80% LTV: ${savedRates[province].threeYrFixed.under80.rate}% (${savedRates[province].threeYrFixed.under80.lender})`
       );
-      console.log(`    >80% LTV: ${savedRates[province].threeYrFixed.over80}%`);
       console.log(
-        `    Refinance: ${savedRates[province].threeYrFixed.refinance}%`
+        `    >80% LTV: ${savedRates[province].threeYrFixed.over80.rate}% (${savedRates[province].threeYrFixed.over80.lender})`
+      );
+      console.log(
+        `    Refinance <25yr: ${savedRates[province].threeYrFixed.refinance.under25.rate}% (${savedRates[province].threeYrFixed.refinance.under25.lender})`
+      );
+      console.log(
+        `    Refinance >25yr: ${savedRates[province].threeYrFixed.refinance.over25.rate}% (${savedRates[province].threeYrFixed.refinance.over25.lender})`
+      );
+
+      console.log(`  4-Year Fixed:`);
+      console.log(
+        `    <65% LTV: ${savedRates[province].fourYrFixed.under65.rate}% (${savedRates[province].fourYrFixed.under65.lender})`
+      );
+      console.log(
+        `    >80% LTV: ${savedRates[province].fourYrFixed.over80.rate}% (${savedRates[province].fourYrFixed.over80.lender})`
+      );
+      console.log(
+        `    Refinance <25yr: ${savedRates[province].fourYrFixed.refinance.under25.rate}% (${savedRates[province].fourYrFixed.refinance.under25.lender})`
+      );
+      console.log(
+        `    Refinance >25yr: ${savedRates[province].fourYrFixed.refinance.over25.rate}% (${savedRates[province].fourYrFixed.refinance.over25.lender})`
       );
 
       console.log(`  5-Year Fixed:`);
-      console.log(`    <65% LTV: ${savedRates[province].fiveYrFixed.under65}%`);
-      console.log(`    >80% LTV: ${savedRates[province].fiveYrFixed.over80}%`);
       console.log(
-        `    Refinance: ${savedRates[province].fiveYrFixed.refinance}%`
-      );
-
-      console.log(`  Variable Rates:`);
-      console.log(
-        `    3-Yr <65% LTV: ${savedRates[province].threeYrVariable.under65}%`
+        `    <65% LTV: ${savedRates[province].fiveYrFixed.under65.rate}% (${savedRates[province].fiveYrFixed.under65.lender})`
       );
       console.log(
-        `    5-Yr >80% LTV: ${savedRates[province].fiveYrVariable.over80}%`
+        `    >80% LTV: ${savedRates[province].fiveYrFixed.over80.rate}% (${savedRates[province].fiveYrFixed.over80.lender})`
       );
       console.log(
-        `    5-Yr Refinance: ${savedRates[province].fiveYrVariable.refinance}%`
+        `    Refinance <25yr: ${savedRates[province].fiveYrFixed.refinance.under25.rate}% (${savedRates[province].fiveYrFixed.refinance.under25.lender})`
+      );
+      console.log(
+        `    Refinance >25yr: ${savedRates[province].fiveYrFixed.refinance.over25.rate}% (${savedRates[province].fiveYrFixed.refinance.over25.lender})`
       );
     });
-    console.log(`\nPrime Rate: ${savedRates.prime}%`);
   } catch (error) {
     console.error("❌ Error inserting rates:", error.message);
   } finally {

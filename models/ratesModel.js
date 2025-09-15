@@ -6,131 +6,73 @@ const roundToTwoDecimals = (value) => {
   return Math.round(parseFloat(value) * 100) / 100;
 };
 
-// Reusable rate field definition with 2 decimal place formatting
-const rateField = {
-  type: Number,
-  set: roundToTwoDecimals,
-  get: roundToTwoDecimals,
-};
+// Define a rate-lender pair schema
+const rateLenderSchema = new mongoose.Schema({
+  rate: {
+    type: Number,
+    set: roundToTwoDecimals,
+    get: roundToTwoDecimals,
+    required: true
+  },
+  lender: {
+    type: String,
+    default: "Default Lender",
+    required: true
+  }
+}, { _id: false });
 
-// Reusable LTV rate structure
-const ltvRateStructure = {
-  under65: rateField,
-  under70: rateField,
-  under75: rateField,
-  under80: rateField,
-  over80: rateField,
-  refinance: rateField,
-};
+// Define refinance structure
+const refinanceSchema = new mongoose.Schema({
+  under25: rateLenderSchema,
+  over25: rateLenderSchema,
+}, { _id: false });
+
+// Define LTV structure with refinance
+const ltvRateSchema = new mongoose.Schema({
+  under65: rateLenderSchema,
+  under70: rateLenderSchema,
+  under75: rateLenderSchema,
+  under80: rateLenderSchema,
+  over80: rateLenderSchema,
+  refinance: refinanceSchema,
+}, { _id: false });
+
+// Define province structure
+const provinceSchema = new mongoose.Schema({
+  threeYrFixed: ltvRateSchema,
+  fourYrFixed: ltvRateSchema,
+  fiveYrFixed: ltvRateSchema,
+  prime: rateLenderSchema,
+}, { _id: false });
 
 const rateSchema = new mongoose.Schema(
   {
     // Alberta
-    AB: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    AB: provinceSchema,
     // British Columbia
-    BC: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    BC: provinceSchema,
     // Manitoba
-    MB: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    MB: provinceSchema,
     // New Brunswick
-    NB: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    NB: provinceSchema,
     // Newfoundland and Labrador
-    NL: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    NL: provinceSchema,
     // Nova Scotia
-    NS: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    NS: provinceSchema,
     // Northwest Territories
-    NT: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    NT: provinceSchema,
     // Nunavut
-    NU: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    NU: provinceSchema,
     // Ontario
-    ON: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    ON: provinceSchema,
     // Prince Edward Island
-    PE: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    PE: provinceSchema,
     // Quebec
-    QC: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    QC: provinceSchema,
     // Saskatchewan
-    SK: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
+    SK: provinceSchema,
     // Yukon Territory
-    YT: {
-      threeYrFixed: ltvRateStructure,
-      fourYrFixed: ltvRateStructure,
-      fiveYrFixed: ltvRateStructure,
-      threeYrVariable: ltvRateStructure,
-      fiveYrVariable: ltvRateStructure,
-    },
-
-    prime: rateField,
+    YT: provinceSchema,
   },
   {
     collection: "Rates",
