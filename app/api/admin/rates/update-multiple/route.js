@@ -62,119 +62,144 @@ export async function POST(request) {
     // First, update the source province with the current form values
     console.log(`Updating source province: ${sourceProvinceCode}`);
 
-    ["threeYrFixed", "fourYrFixed", "fiveYrFixed", "prime"].forEach(
-      (rateType) => {
-        if (sourceData[rateType]) {
-          if (rateType === "prime") {
-            // For prime, copy the rate/lender object directly
-            updateObj[`${sourceProvinceCode}.${rateType}`] = {
-              rate: sourceData[rateType].rate,
-              lender: sourceData[rateType].lender,
-            };
-            console.log(
-              `Set ${sourceProvinceCode}.${rateType}:`,
-              updateObj[`${sourceProvinceCode}.${rateType}`]
-            );
-          } else {
-            // Handle fixed rate types with LTV structure
-            ["under65", "under70", "under75", "under80", "over80"].forEach(
-              (ltvKey) => {
-                if (sourceData[rateType][ltvKey]) {
-                  updateObj[`${sourceProvinceCode}.${rateType}.${ltvKey}`] = {
-                    rate: sourceData[rateType][ltvKey].rate,
-                    lender: sourceData[rateType][ltvKey].lender,
-                  };
-                  console.log(
-                    `Set ${sourceProvinceCode}.${rateType}.${ltvKey}:`,
-                    updateObj[`${sourceProvinceCode}.${rateType}.${ltvKey}`]
-                  );
-                }
+    [
+      "threeYrFixed",
+      "fourYrFixed",
+      "fiveYrFixed",
+      "threeYrVariable",
+      "fiveYrVariable",
+    ].forEach((rateType) => {
+      if (sourceData[rateType]) {
+        // Handle both fixed and variable rate types with LTV structure
+        ["under65", "under70", "under75", "under80", "over80"].forEach(
+          (ltvKey) => {
+            if (sourceData[rateType][ltvKey]) {
+              if (rateType.includes("Variable")) {
+                // For variable rates, use adjustment instead of rate
+                updateObj[`${sourceProvinceCode}.${rateType}.${ltvKey}`] = {
+                  adjustment: sourceData[rateType][ltvKey].adjustment,
+                  lender: sourceData[rateType][ltvKey].lender,
+                };
+              } else {
+                // For fixed rates, use rate
+                updateObj[`${sourceProvinceCode}.${rateType}.${ltvKey}`] = {
+                  rate: sourceData[rateType][ltvKey].rate,
+                  lender: sourceData[rateType][ltvKey].lender,
+                };
               }
-            );
-
-            // Handle refinance structure
-            if (sourceData[rateType].refinance) {
-              ["under25", "over25"].forEach((refinanceKey) => {
-                if (sourceData[rateType].refinance[refinanceKey]) {
-                  updateObj[
-                    `${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}`
-                  ] = {
-                    rate: sourceData[rateType].refinance[refinanceKey].rate,
-                    lender: sourceData[rateType].refinance[refinanceKey].lender,
-                  };
-                  console.log(
-                    `Set ${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}:`,
-                    updateObj[
-                      `${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}`
-                    ]
-                  );
-                }
-              });
+              console.log(
+                `Set ${sourceProvinceCode}.${rateType}.${ltvKey}:`,
+                updateObj[`${sourceProvinceCode}.${rateType}.${ltvKey}`]
+              );
             }
           }
+        );
+
+        // Handle refinance structure
+        if (sourceData[rateType].refinance) {
+          ["under25", "over25"].forEach((refinanceKey) => {
+            if (sourceData[rateType].refinance[refinanceKey]) {
+              if (rateType.includes("Variable")) {
+                // For variable rates, use adjustment instead of rate
+                updateObj[
+                  `${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}`
+                ] = {
+                  adjustment:
+                    sourceData[rateType].refinance[refinanceKey].adjustment,
+                  lender: sourceData[rateType].refinance[refinanceKey].lender,
+                };
+              } else {
+                // For fixed rates, use rate
+                updateObj[
+                  `${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}`
+                ] = {
+                  rate: sourceData[rateType].refinance[refinanceKey].rate,
+                  lender: sourceData[rateType].refinance[refinanceKey].lender,
+                };
+              }
+              console.log(
+                `Set ${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}:`,
+                updateObj[
+                  `${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}`
+                ]
+              );
+            }
+          });
         }
       }
-    );
+    });
 
     // Then, copy the same rates to all target provinces
     targetProvinceCodes.forEach((targetProvinceCode) => {
       console.log(`Processing target province: ${targetProvinceCode}`);
 
       // Copy all rate types from source to target
-      ["threeYrFixed", "fourYrFixed", "fiveYrFixed", "prime"].forEach(
-        (rateType) => {
-          if (sourceData[rateType]) {
-            if (rateType === "prime") {
-              // For prime, copy the rate/lender object directly
-              updateObj[`${targetProvinceCode}.${rateType}`] = {
-                rate: sourceData[rateType].rate,
-                lender: sourceData[rateType].lender,
-              };
-              console.log(
-                `Set ${targetProvinceCode}.${rateType}:`,
-                updateObj[`${targetProvinceCode}.${rateType}`]
-              );
-            } else {
-              // Handle fixed rate types with LTV structure
-              ["under65", "under70", "under75", "under80", "over80"].forEach(
-                (ltvKey) => {
-                  if (sourceData[rateType][ltvKey]) {
-                    updateObj[`${targetProvinceCode}.${rateType}.${ltvKey}`] = {
-                      rate: sourceData[rateType][ltvKey].rate,
-                      lender: sourceData[rateType][ltvKey].lender,
-                    };
-                    console.log(
-                      `Set ${targetProvinceCode}.${rateType}.${ltvKey}:`,
-                      updateObj[`${targetProvinceCode}.${rateType}.${ltvKey}`]
-                    );
-                  }
+      [
+        "threeYrFixed",
+        "fourYrFixed",
+        "fiveYrFixed",
+        "threeYrVariable",
+        "fiveYrVariable",
+      ].forEach((rateType) => {
+        if (sourceData[rateType]) {
+          // Handle both fixed and variable rate types with LTV structure
+          ["under65", "under70", "under75", "under80", "over80"].forEach(
+            (ltvKey) => {
+              if (sourceData[rateType][ltvKey]) {
+                if (rateType.includes("Variable")) {
+                  // For variable rates, use adjustment instead of rate
+                  updateObj[`${targetProvinceCode}.${rateType}.${ltvKey}`] = {
+                    adjustment: sourceData[rateType][ltvKey].adjustment,
+                    lender: sourceData[rateType][ltvKey].lender,
+                  };
+                } else {
+                  // For fixed rates, use rate
+                  updateObj[`${targetProvinceCode}.${rateType}.${ltvKey}`] = {
+                    rate: sourceData[rateType][ltvKey].rate,
+                    lender: sourceData[rateType][ltvKey].lender,
+                  };
                 }
-              );
-
-              // Handle refinance structure
-              if (sourceData[rateType].refinance) {
-                ["under25", "over25"].forEach((refinanceKey) => {
-                  if (sourceData[rateType].refinance[refinanceKey]) {
-                    updateObj[
-                      `${targetProvinceCode}.${rateType}.refinance.${refinanceKey}`
-                    ] = {
-                      rate: sourceData[rateType].refinance[refinanceKey].rate,
-                      lender:
-                        sourceData[rateType].refinance[refinanceKey].lender,
-                    };
-                    console.log(
-                      `Set ${targetProvinceCode}.${rateType}.refinance.${refinanceKey}:`,
-                      updateObj[
-                        `${targetProvinceCode}.${rateType}.refinance.${refinanceKey}`
-                      ]
-                    );
-                  }
-                });
+                console.log(
+                  `Set ${targetProvinceCode}.${rateType}.${ltvKey}:`,
+                  updateObj[`${targetProvinceCode}.${rateType}.${ltvKey}`]
+                );
               }
             }
+          );
+
+          // Handle refinance structure
+          if (sourceData[rateType].refinance) {
+            ["under25", "over25"].forEach((refinanceKey) => {
+              if (sourceData[rateType].refinance[refinanceKey]) {
+                if (rateType.includes("Variable")) {
+                  // For variable rates, use adjustment instead of rate
+                  updateObj[
+                    `${targetProvinceCode}.${rateType}.refinance.${refinanceKey}`
+                  ] = {
+                    adjustment:
+                      sourceData[rateType].refinance[refinanceKey].adjustment,
+                    lender: sourceData[rateType].refinance[refinanceKey].lender,
+                  };
+                } else {
+                  // For fixed rates, use rate
+                  updateObj[
+                    `${targetProvinceCode}.${rateType}.refinance.${refinanceKey}`
+                  ] = {
+                    rate: sourceData[rateType].refinance[refinanceKey].rate,
+                    lender: sourceData[rateType].refinance[refinanceKey].lender,
+                  };
+                }
+                console.log(
+                  `Set ${targetProvinceCode}.${rateType}.refinance.${refinanceKey}:`,
+                  updateObj[
+                    `${targetProvinceCode}.${rateType}.refinance.${refinanceKey}`
+                  ]
+                );
+              }
+            });
           }
         }
-      );
+      });
     });
 
     console.log("Final update object keys:", Object.keys(updateObj));

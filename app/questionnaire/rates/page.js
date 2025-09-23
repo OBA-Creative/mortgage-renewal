@@ -198,7 +198,7 @@ export default function RatesPage() {
   const r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
   const r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
   const r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
-  
+
   // Variable rates: calculate from prime rate with discounts
   const primeRate = cityBasedRates.prime?.rate || 0;
   const r3V = Math.max(0, primeRate - 0.8); // 3-year variable = prime - 0.8%

@@ -239,6 +239,47 @@ export default function AdminLogin() {
             </div>
           )}
 
+          {/* Prime Rate Card */}
+          {rates && (
+            <div className="mb-8">
+              <div className="bg-gray-100 border-gray-300 border rounded-lg shadow-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div>
+                      <h2 className="text-2xl font-bold">Prime Rate</h2>
+                      <p>National benchmark rate for variable mortgages</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <button
+                      onClick={openPrimeModal}
+                      className="text-gray-400 cursor-pointer"
+                    >
+                      <svg
+                        className="w-4 h-4 "
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </button>
+                    <div className="flex items-center justify-end mb-2">
+                      <div className="text-4xl font-bold">
+                        {formatRate(rates.prime)}%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Provincial Rates Grid */}
           {rates && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -247,6 +288,7 @@ export default function AdminLogin() {
                   key={province.code}
                   province={province}
                   rates={rates[province.code]}
+                  primeRate={rates.prime}
                 />
               ))}
             </div>
