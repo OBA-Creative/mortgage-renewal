@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { HelpCircle } from "lucide-react";
+import LabelWithHelper from "./label-with-helper";
 
 const formatNumber = (value) => {
   // Remove all non-digit characters first
@@ -50,18 +50,11 @@ export default function DollarInput({
   const rules = requiredText ? { required: requiredText } : undefined;
   return (
     <div className="flex flex-col space-y-2">
-      <div className="flex items-center justify-between">
-        <label htmlFor="propertyValue" className="text-xl font-semibold">
-          {label}
-        </label>
-        <button
-          type="button"
-          onClick={() => toggleHelp(id)}
-          className="p-1 rounded-full hover:bg-blue-600 cursor-pointer hover:text-white text-gray-500"
-        >
-          <HelpCircle className="w-6 h-6" />
-        </button>
-      </div>
+      <LabelWithHelper
+        htmlFor={id}
+        label={label}
+        onHelpClick={() => toggleHelp(id)}
+      />
       {activeHelp === id && (
         <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
           {helpTexts}

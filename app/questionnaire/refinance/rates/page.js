@@ -179,30 +179,32 @@ export default function RatesPage() {
     );
   }
 
-  // Calculate the LTV based on property value
-  const propVal = sanitizeMoney(formData?.propertyValue) || 0;
-  let rateCategory = "over80"; // Default to highest rate
+  // For refinance page, always use refinance rates based on amortization period
+  // under25 = amortization period under 25 years (more than 25% equity remaining)
+  // over25 = amortization period 25+ years (less than 25% equity remaining)
+  const refinanceCategory = yearsNum < 25 ? "under25" : "over25";
 
-  if (propVal > 0) {
-    const ltv = (totalMortgageRequired / propVal) * 100;
+  // Get refinance rates for the user's province
+  const r3F =
+    cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.rate || 0;
+  const r4F =
+    cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.rate || 0;
+  const r5F =
+    cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.rate || 0;
 
-    if (ltv <= 65) rateCategory = "under65";
-    else if (ltv <= 70) rateCategory = "under70";
-    else if (ltv <= 75) rateCategory = "under75";
-    else if (ltv <= 80) rateCategory = "under80";
-    else rateCategory = "over80";
-  }
+  // Get refinance variable rate adjustments
+  const r3VAdjustment =
+    cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]?.adjustment ||
+    0;
+  const r5VAdjustment =
+    cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]?.adjustment ||
+    0;
 
-  // Get the specific rates for the LTV category
-  // Fixed rates: extract rate value from rate/lender object
-  const r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
-  const r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
-  const r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
+  // Variable rates: calculate from prime rate with stored refinance adjustments
+  const globalPrimeRate = prime || 0; // Use global prime rate from API
 
-  // Variable rates: calculate from prime rate with discounts
-  const primeRate = cityBasedRates.prime?.rate || 0;
-  const r3V = Math.max(0, primeRate - 0.8); // 3-year variable = prime - 0.8%
-  const r5V = Math.max(0, primeRate - 0.9); // 5-year variable = prime - 0.9%
+  const r3V = Math.max(0, globalPrimeRate + r3VAdjustment);
+  const r5V = Math.max(0, globalPrimeRate + r5VAdjustment);
 
   // Calculate monthly payments
   const pay3F = calcMonthlyPayment(totalMortgageRequired, r3F, yearsNum);
@@ -225,7 +227,7 @@ export default function RatesPage() {
     <div className="flex flex-col items-center ">
       <div className=" mx-auto px-4 py-8 text-center space-y-4">
         <h1 className="text-4xl font-semibold ">
-          Here are the best rates that match your profile
+          Here are the best refinance rates that match your profile
         </h1>
         <p className="text-xl">
           If we lock in your rate today, you will be protected from future rate

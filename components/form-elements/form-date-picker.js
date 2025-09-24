@@ -1,5 +1,6 @@
 import { Controller } from "react-hook-form";
 import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import { HelpCircle } from "lucide-react";
 import { useCallback, useState } from "react";
@@ -43,16 +44,27 @@ export default function FormDatePicker({
       <Controller
         control={control}
         name={id}
-        rules={{ required: "Maturity date is required" }}
+        rules={rules}
         render={({ field }) => (
-          <DatePicker
-            id={id}
-            placeholderText="MM‑DD‑YYYY"
-            selected={field.value}
-            onChange={(date) => field.onChange(date)}
-            dateFormat="MM-dd-yyyy"
-            className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
-          />
+          <div className="react-datepicker-wrapper">
+            <DatePicker
+              id={id}
+              placeholderText="MM‑DD‑YYYY"
+              selected={field.value}
+              onChange={(date) => field.onChange(date)}
+              dateFormat="MM-dd-yyyy"
+              showMonthDropdown
+              showYearDropdown
+              dropdownMode="select"
+              yearDropdownItemNumber={15}
+              scrollableYearDropdown
+              showPopperArrow={false}
+              previousMonthButtonLabel=""
+              nextMonthButtonLabel=""
+              disabledKeyboardNavigation
+              className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
+            />
+          </div>
         )}
       />
       {error && <p className="text-red-600 mt-1">{error.message}</p>}

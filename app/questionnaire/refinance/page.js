@@ -9,6 +9,10 @@ import { useCallback, useState, useEffect } from "react";
 import DollarInput from "@/components/form-elements/dollar-input";
 
 const helpTexts = {
+  propertyUsage:
+    "Select how you currently use your property. This affects the rates and terms available to you.",
+  heloc:
+    "A Home Equity Line of Credit (HELOC) is a flexible borrowing option secured by your home's equity. Let us know if you currently have one.",
   helocBalance:
     "Enter your current HELOC balance. This is the amount you currently owe on your HELOC.",
 };
@@ -108,6 +112,7 @@ export default function PropertyPage() {
           options={usageOptions}
           register={register}
           requiredText="Select how you use your property"
+          helpTexts={helpTexts.propertyUsage}
           error={errors.propertyUsage}
         />
         {/* HELOC Question */}
@@ -118,6 +123,7 @@ export default function PropertyPage() {
             requiredText="Select an option"
             label="Do you have a HELOC?"
             options={helocOptions}
+            helpTexts={helpTexts.heloc}
             error={errors.heloc}
           />
 

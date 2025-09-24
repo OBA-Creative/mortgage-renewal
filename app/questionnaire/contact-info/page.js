@@ -19,6 +19,14 @@ export default function ContactInfoPage() {
     },
   });
 
+  const helpTexts = {
+    name: "Enter your full legal name as it appears on your identification and mortgage documents.",
+    phone:
+      "Provide a phone number where we can reach you to discuss your mortgage renewal options.",
+    email:
+      "Enter your primary email address where we can send you rate information and updates about your renewal.",
+  };
+
   const router = useRouter();
 
   const onSubmit = (data) => {
@@ -40,6 +48,7 @@ export default function ContactInfoPage() {
           id="name"
           register={register}
           requiredText="Name is required"
+          helpTexts={helpTexts.name}
           error={errors.name}
         />
 
@@ -50,6 +59,7 @@ export default function ContactInfoPage() {
           id="phone"
           register={register}
           requiredText="Phone number is required"
+          helpTexts={helpTexts.phone}
           error={errors.phone}
         />
 
@@ -60,6 +70,7 @@ export default function ContactInfoPage() {
           id="email"
           register={register}
           requiredText="Email is required"
+          helpTexts={helpTexts.email}
           error={errors.email}
         />
 

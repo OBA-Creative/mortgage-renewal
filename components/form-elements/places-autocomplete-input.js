@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import LabelWithHelper from "./label-with-helper";
 
 // Helper function to get user location from IP
 const getLocationFromIP = async () => {
@@ -56,6 +57,7 @@ export default function PlacesAutocompleteInput({
   provinceFieldId, // 👈 name for the hidden province field
   country = "ca",
   defaultValue = "", // Add default value support
+  helpTexts, // Add helpTexts support
 }) {
   const inputRef = useRef(null);
   const containerRef = useRef(null);
@@ -68,6 +70,7 @@ export default function PlacesAutocompleteInput({
   const [isGoogleMapsReady, setIsGoogleMapsReady] = useState(false);
   const [ipLocation, setIpLocation] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [activeHelp, setActiveHelp] = useState(null);
 
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [lastSelectedLabel, setLastSelectedLabel] = useState("");
@@ -77,6 +80,9 @@ export default function PlacesAutocompleteInput({
   const suppressFetchRef = useRef(false);
   const isSettingDefaultRef = useRef(false);
   const hasInitializedRef = useRef(false);
+
+  const toggleHelp = (key) =>
+    setActiveHelp((prev) => (prev === key ? null : key));
 
   const rules = requiredText ? { required: requiredText } : undefined;
   const { ref: registerRef, ...registerRest } = register(id, rules);
@@ -402,9 +408,16 @@ export default function PlacesAutocompleteInput({
 
   return (
     <div className="flex flex-col space-y-2" ref={containerRef}>
-      <label htmlFor={id} className="text-xl font-semibold">
-        {label}
-      </label>
+      <LabelWithHelper
+        htmlFor={id}
+        label={label}
+        onHelpClick={helpTexts ? () => toggleHelp(id) : undefined}
+      />
+      {activeHelp === id && helpTexts && (
+        <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+          {helpTexts}
+        </div>
+      )}
 
       {/* visible input */}
       <input
@@ -414,7 +427,7 @@ export default function PlacesAutocompleteInput({
         ref={mergedRef}
         className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
         autoComplete="off"
-        value={query}
+        value={query || ""} // Ensure value is always a string
         disabled={!isGoogleMapsReady || isLoadingLocation}
         placeholder={
           isLoadingLocation

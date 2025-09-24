@@ -64,12 +64,21 @@ export default function MortgagePage() {
   ]);
 
   const helpTexts = {
+    city: "Enter your city to help us provide accurate local mortgage rates and connect you with lenders in your area. We'll auto-detect your location, but you can change it as needed.",
     lender:
-      "Select your current lender from the list, or pick 'Other' to specify a different one.",
-    propertyValue: "Enter the current market value of your property.",
+      "Select your current mortgage lender from the list. This helps us understand your current mortgage terms and available renewal options.",
+    propertyValue:
+      "Enter the current market value of your property. This can be based on a recent appraisal or your best estimate of current market conditions.",
     mortgageBalance:
-      "Enter your outstanding mortgage balance at the time of renewal.",
-    maturityDate: "Provide the date when your current mortgage term expires.",
+      "Enter the remaining balance on your current mortgage. You can find this on your most recent mortgage statement or by contacting your lender.",
+    borrowAdditionalFunds:
+      "You may be eligible to borrow additional funds against your home's equity. This can be used for renovations, debt consolidation, or other financial needs.",
+    borrowAdditionalAmount:
+      "Enter the amount you'd like to borrow. The maximum is calculated based on 80% of your property value minus your current mortgage and HELOC balances.",
+    amortizationPeriod:
+      "Enter the remaining years left on your current amortization schedule. This affects your payment amount and available rates.",
+    maturityDate:
+      "This is the date when your current mortgage term expires and you'll need to renew. You can find this date on your mortgage documents or statement.",
   };
 
   const toggleHelp = useCallback(
@@ -188,7 +197,7 @@ export default function MortgagePage() {
       };
       setFormData({ ...formData, ...payload });
       console.log("Mortgage data:", payload);
-      router.push("/questionnaire/rates");
+      router.push("/questionnaire/refinance/rates");
     },
     [formData, router, setFormData]
   );
@@ -222,6 +231,7 @@ export default function MortgagePage() {
           clearErrors={clearErrors}
           provinceFieldId="province" // 👈 hidden field name
           defaultValue={formData?.city || ""}
+          helpTexts={helpTexts.city}
         />
 
         {/* Lender Select */}
@@ -233,6 +243,7 @@ export default function MortgagePage() {
             disabledText="Select your lender"
             register={register}
             requiredText="Select a lender"
+            helpTexts={helpTexts.lender}
             error={errors.lender}
           />
 
@@ -288,6 +299,7 @@ export default function MortgagePage() {
               register={register}
               requiredText="Select an option"
               options={helocOptions}
+              helpTexts={helpTexts.borrowAdditionalFunds}
               error={errors.borrowAdditionalFunds}
             />
             {/* Conditional borrow table*/}
@@ -314,6 +326,7 @@ export default function MortgagePage() {
                 setValueState={setBorrowInput}
                 register={register}
                 requiredText="Current mortgage balance is required"
+                helpTexts={helpTexts.borrowAdditionalAmount}
                 error={errors.borrowAdditionalAmount}
                 defaultValue={formData?.borrowAdditionalAmount}
               />
@@ -339,6 +352,7 @@ export default function MortgagePage() {
           type="number"
           register={register}
           requiredText="Please enter remaining amortization"
+          helpTexts={helpTexts.amortizationPeriod}
           error={errors.amortizationPeriod}
         />
 

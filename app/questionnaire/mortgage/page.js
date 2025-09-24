@@ -31,11 +31,16 @@ export default function MortgagePage() {
   });
 
   const helpTexts = {
-    belowOneMillion: "Select yes or no",
-    lender: "Select your lender",
-    mortgageBalance: "Enter your current mortgage balance",
-    otherLender: "Enter the name of your lender",
-    maturityDate: "Enter the maturity date of your mortgage",
+    belowOneMillion:
+      "This information helps determine which mortgage stress test rules apply to you. Properties under $1M have different qualification requirements.",
+    lender:
+      "Select your current mortgage lender from the list. This helps us understand your current mortgage terms and available renewal options.",
+    mortgageBalance:
+      "Enter the remaining balance on your current mortgage. You can find this on your most recent mortgage statement or by contacting your lender.",
+    otherLender:
+      "Enter the name of your mortgage lender if it wasn't listed in the dropdown menu above.",
+    maturityDate:
+      "This is the date when your current mortgage term expires and you'll need to renew. You can find this date on your mortgage documents or statement.",
   };
 
   const router = useRouter();
@@ -77,6 +82,7 @@ export default function MortgagePage() {
           requiredText="Select yes or no"
           label="Was the property value below $1M at purchase?"
           options={yesNoOptions}
+          helpTexts={helpTexts.belowOneMillion}
           error={errors.belowOneMillion}
         />
 
@@ -102,6 +108,7 @@ export default function MortgagePage() {
             disabledText="Select your lender"
             register={register}
             requiredText="Select a lender"
+            helpTexts={helpTexts.lender}
             error={errors.lender}
           />
 
@@ -113,6 +120,7 @@ export default function MortgagePage() {
               label="Please specify your lender"
               register={register}
               requiredText="Please specify your lender"
+              helpTexts={helpTexts.otherLender}
               error={errors.otherLender}
             />
           )}

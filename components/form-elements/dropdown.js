@@ -1,3 +1,6 @@
+import { useState } from "react";
+import LabelWithHelper from "./label-with-helper";
+
 export default function Dropdown({
   id,
   label,
@@ -6,13 +9,27 @@ export default function Dropdown({
   register,
   requiredText,
   error,
+  helpTexts,
 }) {
+  const [activeHelp, setActiveHelp] = useState(null);
+
+  const toggleHelp = (key) =>
+    setActiveHelp((prev) => (prev === key ? null : key));
+
   const rules = requiredText ? { required: requiredText } : undefined;
+
   return (
     <div className="flex flex-col space-y-2">
-      <label htmlFor={id} className="text-xl font-semibold">
-        {label}
-      </label>
+      <LabelWithHelper
+        htmlFor={id}
+        label={label}
+        onHelpClick={() => toggleHelp(id)}
+      />
+      {activeHelp === id && helpTexts && (
+        <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+          {helpTexts}
+        </div>
+      )}
       <div className="relative border rounded-md border-gray-300 bg-white">
         <select
           id={id}

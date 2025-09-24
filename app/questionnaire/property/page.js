@@ -9,14 +9,21 @@ import { useState } from "react";
 export default function PropertyPage() {
   const [activeHelp, setActiveHelp] = useState(null);
   const [propertyValue, setPropertyValue] = useState("");
+  const [helocBalance, setHelocBalance] = useState("");
 
   const helpTexts = {
     city: "Enter the city where your property is located.",
-    usage: "Select the current use case for your property.",
-    purchasePrice: "Enter the purchase price of your property.",
-    heloc: "Do you have a HELOC?",
-    helocBalance: "Enter your current HELOC balance.",
-    propertyValue: "Enter the current value of your property.",
+    usage:
+      "Select how you currently use your property. This affects the mortgage rates and terms available to you. Primary residence typically offers the best rates.",
+    downpaymentOption:
+      "Tell us about your original downpayment. This helps us understand your current loan-to-value ratio and determines available refinancing options.",
+    purchasePrice:
+      "Enter the current market value of your property based on recent assessments or comparable sales in your area.",
+    heloc:
+      "A Home Equity Line of Credit (HELOC) is a revolving credit line secured by your home's equity. Let us know if you currently have one.",
+    helocBalance:
+      "Enter the current outstanding balance on your HELOC. This will be included in your total debt calculations.",
+    propertyValue: "Enter the current estimated market value of your property.",
   };
 
   const {
@@ -69,6 +76,7 @@ export default function PropertyPage() {
           requiredText="Select usage"
           label="How do you use your property?"
           options={usageOptions}
+          helpTexts={helpTexts.usage}
           error={errors.usage}
         />
 
@@ -79,6 +87,7 @@ export default function PropertyPage() {
           requiredText="Select down payment option"
           label="How much was your downpayment?"
           options={downpaymentOptions}
+          helpTexts={helpTexts.downpaymentOption}
           error={errors.downpaymentOption}
         />
         {/* HELOC Question */}
@@ -89,33 +98,22 @@ export default function PropertyPage() {
             requiredText="Select an option"
             label="Do you have a HELOC?"
             options={helocOptions}
+            helpTexts={helpTexts.heloc}
             error={errors.heloc}
           />
 
           {heloc === "yes" && (
-            <div className="flex flex-col space-y-2">
-              <label htmlFor="helocBalance" className="text-2xl block">
-                What is your current HELOC balance?
-              </label>
-              <div className="relative border rounded-md border-gray-300 bg-white">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-lg text-gray-400">
-                  $
-                </span>
-                <input
-                  id="helocBalance"
-                  {...register("helocBalance", {
-                    required: "HELOC balance is required",
-                    valueAsNumber: true,
-                  })}
-                  className="w-full rounded-md pl-7 pr-5 py-4 text-lg"
-                />
-              </div>
-              {errors.helocBalance && (
-                <p className="text-red-600 mt-1">
-                  {errors.helocBalance.message}
-                </p>
-              )}
-            </div>
+            <DollarInput
+              id="helocBalance"
+              label="What is your current HELOC balance?"
+              setValue={setValue}
+              valueState={helocBalance}
+              setValueState={setHelocBalance}
+              register={register}
+              requiredText="HELOC balance is required"
+              helpTexts={helpTexts.helocBalance}
+              error={errors.helocBalance}
+            />
           )}
         </div>
 

@@ -1,3 +1,6 @@
+import { useState } from "react";
+import LabelWithHelper from "./label-with-helper";
+
 export default function TextInput({
   type = "text",
   label,
@@ -8,8 +11,14 @@ export default function TextInput({
   error,
   defaultValue = "", // Add default prop
   placeholder = "", // Add placeholder support
+  helpTexts, // Extract helpTexts to prevent DOM attribute error
   ...rest // Allow other props to pass through
 }) {
+  const [activeHelp, setActiveHelp] = useState(null);
+
+  const toggleHelp = (key) =>
+    setActiveHelp((prev) => (prev === key ? null : key));
+
   // Combine required rule with custom validation rules
   const rules = requiredText
     ? { required: requiredText, ...validationRules }
@@ -17,9 +26,16 @@ export default function TextInput({
 
   return (
     <div className="flex flex-col space-y-2">
-      <label htmlFor={id} className="text-xl font-semibold">
-        {label}
-      </label>
+      <LabelWithHelper
+        htmlFor={id}
+        label={label}
+        onHelpClick={helpTexts ? () => toggleHelp(id) : undefined}
+      />
+      {activeHelp === id && helpTexts && (
+        <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+          {helpTexts}
+        </div>
+      )}
       <input
         id={id}
         type={type}

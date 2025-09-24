@@ -182,9 +182,14 @@ export default function RatesPage() {
   // Calculate the LTV based on property value
   const propVal = sanitizeMoney(formData?.propertyValue) || 0;
   let rateCategory = "over80"; // Default to highest rate
+  let isRefinance = false; // Determine if refinance rates should be used
+  let ltv = 0; // Initialize LTV
 
   if (propVal > 0) {
-    const ltv = (totalMortgageRequired / propVal) * 100;
+    ltv = (totalMortgageRequired / propVal) * 100;
+
+    // Determine if this is a refinance scenario (typically over 80% LTV)
+    isRefinance = ltv > 80;
 
     if (ltv <= 65) rateCategory = "under65";
     else if (ltv <= 70) rateCategory = "under70";
@@ -194,15 +199,53 @@ export default function RatesPage() {
   }
 
   // Get the specific rates for the LTV category
-  // Fixed rates: extract rate value from rate/lender object
-  const r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
-  const r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
-  const r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
+  // For refinance scenarios with high LTV, use refinance rates
+  let r3F, r4F, r5F, r3VAdjustment, r5VAdjustment;
 
-  // Variable rates: calculate from prime rate with discounts
-  const primeRate = cityBasedRates.prime?.rate || 0;
-  const r3V = Math.max(0, primeRate - 0.8); // 3-year variable = prime - 0.8%
-  const r5V = Math.max(0, primeRate - 0.9); // 5-year variable = prime - 0.9%
+  if (isRefinance && totalMortgageRequired > 0) {
+    // Use refinance rates for high LTV scenarios
+    const refinanceCategory = ltv > 75 ? "over25" : "under25"; // Refinance has under25% and over25% equity categories
+
+    r3F =
+      cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.rate ||
+      cityBasedRates.threeYrFixed[rateCategory]?.rate ||
+      0;
+    r4F =
+      cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.rate ||
+      cityBasedRates.fourYrFixed[rateCategory]?.rate ||
+      0;
+    r5F =
+      cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.rate ||
+      cityBasedRates.fiveYrFixed[rateCategory]?.rate ||
+      0;
+
+    r3VAdjustment =
+      cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]
+        ?.adjustment ||
+      cityBasedRates.threeYrVariable[rateCategory]?.adjustment ||
+      0;
+    r5VAdjustment =
+      cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]
+        ?.adjustment ||
+      cityBasedRates.fiveYrVariable[rateCategory]?.adjustment ||
+      0;
+  } else {
+    // Use regular rates for standard mortgage scenarios
+    r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
+    r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
+    r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
+
+    r3VAdjustment =
+      cityBasedRates.threeYrVariable[rateCategory]?.adjustment || 0;
+    r5VAdjustment =
+      cityBasedRates.fiveYrVariable[rateCategory]?.adjustment || 0;
+  }
+
+  // Variable rates: calculate from prime rate with stored adjustments
+  const globalPrimeRate = prime || 0; // Use global prime rate from API
+
+  const r3V = Math.max(0, globalPrimeRate + r3VAdjustment);
+  const r5V = Math.max(0, globalPrimeRate + r5VAdjustment);
 
   // Calculate monthly payments
   const pay3F = calcMonthlyPayment(totalMortgageRequired, r3F, yearsNum);
