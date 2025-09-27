@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "setup-admin": "node scripts/setupAdmin.js",
-    "insert-rates": "node scripts/insertTodaysRates.js"
+    "insert-rates": "node scripts/insertTodaysRates.js",
+    "setup-lenders": "node scripts/insertInitialLenders.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

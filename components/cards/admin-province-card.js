@@ -1190,8 +1190,8 @@ const UpdateRatesForm = ({ province, rates, onClose }) => {
 const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
   console.log(`${title} rates:`, rates);
   return (
-    <div className="border-b border-gray-100 pb-3">
-      <h4 className="font-semibold mb-2 text-blue-800 text-xl">{title}</h4>
+    <div>
+      <h4 className="font-semibold mb-2 text-gray-700 ">{title}</h4>
       {!rates ? (
         <div className="text-red-500 text-sm p-3 bg-red-50 rounded">
           ❌ No rates data for {title}
@@ -1201,10 +1201,10 @@ const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
           ⚠️ Empty rates object for {title}
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-2 text-xs">
+        <div className="grid grid-cols-5 gap-2 text-xs">
           <div className="text-center">
             <div className="text-gray-500">≤65%</div>
-            <div className="font-semibold text-blue-800">
+            <div className="font-semibold text-blue-600">
               {primeRate && rates?.under65?.adjustment !== undefined
                 ? (primeRate + rates.under65.adjustment).toFixed(2)
                 : "0.00"}
@@ -1222,7 +1222,7 @@ const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
           </div>
           <div className="text-center">
             <div className="text-gray-500">≤70%</div>
-            <div className="font-semibold text-blue-800">
+            <div className="font-semibold text-blue-600">
               {primeRate && rates?.under70?.adjustment !== undefined
                 ? (primeRate + rates.under70.adjustment).toFixed(2)
                 : "0.00"}
@@ -1240,7 +1240,7 @@ const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
           </div>
           <div className="text-center">
             <div className="text-gray-500">≤75%</div>
-            <div className="font-semibold text-blue-800">
+            <div className="font-semibold text-blue-600">
               {primeRate && rates?.under75?.adjustment !== undefined
                 ? (primeRate + rates.under75.adjustment).toFixed(2)
                 : "0.00"}
@@ -1258,7 +1258,7 @@ const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
           </div>
           <div className="text-center">
             <div className="text-gray-500">≤80%</div>
-            <div className="font-semibold text-blue-800">
+            <div className="font-semibold text-blue-600">
               {primeRate && rates?.under80?.adjustment !== undefined
                 ? (primeRate + rates.under80.adjustment).toFixed(2)
                 : "0.00"}
@@ -1276,7 +1276,7 @@ const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
           </div>
           <div className="text-center">
             <div className="text-gray-500">&gt;80%</div>
-            <div className="font-semibold text-blue-800">
+            <div className="font-semibold text-blue-600">
               {primeRate && rates?.over80?.adjustment !== undefined
                 ? (primeRate + rates.over80.adjustment).toFixed(2)
                 : "0.00"}
@@ -1297,12 +1297,11 @@ const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
 
       {/* Refinance rates section */}
       {rates?.refinance && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="text-gray-600 font-medium mb-2">Refinance Rates</div>
+        <div className="mt-3 bg-blue-50 p-3 rounded">
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div className="text-center">
               <div className="text-gray-500">≤25 years of amortization</div>
-              <div className="font-semibold text-blue-800">
+              <div className="font-semibold text-blue-600">
                 {primeRate &&
                 rates?.refinance?.under25?.adjustment !== undefined
                   ? (primeRate + rates.refinance.under25.adjustment).toFixed(2)
@@ -1321,7 +1320,7 @@ const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
             </div>
             <div className="text-center">
               <div className="text-gray-500">&gt;25 years of amortization</div>
-              <div className="font-semibold text-blue-800">
+              <div className="font-semibold text-blue-600">
                 {primeRate && rates?.refinance?.over25?.adjustment !== undefined
                   ? (primeRate + rates.refinance.over25.adjustment).toFixed(2)
                   : "0.00"}
@@ -1348,12 +1347,12 @@ const RateSection = ({
   title,
   rates,
   titleStyle = "text-gray-700",
-  rateStyle = "font-semibold",
+  rateStyle = "font-semibold text-blue-600",
 }) => {
   console.log(`${title} rates:`, rates);
   return (
-    <div className="border-b border-gray-100 pb-3">
-      <h4 className="font-semibold mb-2 text-blue-600 text-xl">{title}</h4>
+    <div>
+      <h4 className="font-semibold mb-2 text-gray-700">{title}</h4>
       {!rates ? (
         <div className="text-red-500 text-sm p-3 bg-red-50 rounded">
           ❌ No rates data for {title}
@@ -1363,7 +1362,7 @@ const RateSection = ({
           ⚠️ Empty rates object for {title}
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-2 text-xs">
+        <div className="grid grid-cols-5 gap-2 text-xs">
           <div className="text-center">
             <div className="text-gray-500">≤65%</div>
             <div className={rateStyle}>
@@ -1424,8 +1423,7 @@ const RateSection = ({
 
       {/* Refinance rates section */}
       {rates?.refinance && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="text-gray-600  font-medium mb-2">Refinance Rates</div>
+        <div className="mt-2 border-gray-100 bg-blue-50 p-2 rounded">
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div className="text-center">
               <div className="text-gray-500">≤25 years of amortization</div>
