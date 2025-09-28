@@ -16,21 +16,22 @@ export async function GET(request) {
       );
     }
 
-    // Extract just the province data, excluding MongoDB metadata
+    // Extract province data and prime rate, excluding MongoDB metadata
     // Since we used lean(), we already have plain JS objects
-    const { _id, createdAt, updatedAt, __v, ...provincesData } = latestRates;
+    const { _id, createdAt, updatedAt, __v, ...dataWithPrime } = latestRates;
 
     console.log("API Debug - Full object keys:", Object.keys(latestRates));
-    console.log("API Debug - Provinces data keys:", Object.keys(provincesData));
-    console.log("API Debug - Sample province ON:", provincesData.ON);
-    console.log("API Debug - ON threeYrFixed:", provincesData.ON?.threeYrFixed);
-    console.log("API Debug - ON fourYrFixed:", provincesData.ON?.fourYrFixed);
-    console.log("API Debug - ON fiveYrFixed:", provincesData.ON?.fiveYrFixed);
+    console.log(
+      "API Debug - Data with prime keys:",
+      Object.keys(dataWithPrime)
+    );
+    console.log("API Debug - Prime rate:", dataWithPrime.prime);
+    console.log("API Debug - Sample province ON:", dataWithPrime.ON);
 
     return NextResponse.json(
       {
         success: true,
-        rates: provincesData,
+        rates: dataWithPrime, // This now includes both provinces and prime rate
         effectiveDate: latestRates.createdAt,
       },
       { status: 200 }

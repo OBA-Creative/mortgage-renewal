@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import AdminProvinceCard from "../../../components/cards/admin-province-card";
+import { useMortgageStore } from "../../../stores/useMortgageStore";
 
 // Helper function to format rates to always show 2 decimal places
 const formatRate = (rate) => {
@@ -17,10 +18,18 @@ export default function AdminDashboard() {
   const [newPrimeRate, setNewPrimeRate] = useState("");
   const [isPrimeUpdating, setIsPrimeUpdating] = useState(false);
 
-  // Fetch rates when component mounts
+  // Get lender fetching function from store
+  const { fetchLenders } = useMortgageStore();
+
+  // Fetch rates and lenders when component mounts
   useEffect(() => {
-    fetchRates();
-  }, []);
+    const initializeData = async () => {
+      // Fetch both rates and lenders in parallel
+      await Promise.all([fetchRates(), fetchLenders()]);
+    };
+
+    initializeData();
+  }, [fetchLenders]);
 
   const fetchRates = async () => {
     setRatesLoading(true);

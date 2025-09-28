@@ -1,6 +1,8 @@
 "use client";
 
+import { LandmarkIcon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useMortgageStore } from "../../../../stores/useMortgageStore";
 
 export default function LendersPage() {
   const [lenders, setLenders] = useState([]);
@@ -12,6 +14,9 @@ export default function LendersPage() {
   const [togglingLenders, setTogglingLenders] = useState(new Set());
   const [deletingLenders, setDeletingLenders] = useState(new Set());
 
+  // Get cache clearing function from store
+  const { clearLenderCache } = useMortgageStore();
+
   // Fetch lenders when component mounts
   useEffect(() => {
     fetchLenders();
@@ -21,7 +26,8 @@ export default function LendersPage() {
     setIsLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/lenders");
+      // Get both active and inactive lenders for management page
+      const response = await fetch("/api/admin/lenders?activeOnly=false");
       const data = await response.json();
 
       if (data.success) {
@@ -64,6 +70,8 @@ export default function LendersPage() {
         );
         setNewLenderName("");
         setIsAddModalOpen(false);
+        // Clear lender cache so dropdowns get updated data
+        clearLenderCache();
       } else {
         alert("Error: " + data.message);
       }
@@ -104,6 +112,8 @@ export default function LendersPage() {
               : lender
           )
         );
+        // Clear lender cache so dropdowns get updated data
+        clearLenderCache();
       } else {
         alert("Error: " + data.message);
       }
@@ -139,6 +149,8 @@ export default function LendersPage() {
 
       if (data.success) {
         setLenders((prev) => prev.filter((lender) => lender._id !== lenderId));
+        // Clear lender cache so dropdowns get updated data
+        clearLenderCache();
       } else {
         alert("Error: " + data.message);
       }
@@ -163,7 +175,98 @@ export default function LendersPage() {
           Manage mortgage lenders in the system
         </p>
       </div>
+      {/* Summary Stats */}
+      {/*
+      {!isLoading && lenders.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <LandmarkIcon className="w-5 h-5 text-blue-600" />
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Total Lenders
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {lenders.length}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-green-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Active
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {lenders.filter((l) => l.isActive).length}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-red-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Inactive
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {lenders.filter((l) => !l.isActive).length}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      */}
       {/* Add Lender Button */}
       <div className="mb-6">
         <button
@@ -186,14 +289,12 @@ export default function LendersPage() {
           Add New Lender
         </button>
       </div>
-
       {/* Error Message */}
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
           <span className="block sm:inline">{error}</span>
         </div>
       )}
-
       {/* Loading State */}
       {isLoading && (
         <div className="text-center py-12">
@@ -222,7 +323,6 @@ export default function LendersPage() {
           </div>
         </div>
       )}
-
       {/* Lenders List */}
       {!isLoading && (
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -255,19 +355,7 @@ export default function LendersPage() {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <svg
-                            className="h-5 w-5 text-blue-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2-14h10m-5 2v6m3-3H9"
-                            />
-                          </svg>
+                          <LandmarkIcon className="h-6 w-6 text-blue-600" />
                         </div>
                       </div>
                       <div className="ml-4">
@@ -287,14 +375,19 @@ export default function LendersPage() {
                         </div>
                         <div className="text-sm text-gray-500">
                           Added:{" "}
-                          {new Date(lender.createdAt).toLocaleDateString()}
-                          {lender.updatedAt !== lender.createdAt && (
-                            <>
-                              {" "}
-                              • Updated:{" "}
-                              {new Date(lender.updatedAt).toLocaleDateString()}
-                            </>
-                          )}
+                          {lender.createdAt
+                            ? new Date(lender.createdAt).toLocaleDateString()
+                            : "Unknown"}
+                          {lender.updatedAt &&
+                            lender.updatedAt !== lender.createdAt && (
+                              <>
+                                {" "}
+                                • Updated:{" "}
+                                {new Date(
+                                  lender.updatedAt
+                                ).toLocaleDateString()}
+                              </>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -365,7 +458,7 @@ export default function LendersPage() {
                               className="opacity-75"
                               fill="currentColor"
                               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
+                            ></path>
                           </svg>
                         ) : (
                           <svg
@@ -400,7 +493,6 @@ export default function LendersPage() {
           )}
         </div>
       )}
-
       {/* Add Lender Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

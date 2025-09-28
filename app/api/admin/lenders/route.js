@@ -6,8 +6,34 @@ export async function GET(request) {
   try {
     await connectToDatabase();
 
-    // Get all lenders, sorted by name
-    const lenders = await Lender.find({}).sort({ lenderName: 1 }).lean();
+    // Get query parameters for filtering
+    const url = new URL(request.url);
+    const activeOnly = url.searchParams.get("activeOnly") !== "false"; // Default to true
+    const rentalOnly = url.searchParams.get("rental") === "true";
+    const category = url.searchParams.get("category");
+
+    // Build query
+    let query = {};
+
+    if (activeOnly) {
+      query.isActive = true;
+    }
+
+    if (rentalOnly) {
+      query.supportsRental = true;
+    }
+
+    if (category) {
+      query.category = category;
+    }
+
+    // Fetch lenders sorted by display order first, then by name
+    const lenders = await Lender.find(query)
+      .sort({ displayOrder: 1, lenderName: 1 })
+      .select(
+        "lenderName category supportsRental displayOrder description isActive createdAt updatedAt"
+      )
+      .lean();
 
     if (!lenders || lenders.length === 0) {
       return NextResponse.json(
@@ -15,19 +41,24 @@ export async function GET(request) {
           success: true,
           lenders: [],
           message:
-            "No lenders found in database. Run the setup script to add initial lenders.",
+            "No lenders found matching the criteria. Run the initialization script to add initial lenders.",
+          query,
         },
         { status: 200 }
       );
     }
 
-    console.log(`API Debug - Found ${lenders.length} lenders`);
+    console.log(
+      `API Debug - Found ${lenders.length} lenders with query:`,
+      query
+    );
 
     return NextResponse.json(
       {
         success: true,
         lenders: lenders,
         count: lenders.length,
+        query,
       },
       { status: 200 }
     );
@@ -44,7 +75,14 @@ export async function POST(request) {
   try {
     await connectToDatabase();
 
-    const { lenderName, isActive = true } = await request.json();
+    const {
+      lenderName,
+      isActive = true,
+      category = "other",
+      supportsRental = false,
+      displayOrder,
+      description,
+    } = await request.json();
 
     if (!lenderName || !lenderName.trim()) {
       return NextResponse.json(
@@ -65,10 +103,21 @@ export async function POST(request) {
       );
     }
 
+    // If no displayOrder provided, set it to be after the last lender
+    let finalDisplayOrder = displayOrder;
+    if (!finalDisplayOrder) {
+      const lastLender = await Lender.findOne().sort({ displayOrder: -1 });
+      finalDisplayOrder = lastLender ? lastLender.displayOrder + 1 : 1;
+    }
+
     // Create new lender
     const newLender = new Lender({
       lenderName: lenderName.trim(),
       isActive,
+      category,
+      supportsRental,
+      displayOrder: finalDisplayOrder,
+      description: description?.trim() || "",
     });
 
     await newLender.save();

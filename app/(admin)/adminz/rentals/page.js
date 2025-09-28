@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AdminProvinceCard from "../../../components/cards/admin-province-card";
-import PrimeRateCard from "../../../components/cards/prime-rate-card";
-import { useMortgageStore } from "../../../stores/useMortgageStore";
+import AdminProvinceCard from "@/components/cards/admin-province-card";
+import PrimeRateCard from "@/components/cards/prime-rate-card";
+import { useMortgageStore } from "@/stores/useMortgageStore";
 
-export default function AdminDashboard() {
+export default function RentalsDashboard() {
   const [rates, setRates] = useState(null);
   const [ratesLoading, setRatesLoading] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState(null);
@@ -27,19 +27,36 @@ export default function AdminDashboard() {
   const fetchRates = async () => {
     setRatesLoading(true);
     try {
-      const response = await fetch("/api/admin/rates");
-      const data = await response.json();
+      // Fetch rental rates and regular rates (for prime rate) in parallel
+      const [rentalResponse, regularResponse] = await Promise.all([
+        fetch("/api/admin/rental-rates"),
+        fetch("/api/admin/rates"),
+      ]);
 
-      if (data.success) {
-        console.log("Fetched rates data:", data.rates);
-        console.log("Sample province ON:", data.rates.ON);
-        setRates(data.rates);
-        setEffectiveDate(new Date(data.effectiveDate));
+      const rentalData = await rentalResponse.json();
+      const regularData = await regularResponse.json();
+
+      if (rentalData.success && regularData.success) {
+        console.log("Fetched rental rates data:", rentalData.rates);
+        console.log("Sample province ON:", rentalData.rates.ON);
+        console.log("Prime rate from regular rates:", regularData.rates.prime);
+
+        // Combine rental rates with prime rate from regular rates collection
+        const combinedRates = {
+          ...rentalData.rates,
+          prime: regularData.rates.prime, // Use prime rate from Rates collection
+        };
+
+        setRates(combinedRates);
+        setEffectiveDate(new Date(rentalData.effectiveDate));
       } else {
-        console.error("Failed to fetch rates:", data.message);
+        console.error(
+          "Failed to fetch rates:",
+          rentalData.message || regularData.message
+        );
       }
     } catch (error) {
-      console.error("Error fetching rates:", error);
+      console.error("Error fetching rental rates:", error);
     } finally {
       setRatesLoading(false);
     }
@@ -107,7 +124,9 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="mb-8 flex justify-between space-24">
         <div className="w-full pt-4">
-          <h1 className="text-4xl font-bold text-gray-900">Rates Management</h1>
+          <h1 className="text-4xl font-bold text-gray-900">
+            Rental Rates Management
+          </h1>
           <p className="mt-2 text-lg text-gray-600">
             Rates on{" "}
             {effectiveDate
@@ -126,7 +145,7 @@ export default function AdminDashboard() {
             onPrimeUpdate={handlePrimeUpdate}
             isUpdating={isPrimeUpdating}
             modalTitle="Update Prime Rate"
-            buttonText="Update Prime Rate"
+            buttonText="Update Rental Prime Rate"
           />
         )}
       </div>
@@ -169,6 +188,7 @@ export default function AdminDashboard() {
               province={province}
               rates={rates[province.code]}
               primeRate={rates.prime}
+              isRental={true}
             />
           ))}
         </div>
@@ -185,8 +205,8 @@ export default function AdminDashboard() {
                 </h3>
                 <div className="mt-2 text-sm text-yellow-700">
                   <p>
-                    No mortgage rates found in the database. Please run the rate
-                    insertion script to populate rates data.
+                    No rental mortgage rates found in the database. Please run
+                    the rental rate insertion script to populate rates data.
                   </p>
                 </div>
               </div>
