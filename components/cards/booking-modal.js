@@ -17,8 +17,14 @@ const InlineWidget = dynamic(
  * - open: boolean
  * - onClose: () => void
  * - calendlyUrl: string  (e.g. "https://calendly.com/YOUR_ORG/YOUR_EVENT")
+ * - selectedRate: object with { term, percentage, monthlyPayment, lender } (optional)
  */
-export default function BookingModal({ open, onClose, calendlyUrl }) {
+export default function BookingModal({
+  open,
+  onClose,
+  calendlyUrl,
+  selectedRate,
+}) {
   const [step, setStep] = useState(1); // 1=collect details, 2=calendly
 
   const { formData, setFormData, touch } = useMortgageStore();
@@ -44,15 +50,51 @@ export default function BookingModal({ open, onClose, calendlyUrl }) {
     return u.toString();
   }, [calendlyUrl]);
 
-  // Step 1 submit → persist to Zustand, then show Calendly
-  const onLeadSubmit = (data) => {
-    setFormData({
-      name: data.name.trim(),
-      email: data.email.trim(),
-      phone: data.phone.trim(),
-    });
-    touch?.();
-    setStep(2);
+  // Step 1 submit → persist to Zustand, send email, then show Calendly
+  const onLeadSubmit = async (data) => {
+    try {
+      // Update store with form data
+      const leadData = {
+        name: data.name.trim(),
+        email: data.email.trim(),
+        phone: data.phone.trim(),
+      };
+
+      setFormData(leadData);
+      touch?.();
+
+      // Send automated email with all form data
+      const emailResponse = await fetch("/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          // Contact details
+          name: leadData.name,
+          email: leadData.email,
+          phone: leadData.phone,
+          // All mortgage store data
+          mortgageData: formData,
+          // Selected rate information
+          selectedRate: selectedRate,
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        console.error("Failed to send email notification");
+        // Continue to calendly even if email fails
+      } else {
+        console.log("Email notification sent successfully");
+      }
+
+      // Proceed to step 2 regardless of email status
+      setStep(2);
+    } catch (error) {
+      console.error("Error in onLeadSubmit:", error);
+      // Proceed to step 2 even if there's an error
+      setStep(2);
+    }
   };
 
   // Listen for Calendly schedule event to close modal (and you can POST to backend here)
@@ -159,9 +201,9 @@ export default function BookingModal({ open, onClose, calendlyUrl }) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-10 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-500 font-semibold duration-200 transition-colors cursor-pointer hover:scale-110"
+                  className="px-10 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-500 font-semibold duration-200 transition-colors cursor-pointer hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  Continue
+                  {isSubmitting ? "Sending..." : "Continue"}
                 </button>
               </div>
             </form>

@@ -15,7 +15,11 @@ export default function RatesPage() {
   const [error, setError] = useState(null);
 
   const [open, setOpen] = useState(false);
-  const handleInquire = () => setOpen(true);
+  const [selectedRate, setSelectedRate] = useState(null);
+  const handleInquire = (rateInfo) => {
+    setSelectedRate(rateInfo);
+    setOpen(true);
+  };
 
   // Fetch rates on component mount
   useEffect(() => {
@@ -202,6 +206,8 @@ export default function RatesPage() {
   // For refinance scenarios with high LTV, use refinance rates
   let r3F, r4F, r5F, r3VAdjustment, r5VAdjustment;
 
+  let r3FLender, r4FLender, r5FLender, r3VLender, r5VLender;
+
   if (isRefinance && totalMortgageRequired > 0) {
     // Use refinance rates for high LTV scenarios
     const refinanceCategory = ltv > 75 ? "over25" : "under25"; // Refinance has under25% and over25% equity categories
@@ -210,35 +216,65 @@ export default function RatesPage() {
       cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.rate ||
       cityBasedRates.threeYrFixed[rateCategory]?.rate ||
       0;
+    r3FLender =
+      cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.lender ||
+      cityBasedRates.threeYrFixed[rateCategory]?.lender ||
+      "Default Lender";
     r4F =
       cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.rate ||
       cityBasedRates.fourYrFixed[rateCategory]?.rate ||
       0;
+    r4FLender =
+      cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.lender ||
+      cityBasedRates.fourYrFixed[rateCategory]?.lender ||
+      "Default Lender";
     r5F =
       cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.rate ||
       cityBasedRates.fiveYrFixed[rateCategory]?.rate ||
       0;
+    r5FLender =
+      cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.lender ||
+      cityBasedRates.fiveYrFixed[rateCategory]?.lender ||
+      "Default Lender";
 
     r3VAdjustment =
       cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]
         ?.adjustment ||
       cityBasedRates.threeYrVariable[rateCategory]?.adjustment ||
       0;
+    r3VLender =
+      cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]?.lender ||
+      cityBasedRates.threeYrVariable[rateCategory]?.lender ||
+      "Default Lender";
     r5VAdjustment =
       cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]
         ?.adjustment ||
       cityBasedRates.fiveYrVariable[rateCategory]?.adjustment ||
       0;
+    r5VLender =
+      cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]?.lender ||
+      cityBasedRates.fiveYrVariable[rateCategory]?.lender ||
+      "Default Lender";
   } else {
     // Use regular rates for standard mortgage scenarios
     r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
+    r3FLender =
+      cityBasedRates.threeYrFixed[rateCategory]?.lender || "Default Lender";
     r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
+    r4FLender =
+      cityBasedRates.fourYrFixed[rateCategory]?.lender || "Default Lender";
     r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
+    r5FLender =
+      cityBasedRates.fiveYrFixed[rateCategory]?.lender || "Default Lender";
 
     r3VAdjustment =
       cityBasedRates.threeYrVariable[rateCategory]?.adjustment || 0;
+    r3VLender =
+      cityBasedRates.threeYrVariable[rateCategory]?.lender || "Default Lender";
     r5VAdjustment =
       cityBasedRates.fiveYrVariable[rateCategory]?.adjustment || 0;
+    r5VLender =
+      cityBasedRates.fiveYrVariable[rateCategory]?.lender || "Default Lender";
   }
 
   // Variable rates: calculate from prime rate with stored adjustments
@@ -350,6 +386,7 @@ export default function RatesPage() {
             percentage={fmtRate(r3F)}
             monthlyPayment={fmtMoney(pay3F)}
             term="3-yr fixed"
+            lender={r3FLender}
             onInquire={handleInquire}
           />
           <div className="border-b border-gray-300"></div>
@@ -357,6 +394,7 @@ export default function RatesPage() {
             percentage={fmtRate(r4F)}
             monthlyPayment={fmtMoney(pay4F)}
             term="4-yr fixed"
+            lender={r4FLender}
             onInquire={handleInquire}
           />
           <div className="border-b border-gray-300"></div>
@@ -364,6 +402,7 @@ export default function RatesPage() {
             percentage={fmtRate(r5F)}
             monthlyPayment={fmtMoney(pay5F)}
             term="5-yr fixed"
+            lender={r5FLender}
             onInquire={handleInquire}
           />
           <div className="border-b border-gray-300"></div>
@@ -371,6 +410,7 @@ export default function RatesPage() {
             percentage={fmtRate(r3V)}
             monthlyPayment={fmtMoney(pay3V)}
             term="3-yr variable"
+            lender={r3VLender}
             onInquire={handleInquire}
           />
           <div className="border-b border-gray-300"></div>
@@ -378,6 +418,7 @@ export default function RatesPage() {
             percentage={fmtRate(r5V)}
             monthlyPayment={fmtMoney(pay5V)}
             term="5-yr variable"
+            lender={r5VLender}
             onInquire={handleInquire}
           />
         </div>
@@ -387,8 +428,12 @@ export default function RatesPage() {
       {open && (
         <BookingModal
           open={open}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            setSelectedRate(null);
+          }}
           calendlyUrl="https://calendly.com/obacreative/mortgage-discusion"
+          selectedRate={selectedRate}
         />
       )}
     </div>

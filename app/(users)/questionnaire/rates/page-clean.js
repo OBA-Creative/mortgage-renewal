@@ -15,7 +15,11 @@ export default function RatesPage() {
   const [error, setError] = useState(null);
 
   const [open, setOpen] = useState(false);
-  const handleInquire = () => setOpen(true);
+  const [selectedRate, setSelectedRate] = useState(null);
+  const handleInquire = (rateInfo) => {
+    setSelectedRate(rateInfo);
+    setOpen(true);
+  };
 
   // Fetch rates on component mount
   useEffect(() => {
@@ -196,13 +200,21 @@ export default function RatesPage() {
   // Get the specific rates for the LTV category
   // Fixed rates: extract rate value from rate/lender object
   const r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
+  const r3FLender =
+    cityBasedRates.threeYrFixed[rateCategory]?.lender || "Default Lender";
   const r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
+  const r4FLender =
+    cityBasedRates.fourYrFixed[rateCategory]?.lender || "Default Lender";
   const r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
+  const r5FLender =
+    cityBasedRates.fiveYrFixed[rateCategory]?.lender || "Default Lender";
 
   // Variable rates: calculate from prime rate with discounts
   const primeRate = cityBasedRates.prime?.rate || 0;
   const r3V = Math.max(0, primeRate - 0.8); // 3-year variable = prime - 0.8%
+  const r3VLender = "Variable Rate Lender"; // Variable rates don't have specific lenders in this simplified version
   const r5V = Math.max(0, primeRate - 0.9); // 5-year variable = prime - 0.9%
+  const r5VLender = "Variable Rate Lender";
 
   // Calculate monthly payments
   const pay3F = calcMonthlyPayment(totalMortgageRequired, r3F, yearsNum);
@@ -307,6 +319,7 @@ export default function RatesPage() {
             percentage={fmtRate(r3F)}
             monthlyPayment={fmtMoney(pay3F)}
             term="3-yr fixed"
+            lender={r3FLender}
             onInquire={handleInquire}
           />
           <div className="border-b border-gray-300"></div>
@@ -314,6 +327,7 @@ export default function RatesPage() {
             percentage={fmtRate(r4F)}
             monthlyPayment={fmtMoney(pay4F)}
             term="4-yr fixed"
+            lender={r4FLender}
             onInquire={handleInquire}
           />
           <div className="border-b border-gray-300"></div>
@@ -321,6 +335,7 @@ export default function RatesPage() {
             percentage={fmtRate(r5F)}
             monthlyPayment={fmtMoney(pay5F)}
             term="5-yr fixed"
+            lender={r5FLender}
             onInquire={handleInquire}
           />
           <div className="border-b border-gray-300"></div>
@@ -328,6 +343,7 @@ export default function RatesPage() {
             percentage={fmtRate(r3V)}
             monthlyPayment={fmtMoney(pay3V)}
             term="3-yr variable"
+            lender={r3VLender}
             onInquire={handleInquire}
           />
           <div className="border-b border-gray-300"></div>
@@ -335,6 +351,7 @@ export default function RatesPage() {
             percentage={fmtRate(r5V)}
             monthlyPayment={fmtMoney(pay5V)}
             term="5-yr variable"
+            lender={r5VLender}
             onInquire={handleInquire}
           />
         </div>
@@ -344,8 +361,12 @@ export default function RatesPage() {
       {open && (
         <BookingModal
           open={open}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            setSelectedRate(null);
+          }}
           calendlyUrl="https://calendly.com/obacreative/mortgage-discusion"
+          selectedRate={selectedRate}
         />
       )}
     </div>

@@ -2,6 +2,7 @@ export default function RateCard({
   percentage,
   monthlyPayment,
   term,
+  lender,
   onInquire,
 }) {
   return (
@@ -16,7 +17,9 @@ export default function RateCard({
           <p className="text-lg font-semibold">{monthlyPayment}</p>
         </div>
         <button
-          onClick={onInquire}
+          onClick={() =>
+            onInquire({ term, percentage, monthlyPayment, lender })
+          }
           className=" flex items-center justify-center bg-blue-600 min-w-34 rounded-md h-10 text-l text-white font-semibold hover:bg-blue-500 transition-colors duration-200 cursor-pointer "
         >
           inquire
