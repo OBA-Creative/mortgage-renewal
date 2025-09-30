@@ -364,7 +364,7 @@ export default function RatesPage() {
     <div className="flex flex-col items-center ">
       <div className=" mx-auto px-4 py-8 text-center space-y-4">
         <h1 className="text-4xl font-semibold ">
-          Here are the best rates that match your profile
+          Here are the best renewal rates that match your profile
         </h1>
         <p className="text-xl">
           If we lock in your rate today, you will be protected from future rate
