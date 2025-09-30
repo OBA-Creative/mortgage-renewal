@@ -35,12 +35,12 @@ const VariableRateInputField = ({
   const displayLtv = !ltv
     ? ""
     : isRefinance
-    ? refinanceType === "under25"
-      ? "≤25 years of amortization"
-      : ">25 years of amortization"
-    : ltv === "over80"
-    ? ">80%"
-    : `≤${ltv.slice(-2)}%`;
+      ? refinanceType === "under25"
+        ? "≤25 years of amortization"
+        : ">25 years of amortization"
+      : ltv === "over80"
+        ? ">80%"
+        : `≤${ltv.slice(-2)}%`;
 
   const fieldKey = !ltv ? "" : isRefinance ? `refinance.${refinanceType}` : ltv;
 
@@ -215,12 +215,12 @@ const RateInputField = ({
   const displayLtv = !ltv
     ? ""
     : isRefinance
-    ? refinanceType === "under25"
-      ? "≤25 years of amortization"
-      : ">25 years of amortization"
-    : ltv === "over80"
-    ? ">80%"
-    : `≤${ltv.slice(-2)}%`;
+      ? refinanceType === "under25"
+        ? "≤25 years of amortization"
+        : ">25 years of amortization"
+      : ltv === "over80"
+        ? ">80%"
+        : `≤${ltv.slice(-2)}%`;
 
   const fieldKey = !ltv ? "" : isRefinance ? `refinance.${refinanceType}` : ltv;
 
@@ -998,7 +998,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
