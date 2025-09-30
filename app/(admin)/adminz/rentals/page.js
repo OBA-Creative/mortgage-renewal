@@ -144,8 +144,6 @@ export default function RentalsDashboard() {
             primeRate={rates.prime}
             onPrimeUpdate={handlePrimeUpdate}
             isUpdating={isPrimeUpdating}
-            modalTitle="Update Prime Rate"
-            buttonText="Update Rental Prime Rate"
           />
         )}
       </div>

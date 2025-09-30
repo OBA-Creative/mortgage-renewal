@@ -41,7 +41,7 @@ export default function PrimeRateCard({
       <div className="bg-white border-gray-300 border rounded-lg shadow-lg p-4 flex justify-between h-full items-end relative w-112 pt-6">
         <button
           onClick={openPrimeModal}
-          className="text-gray-400 cursor-pointer absolute top-2 right-2 p-1"
+          className="text-gray-400 cursor-pointer absolute top-2 right-2 p-2 hover:text-blue-600 hover:bg-blue-50 rounded"
         >
           <svg
             className="w-4 h-4"
