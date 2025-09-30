@@ -14,6 +14,7 @@ import Dropdown from "@/components/form-elements/dropdown";
 import PlacesAutocompleteInput from "@/components/form-elements/places-autocomplete-input";
 import AvailableEquityCard from "@/components/cards/available-equity-card";
 import YourTotalMortgageCard from "@/components/cards/your-total-mortgage-card";
+import BorrowAdditionalFunds from "@/components/form-elements/borrow-additional-funds";
 
 // Safe number formatting that handles both strings and numbers
 const formatNumber = (value) => {
@@ -44,6 +45,7 @@ export default function MortgagePage() {
   const [propertyInput, setPropertyInput] = useState("");
   const [balanceInput, setBalanceInput] = useState("");
   const [borrowInput, setBorrowInput] = useState("");
+  const [helocBalanceInput, setHelocBalanceInput] = useState("");
 
   // Initialize input states with store values when component mounts or formData changes
   useEffect(() => {
@@ -56,14 +58,21 @@ export default function MortgagePage() {
     if (formData.borrowAdditionalAmount) {
       setBorrowInput(formatNumber(formData.borrowAdditionalAmount.toString()));
     }
+    if (formData.helocBalance) {
+      setHelocBalanceInput(formatNumber(formData.helocBalance.toString()));
+    }
   }, [
     formData.propertyValue,
     formData.mortgageBalance,
     formData.borrowAdditionalAmount,
+    formData.helocBalance,
   ]);
 
   const helpTexts = {
-    city: "Enter your city to help us provide accurate local mortgage rates and connect you with lenders in your area. We'll auto-detect your location, but you can change it as needed.",
+    heloc:
+      "A Home Equity Line of Credit (HELOC) is a flexible borrowing option secured by your home's equity. Let us know if you currently have one.",
+    helocBalance:
+      "Enter your current HELOC balance. This is the amount you currently owe on your HELOC.",
     lender:
       "Select your current mortgage lender from the list. This helps us understand your current mortgage terms and available renewal options.",
     propertyValue:
@@ -105,8 +114,8 @@ export default function MortgagePage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      city: formData?.city || "",
-      province: formData?.province || "",
+      heloc: formData?.heloc || "",
+      helocBalance: formData?.helocBalance || null,
       lender: formData?.lender || "",
       otherLender: formData?.otherLender || "",
       propertyValue: formData?.propertyValue || null,
@@ -121,8 +130,8 @@ export default function MortgagePage() {
   // Update form values when formData changes (e.g., when navigating back)
   useEffect(() => {
     if (formData && Object.keys(formData).length > 0) {
-      setValue("city", formData.city || "");
-      setValue("province", formData.province || "");
+      setValue("heloc", formData.heloc || "");
+      setValue("helocBalance", formData.helocBalance || null);
       setValue("lender", formData.lender || "");
       setValue("otherLender", formData.otherLender || "");
       setValue("propertyValue", formData.propertyValue || null);
@@ -147,6 +156,7 @@ export default function MortgagePage() {
   });
 
   const selectedLender = watch("lender");
+  const heloc = watch("heloc");
 
   // Borrow options for styled radios
   const helocOptions = ["yes", "no"];
@@ -199,6 +209,7 @@ export default function MortgagePage() {
         mortgageBalance: parseNumber(data.mortgageBalance),
         borrowAdditionalAmount: parseNumber(data.borrowAdditionalAmount),
         amortizationPeriod: parseNumber(data.amortizationPeriod),
+        helocBalance: parseNumber(data.helocBalance),
       };
       setFormData({ ...formData, ...payload });
       console.log("Mortgage data:", payload);
@@ -224,20 +235,38 @@ export default function MortgagePage() {
         {"Now let's learn about your mortgage"}
       </h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* City & Province */}
-        <PlacesAutocompleteInput
-          label="City"
-          id="city"
-          register={register}
-          requiredText="City is required"
-          error={errors.city}
-          setValue={setValue}
-          setError={setError}
-          clearErrors={clearErrors}
-          provinceFieldId="province" // 👈 hidden field name
-          defaultValue={formData?.city || ""}
-          helpTexts={helpTexts.city}
-        />
+        {/* Property & Balance */}
+        <div className="space-y-8">
+          {/* Property Value */}
+          <DollarInput
+            id="propertyValue"
+            setValue={setValue}
+            label="Current property value?"
+            valueState={propertyInput}
+            setValueState={setPropertyInput}
+            register={register}
+            helpTexts={helpTexts.propertyValue}
+            requiredText="Property value is required"
+            error={errors.propertyValue}
+            defaultValue={formData?.propertyValue}
+            placeholder="e.g. 850,000"
+          />
+
+          {/* Mortgage Balance */}
+          <DollarInput
+            id="mortgageBalance"
+            setValue={setValue}
+            label="Current mortgage balance?"
+            valueState={balanceInput}
+            setValueState={setBalanceInput}
+            register={register}
+            helpTexts={helpTexts.mortgageBalance}
+            requiredText="Current mortgage balance is required"
+            error={errors.mortgageBalance}
+            defaultValue={formData?.mortgageBalance}
+            placeholder="e.g. 600,000"
+          />
+        </div>
 
         {/* Lender Select */}
         <div className="flex flex-col space-y-8">
@@ -265,93 +294,51 @@ export default function MortgagePage() {
           )}
         </div>
 
-        {/* Property & Balance */}
-        <div className="space-y-8">
-          {/* Property Value */}
-          <DollarInput
-            id="propertyValue"
-            setValue={setValue}
-            label="Current property value?"
-            valueState={propertyInput}
-            setValueState={setPropertyInput}
+        {/* HELOC Question */}
+        <div className="flex flex-col space-y-8">
+          <MapRadio
+            id="heloc"
             register={register}
-            helpTexts={helpTexts.propertyValue}
-            requiredText="Property value is required"
-            error={errors.propertyValue}
-            defaultValue={formData?.propertyValue}
-            placeholder="e.g. 850,000"
+            requiredText="Select an option"
+            label="Do you have a HELOC?"
+            options={helocOptions}
+            helpTexts={helpTexts.heloc}
+            error={errors.heloc}
           />
-          {/* Mortgage Balance */}
-          <DollarInput
-            id="mortgageBalance"
-            setValue={setValue}
-            label="Current mortgage balance?"
-            valueState={balanceInput}
-            setValueState={setBalanceInput}
-            register={register}
-            helpTexts={helpTexts.mortgageBalance}
-            requiredText="Current mortgage balance is required"
-            error={errors.mortgageBalance}
-            defaultValue={formData?.mortgageBalance}
-            placeholder="e.g. 600,000"
-          />
+
+          {heloc === "yes" && (
+            <DollarInput
+              id="helocBalance"
+              setValue={setValue}
+              label="What is your current HELOC balance?"
+              valueState={helocBalanceInput}
+              setValueState={setHelocBalanceInput}
+              register={register}
+              helpTexts={helpTexts.helocBalance}
+              requiredText="Current HELOC balance is required"
+              error={errors.helocBalance}
+              defaultValue={formData?.helocBalance}
+              placeholder="e.g. 75,000"
+            />
+          )}
         </div>
 
         {/* Borrow Additional Funds */}
-        {showBorrowQuestion && (
-          <div className="flex flex-col space-y-4">
-            <MapRadio
-              id="borrowAdditionalFunds"
-              label="Do you want to borrow additional funds?"
-              register={register}
-              requiredText="Select an option"
-              options={helocOptions}
-              helpTexts={helpTexts.borrowAdditionalFunds}
-              error={errors.borrowAdditionalFunds}
-            />
-            {/* Conditional borrow table*/}
-            {borrowSelection === "yes" && (
-              <AvailableEquityCard
-                propertyValue={propertyValue}
-                mortgageBalance={mortgageBalance}
-                heloc={formData.heloc === "yes"}
-                helocBalance={parseFloat(formData?.helocBalance)}
-              />
-            )}
-
-            {/* Conditional borrow amount field */}
-            {borrowSelection === "yes" && (
-              <DollarInput
-                id="borrowAdditionalAmount"
-                setValue={setValue}
-                label={`Up to ${formattedMaxBorrow}, how much do you want to borrow?`}
-                valueState={
-                  parseNumber(borrowInput) < parseNumber(maxBorrow)
-                    ? borrowInput
-                    : formattedMaxBorrow
-                }
-                setValueState={setBorrowInput}
-                register={register}
-                requiredText="Current mortgage balance is required"
-                helpTexts={helpTexts.borrowAdditionalAmount}
-                error={errors.borrowAdditionalAmount}
-                defaultValue={formData?.borrowAdditionalAmount}
-                placeholder="e.g. 100,000"
-              />
-            )}
-            {/* Conditional borrow table*/}
-            {borrowSelection === "yes" && (
-              <YourTotalMortgageCard
-                mortgageBalance={mortgageBalance}
-                borrowAdditionalAmount={
-                  parseNumber(borrowInput) < parseNumber(maxBorrow)
-                    ? borrowInput
-                    : formattedMaxBorrow
-                }
-              />
-            )}
-          </div>
-        )}
+        <BorrowAdditionalFunds
+          register={register}
+          setValue={setValue}
+          errors={errors}
+          borrowSelection={borrowSelection}
+          borrowInput={borrowInput}
+          setBorrowInput={setBorrowInput}
+          propertyValue={propertyValue}
+          mortgageBalance={mortgageBalance}
+          maxBorrow={maxBorrow}
+          formattedMaxBorrow={formattedMaxBorrow}
+          formData={formData}
+          helpTexts={helpTexts}
+          showBorrowQuestion={showBorrowQuestion}
+        />
 
         {/* Amortization Remaining */}
         <TextInput

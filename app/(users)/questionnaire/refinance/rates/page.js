@@ -6,10 +6,12 @@ import RateCard from "@/components/cards/rate-card";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import CurrencyField from "@/components/form-elements/currency-element";
 import BookingModal from "@/components/cards/booking-modal";
+import Dropdown from "@/components/form-elements/dropdown";
 
 export default function RatesPage() {
   const { formData } = useMortgageStore();
   const [rates, setRates] = useState(null);
+  const [rentalRates, setRentalRates] = useState(null);
   const [prime, setPrime] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,13 +28,31 @@ export default function RatesPage() {
     const fetchRates = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/rates");
-        if (!response.ok) {
-          throw new Error("Failed to fetch rates");
+
+        // Fetch both standard rates and rental rates
+        const [ratesResponse, rentalRatesResponse] = await Promise.all([
+          fetch("/api/rates"),
+          fetch("/api/rates?type=rental"),
+        ]);
+
+        if (!ratesResponse.ok) {
+          throw new Error("Failed to fetch standard rates");
         }
-        const data = await response.json();
-        setRates(data.rates);
-        setPrime(data.prime);
+
+        const ratesData = await ratesResponse.json();
+        setRates(ratesData.rates);
+        setPrime(ratesData.prime);
+
+        // Handle rental rates (may not exist yet)
+        if (rentalRatesResponse.ok) {
+          const rentalRatesData = await rentalRatesResponse.json();
+          setRentalRates(rentalRatesData.rates);
+        } else {
+          console.warn(
+            "Rental rates not available, using standard rates as fallback"
+          );
+          setRentalRates(null);
+        }
       } catch (err) {
         setError(err.message);
         console.error("Error fetching rates:", err);
@@ -123,6 +143,7 @@ export default function RatesPage() {
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
       amortizationPeriod: Number(formData?.amortizationPeriod ?? 25),
       city: formData?.city ?? "",
+      propertyUsage: formData?.propertyUsage ?? "",
     }),
     [formData]
   );
@@ -152,6 +173,23 @@ export default function RatesPage() {
     Number(watched?.amortizationPeriod ?? formData?.amortizationPeriod ?? 0) ||
     0;
 
+  // Determine property usage from watched form or store
+  const currentPropertyUsage =
+    watched?.propertyUsage || formData?.propertyUsage || "";
+
+  // Determine if we should use rental rates
+  const useRentalRates =
+    currentPropertyUsage === "Rental / Investment" ||
+    currentPropertyUsage === "Second Home";
+
+  // Debug effect to track property usage changes
+  useEffect(() => {
+    if (currentPropertyUsage) {
+      console.log("🔄 Property usage changed to:", currentPropertyUsage);
+      console.log("💰 Will use rental rates:", useRentalRates);
+    }
+  }, [currentPropertyUsage, useRentalRates]);
+
   const totalMortgageRequired =
     (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
     (formData.borrowAdditionalFunds === "yes"
@@ -160,6 +198,34 @@ export default function RatesPage() {
         : watchedBorrowAmt
       : 0) +
     (isNaN(helocBalance) ? 0 : helocBalance);
+
+  // Get rates for the user's province/city
+  const prov = formData?.province ?? "ON"; // Default to ON if no province
+
+  // Memoize rate calculations to ensure they update when property usage changes
+  const { selectedRatesCollection, cityBasedRates, isUsingRentalRates } =
+    useMemo(() => {
+      const selectedCollection =
+        useRentalRates && rentalRates ? rentalRates : rates;
+      const cityRates = selectedCollection?.[prov];
+      const usingRental = useRentalRates && rentalRates;
+
+      // Log which rates we're using for debugging
+      console.log(
+        "🏠 Property usage:",
+        currentPropertyUsage,
+        "📊 Using rental rates:",
+        usingRental ? "Yes" : "No",
+        "🏢 Rate collection:",
+        usingRental ? "Rental" : "Standard"
+      );
+
+      return {
+        selectedRatesCollection: selectedCollection,
+        cityBasedRates: cityRates,
+        isUsingRentalRates: usingRental,
+      };
+    }, [useRentalRates, rentalRates, rates, prov, currentPropertyUsage]);
 
   // Show loading or error states
   if (loading) return <div className="p-8 text-center">Loading rates...</div>;
@@ -170,10 +236,6 @@ export default function RatesPage() {
       </div>
     );
   if (!rates) return <div className="p-8 text-center">No rates available</div>;
-
-  // Get rates for the user's province/city
-  const prov = formData?.province ?? "ON"; // Default to ON if no province
-  const cityBasedRates = rates[prov];
 
   if (!cityBasedRates) {
     return (
@@ -318,6 +380,57 @@ export default function RatesPage() {
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
                 }
               `}</style>
+            </div>
+
+            {/* Property Usage Dropdown */}
+
+            <div className="flex flex-col space-y-2 mt-4">
+              <label htmlFor="propertyUsage" className="text-md font-semibold">
+                Property Usage
+              </label>
+
+              <div className="relative border rounded-md border-gray-300 bg-white">
+                <select
+                  id="propertyUsage"
+                  {...register("propertyUsage")}
+                  className="appearance-none w-full bg-transparent py-4 pl-4 pr-10  rounded-md"
+                >
+                  <option value="" disabled>
+                    Select property usage
+                  </option>
+                  {[
+                    "Primary Residence",
+                    "Second Home",
+                    "Primary Residence With Suite",
+                    "Rental / Investment",
+                  ].map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <span className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </span>
+              </div>
+              {errors.propertyUsage && (
+                <p className="text-red-600 mt-1">
+                  {errors.propertyUsage.message}
+                </p>
+              )}
             </div>
           </div>
         </form>

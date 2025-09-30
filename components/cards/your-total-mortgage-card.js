@@ -22,7 +22,7 @@ export default function YourTotalMortgageCard({
   const totalMortgageAmount =
     mortgageBalanceNumber + borrowAdditionalAmountNumber;
   return (
-    <div className="border rounded-md border-blue-600 mt-4">
+    <div className="border rounded-md border-blue-600 ">
       <div className="w-full p-4 text-blue-700 font-semibold text-2xl text-center border-b ">
         <p>Your total mortgage amount</p>
       </div>

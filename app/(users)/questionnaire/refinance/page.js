@@ -1,66 +1,35 @@
 "use client";
 
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import MapRadio from "@/components/form-elements/map-radio";
 import NextButton from "@/components/form-elements/next-button";
 import { useMortgageStore } from "@/stores/useMortgageStore";
-import { useCallback, useState, useEffect } from "react";
-import DollarInput from "@/components/form-elements/dollar-input";
+import { useCallback, useEffect } from "react";
+import PlacesAutocompleteInput from "@/components/form-elements/places-autocomplete-input";
 
 const helpTexts = {
   propertyUsage:
     "Select how you currently use your property. This affects the rates and terms available to you.",
-  heloc:
-    "A Home Equity Line of Credit (HELOC) is a flexible borrowing option secured by your home's equity. Let us know if you currently have one.",
-  helocBalance:
-    "Enter your current HELOC balance. This is the amount you currently owe on your HELOC.",
-};
-
-// Safe number formatting that handles both strings and numbers
-const formatNumber = (value) => {
-  if (!value && value !== 0) return "";
-
-  // Convert to string and remove all non-digits
-  const raw = String(value).replace(/\D/g, "");
-  if (!raw) return "";
-
-  // Add commas for thousands separator
-  return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
-
-const parseNumber = (formattedValue) => {
-  // Remove commas and convert to number
-  const raw = String(formattedValue).replace(/,/g, "");
-  const parsed = parseFloat(raw);
-  // Return 0 for invalid numbers instead of empty string, or the parsed number
-  return isNaN(parsed) ? 0 : parsed;
+  city: "Enter your city to help us provide accurate local mortgage rates and connect you with lenders in your area. We'll auto-detect your location, but you can change it as needed.",
 };
 
 export default function PropertyPage() {
   const router = useRouter();
   const { formData, setFormData } = useMortgageStore();
 
-  const [helocBalanceInput, setHelocBalanceInput] = useState("");
-
-  // Initialize input state with store values when component mounts or formData changes
-  useEffect(() => {
-    if (formData.helocBalance) {
-      setHelocBalanceInput(formatNumber(formData.helocBalance.toString()));
-    }
-  }, [formData.helocBalance]);
-
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm({
     defaultValues: {
       propertyUsage: formData.propertyUsage || "",
-      heloc: formData.heloc || "",
-      helocBalance: formData.helocBalance || 0,
+      city: formData?.city || "",
+      province: formData?.province || "",
     },
   });
 
@@ -68,22 +37,15 @@ export default function PropertyPage() {
   useEffect(() => {
     if (formData && Object.keys(formData).length > 0) {
       setValue("propertyUsage", formData.propertyUsage || "");
-      setValue("heloc", formData.heloc || "");
-      setValue("helocBalance", formData.helocBalance || 0);
+      setValue("city", formData.city || "");
+      setValue("province", formData.province || "");
     }
   }, [formData, setValue]);
 
-  // Watch HELOC selection
-  const heloc = watch("heloc");
-
   const onSubmit = useCallback(
     (data) => {
-      const payload = {
-        ...data,
-        helocBalance: parseNumber(data.helocBalance),
-      };
-      setFormData({ ...formData, ...payload });
-      console.log("Mortgage data:", payload);
+      setFormData({ ...formData, ...data });
+      console.log("Property data:", data);
       router.push("/questionnaire/refinance/mortgage");
     },
     [formData, router, setFormData]
@@ -96,8 +58,6 @@ export default function PropertyPage() {
     "Rental / Investment",
   ];
 
-  const helocOptions = ["yes", "no"];
-
   return (
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-4xl font-semibold text-center mb-8 max-w-2xl">
@@ -105,6 +65,21 @@ export default function PropertyPage() {
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* City & Province */}
+        <PlacesAutocompleteInput
+          label="What city is your property in?"
+          id="city"
+          register={register}
+          requiredText="City is required"
+          error={errors.city}
+          setValue={setValue}
+          setError={setError}
+          clearErrors={clearErrors}
+          provinceFieldId="province"
+          defaultValue={formData?.city || ""}
+          helpTexts={helpTexts.city}
+        />
+
         {/* Usage Radio Select as selectable cards */}
         <MapRadio
           id="propertyUsage"
@@ -115,34 +90,7 @@ export default function PropertyPage() {
           helpTexts={helpTexts.propertyUsage}
           error={errors.propertyUsage}
         />
-        {/* HELOC Question */}
-        <div className="flex flex-col space-y-4">
-          <MapRadio
-            id="heloc"
-            register={register}
-            requiredText="Select an option"
-            label="Do you have a HELOC?"
-            options={helocOptions}
-            helpTexts={helpTexts.heloc}
-            error={errors.heloc}
-          />
 
-          {heloc === "yes" && (
-            <DollarInput
-              id="helocBalance"
-              setValue={setValue}
-              label="What is your current HELOC balance?"
-              valueState={helocBalanceInput}
-              setValueState={setHelocBalanceInput}
-              register={register}
-              helpTexts={helpTexts.helocBalance}
-              requiredText="Current HELOC balance is required"
-              error={errors.helocBalance}
-              defaultValue={formData?.helocBalance}
-              placeholder="e.g. 75,000"
-            />
-          )}
-        </div>
         {/* Submit Button */}
         <NextButton label="Continue" />
       </form>

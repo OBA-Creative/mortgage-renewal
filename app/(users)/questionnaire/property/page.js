@@ -4,12 +4,13 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import MapRadio from "@/components/form-elements/map-radio";
 import DollarInput from "@/components/form-elements/dollar-input";
+import PlacesAutocompleteInput from "@/components/form-elements/places-autocomplete-input";
+import { useMortgageStore } from "@/stores/useMortgageStore";
 import { useState } from "react";
 
 export default function PropertyPage() {
+  const { formData, setFormData } = useMortgageStore();
   const [activeHelp, setActiveHelp] = useState(null);
-  const [propertyValue, setPropertyValue] = useState("");
-  const [helocBalance, setHelocBalance] = useState("");
 
   const helpTexts = {
     city: "Enter the city where your property is located.",
@@ -17,13 +18,6 @@ export default function PropertyPage() {
       "Select how you currently use your property. This affects the mortgage rates and terms available to you. Primary residence typically offers the best rates.",
     downpaymentOption:
       "Tell us about your original downpayment. This helps us understand your current loan-to-value ratio and determines available refinancing options.",
-    purchasePrice:
-      "Enter the current market value of your property based on recent assessments or comparable sales in your area.",
-    heloc:
-      "A Home Equity Line of Credit (HELOC) is a revolving credit line secured by your home's equity. Let us know if you currently have one.",
-    helocBalance:
-      "Enter the current outstanding balance on your HELOC. This will be included in your total debt calculations.",
-    propertyValue: "Enter the current estimated market value of your property.",
   };
 
   const {
@@ -31,24 +25,52 @@ export default function PropertyPage() {
     handleSubmit,
     setValue,
     watch,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      city: "",
-      usage: "",
-      purchasePrice: "",
-      heloc: "",
-      helocBalance: "",
+      city: formData.city || "",
+      province: formData.province || "",
+      usage: formData.propertyUsage || "",
+      downpaymentOption: formData.downpaymentValue || "",
     },
   });
 
   const router = useRouter();
 
-  // Watch HELOC selection
-  const heloc = watch("heloc");
+  // Watch province
+  const province = watch("province");
 
   const onSubmit = (data) => {
     console.log("Form data:", data);
+
+    // Validate that we have both city and province
+    if (!data.city || !data.province) {
+      if (!data.city) {
+        setError("city", {
+          type: "manual",
+          message: "Please select a city from the suggestions",
+        });
+      }
+      if (!data.province) {
+        setError("city", {
+          type: "manual",
+          message:
+            "Province information is required. Please select a city from the suggestions.",
+        });
+      }
+      return;
+    }
+
+    // Save to store
+    setFormData({
+      city: data.city,
+      province: data.province,
+      propertyUsage: data.usage,
+      downpaymentValue: data.downpaymentOption,
+    });
+
     router.push("/questionnaire/mortgage");
   };
 
@@ -60,7 +82,6 @@ export default function PropertyPage() {
   ];
 
   const downpaymentOptions = ["20% or more", "Less than 20%"];
-  const helocOptions = ["yes", "no"];
 
   return (
     <div className="max-w-xl mx-auto p-6">
@@ -69,6 +90,26 @@ export default function PropertyPage() {
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* City Question */}
+        <PlacesAutocompleteInput
+          id="city"
+          label="What city is your property located in?"
+          register={register}
+          requiredText="City is required"
+          setValue={setValue}
+          setError={setError}
+          clearErrors={clearErrors}
+          error={errors.city}
+          helpTexts={helpTexts.city}
+          provinceFieldId="province"
+          defaultValue={formData.city}
+          onCityProvince={(data) => {
+            // This callback is triggered when a city is selected
+            // The province is automatically set by the component
+            console.log("Selected city/province:", data);
+          }}
+        />
+
         {/* Usage Radio Select as selectable cards */}
         <MapRadio
           id="usage"
@@ -89,48 +130,6 @@ export default function PropertyPage() {
           options={downpaymentOptions}
           helpTexts={helpTexts.downpaymentOption}
           error={errors.downpaymentOption}
-        />
-        {/* HELOC Question */}
-        <div className="flex flex-col space-y-4">
-          <MapRadio
-            id="heloc"
-            register={register}
-            requiredText="Select an option"
-            label="Do you have a HELOC?"
-            options={helocOptions}
-            helpTexts={helpTexts.heloc}
-            error={errors.heloc}
-          />
-
-          {heloc === "yes" && (
-            <DollarInput
-              id="helocBalance"
-              label="What is your current HELOC balance?"
-              setValue={setValue}
-              valueState={helocBalance}
-              setValueState={setHelocBalance}
-              register={register}
-              requiredText="HELOC balance is required"
-              helpTexts={helpTexts.helocBalance}
-              error={errors.helocBalance}
-              placeholder="e.g. 75,000"
-            />
-          )}
-        </div>
-
-        {/* Property Value */}
-
-        <DollarInput
-          id="purchasePrice"
-          label="Property value?"
-          setValue={setValue}
-          valueState={propertyValue}
-          setValueState={setPropertyValue}
-          register={register}
-          requiredText="Property value is required"
-          helpTexts={helpTexts.propertyValue}
-          error={errors.purchasePrice}
-          placeholder="e.g. 850,000"
         />
 
         {/* Submit Button */}

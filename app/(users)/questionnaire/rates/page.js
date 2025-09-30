@@ -10,6 +10,7 @@ import BookingModal from "@/components/cards/booking-modal";
 export default function RatesPage() {
   const { formData } = useMortgageStore();
   const [rates, setRates] = useState(null);
+  const [rentalRates, setRentalRates] = useState(null);
   const [prime, setPrime] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,13 +27,31 @@ export default function RatesPage() {
     const fetchRates = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/rates");
-        if (!response.ok) {
-          throw new Error("Failed to fetch rates");
+
+        // Fetch both standard rates and rental rates
+        const [ratesResponse, rentalRatesResponse] = await Promise.all([
+          fetch("/api/rates"),
+          fetch("/api/rates?type=rental"),
+        ]);
+
+        if (!ratesResponse.ok) {
+          throw new Error("Failed to fetch standard rates");
         }
-        const data = await response.json();
-        setRates(data.rates);
-        setPrime(data.prime);
+
+        const ratesData = await ratesResponse.json();
+        setRates(ratesData.rates);
+        setPrime(ratesData.prime);
+
+        // Handle rental rates (may not exist yet)
+        if (rentalRatesResponse.ok) {
+          const rentalRatesData = await rentalRatesResponse.json();
+          setRentalRates(rentalRatesData.rates);
+        } else {
+          console.warn(
+            "Rental rates not available, using standard rates as fallback"
+          );
+          setRentalRates(null);
+        }
       } catch (err) {
         setError(err.message);
         console.error("Error fetching rates:", err);
@@ -121,8 +140,8 @@ export default function RatesPage() {
         formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0
       ),
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
-      amortizationPeriod: Number(formData?.amortizationPeriod ?? 25),
       city: formData?.city ?? "",
+      propertyUsage: formData?.propertyUsage ?? "",
     }),
     [formData]
   );
@@ -148,9 +167,23 @@ export default function RatesPage() {
     watched?.borrowAdditionalAmount ?? defaultBorrowAmount
   );
   const helocBalance = sanitizeMoney(formData?.helocBalance) || 0;
-  const yearsNum =
-    Number(watched?.amortizationPeriod ?? formData?.amortizationPeriod ?? 0) ||
-    0;
+
+  // Determine property usage from watched form or store
+  const currentPropertyUsage =
+    watched?.propertyUsage || formData?.propertyUsage || "";
+
+  // Determine if we should use rental rates
+  const useRentalRates =
+    currentPropertyUsage === "Rental / Investment" ||
+    currentPropertyUsage === "Second Home";
+
+  // Debug effect to track property usage changes
+  useEffect(() => {
+    if (currentPropertyUsage) {
+      console.log("🔄 Property usage changed to:", currentPropertyUsage);
+      console.log("💰 Will use rental rates:", useRentalRates);
+    }
+  }, [currentPropertyUsage, useRentalRates]);
 
   const totalMortgageRequired =
     (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
@@ -161,6 +194,34 @@ export default function RatesPage() {
       : 0) +
     (isNaN(helocBalance) ? 0 : helocBalance);
 
+  // Get rates for the user's province/city
+  const prov = formData?.province ?? "ON"; // Default to ON if no province
+
+  // Memoize rate calculations to ensure they update when property usage changes
+  const { selectedRatesCollection, cityBasedRates, isUsingRentalRates } =
+    useMemo(() => {
+      const selectedCollection =
+        useRentalRates && rentalRates ? rentalRates : rates;
+      const cityRates = selectedCollection?.[prov];
+      const usingRental = useRentalRates && rentalRates;
+
+      // Log which rates we're using for debugging
+      console.log(
+        "🏠 Property usage:",
+        currentPropertyUsage,
+        "📊 Using rental rates:",
+        usingRental ? "Yes" : "No",
+        "🏢 Rate collection:",
+        usingRental ? "Rental" : "Standard"
+      );
+
+      return {
+        selectedRatesCollection: selectedCollection,
+        cityBasedRates: cityRates,
+        isUsingRentalRates: usingRental,
+      };
+    }, [useRentalRates, rentalRates, rates, prov, currentPropertyUsage]);
+
   // Show loading or error states
   if (loading) return <div className="p-8 text-center">Loading rates...</div>;
   if (error)
@@ -170,10 +231,6 @@ export default function RatesPage() {
       </div>
     );
   if (!rates) return <div className="p-8 text-center">No rates available</div>;
-
-  // Get rates for the user's province/city
-  const prov = formData?.province ?? "ON"; // Default to ON if no province
-  const cityBasedRates = rates[prov];
 
   if (!cityBasedRates) {
     return (
@@ -283,6 +340,9 @@ export default function RatesPage() {
   const r3V = Math.max(0, globalPrimeRate + r3VAdjustment);
   const r5V = Math.max(0, globalPrimeRate + r5VAdjustment);
 
+  // Use fixed 25-year amortization for payment calculations
+  const yearsNum = 25;
+
   // Calculate monthly payments
   const pay3F = calcMonthlyPayment(totalMortgageRequired, r3F, yearsNum);
   const pay4F = calcMonthlyPayment(totalMortgageRequired, r4F, yearsNum);
@@ -311,6 +371,7 @@ export default function RatesPage() {
           increases until {rateLockExpiryDate}
         </p>
       </div>
+
       <div className="flex space-x-20 ">
         {/* Current Mortgage Balance */}
         <form>
@@ -330,52 +391,55 @@ export default function RatesPage() {
                 error={errors.borrowAdditionalAmount}
               />
             )}
-            {/* Amortization Period */}
-            <div className="mt-4">
-              <label
-                htmlFor="amortizationPeriod"
-                className="block font-semibold mb-2"
-              >
-                Amortization Period:{" "}
-                <span className="font-normal">
-                  {watched?.amortizationPeriod ||
-                    formData?.amortizationPeriod ||
-                    25}{" "}
-                  years
-                </span>
+
+            {/* Property Usage Dropdown */}
+            <div className="flex flex-col space-y-2 mt-4">
+              <label htmlFor="propertyUsage" className="text-md font-semibold">
+                Property Usage
               </label>
-              <input
-                type="range"
-                min="1"
-                max="30"
-                {...register("amortizationPeriod")}
-                className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
-              />
-              <div className="flex justify-between text-sm text-gray-700 mt-1">
-                <span>1 yr</span>
-                <span>30 yrs</span>
+
+              <div className="relative border rounded-md border-gray-300 bg-white">
+                <select
+                  id="propertyUsage"
+                  {...register("propertyUsage")}
+                  className="appearance-none w-full bg-transparent py-4 pl-4 pr-10  rounded-md"
+                >
+                  <option value="" disabled>
+                    Select property usage
+                  </option>
+                  {[
+                    "Primary Residence",
+                    "Second Home",
+                    "Primary Residence With Suite",
+                    "Rental / Investment",
+                  ].map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <span className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </span>
               </div>
-              <style jsx>{`
-                .slider::-webkit-slider-thumb {
-                  appearance: none;
-                  height: 20px;
-                  width: 20px;
-                  border-radius: 50%;
-                  background: #3b82f6;
-                  cursor: pointer;
-                  border: 2px solid #ffffff;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                }
-                .slider::-moz-range-thumb {
-                  height: 20px;
-                  width: 20px;
-                  border-radius: 50%;
-                  background: #3b82f6;
-                  cursor: pointer;
-                  border: 2px solid #ffffff;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                }
-              `}</style>
+              {errors.propertyUsage && (
+                <p className="text-red-600 mt-1">
+                  {errors.propertyUsage.message}
+                </p>
+              )}
             </div>
           </div>
         </form>

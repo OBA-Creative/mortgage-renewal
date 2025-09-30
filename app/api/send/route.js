@@ -70,14 +70,33 @@ function generateEmailHTML({
         <!-- Header -->
         <div style="background-color: #2563eb; color: white; padding: 25px; border-radius: 8px 8px 0 0; text-align: center;">
           <h1 style="margin: 0; font-size: 26px;">Hi Z!</h1>
-          <p style="margin: 10px 0 0 0; opacity: 0.9;">You have received a new mortgage renewal inquiry</p>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">You have received a new mortgage ${mortgageData.path === "refinance" ? "refinance" : "renewal"} inquiry</p>
         </div>
 
         <!-- Main Content -->
         <div style="background-color: #f8fafc; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
           <p style="font-size: 16px; margin-bottom: 25px;">
-            We've received the following detailed mortgage information.
+            We've received the following detailed mortgage ${mortgageData.path === "refinance" ? "refinance" : "renewal"} information from a potential client.
           </p>
+          
+          ${
+            mortgageData.path
+              ? `
+          <!-- Client Interest Type -->
+          <div style="${sectionStyle}">
+            <h3 style="margin: 0 0 15px 0; color: #1e293b; font-size: 18px;">🎯 Client Interest</h3>
+            <div style="background-color: ${mortgageData.path === "refinance" ? "#fef3c7" : "#d1fae5"}; padding: 15px; border-radius: 6px; border-left: 4px solid ${mortgageData.path === "refinance" ? "#f59e0b" : "#10b981"};">
+              <p style="margin: 0; font-size: 16px; font-weight: bold; color: ${mortgageData.path === "refinance" ? "#92400e" : "#065f46"};">
+                ${mortgageData.path === "refinance" ? "🏠 REFINANCE INQUIRY" : "🔄 RENEWAL INQUIRY"}
+              </p>
+              <p style="margin: 5px 0 0 0; font-size: 14px; color: #6b7280;">
+                ${mortgageData.path === "refinance" ? "Client is looking to refinance their existing mortgage, potentially to access equity or get better terms." : "Client is looking to renew their existing mortgage term with competitive rates and terms."}
+              </p>
+            </div>
+          </div>
+          `
+              : ""
+          }
 
           <!-- Contact Information -->
           <div style="${sectionStyle}">
@@ -175,21 +194,25 @@ function generateEmailHTML({
             <ul style="margin: 15px 0 0 0; padding-left: 20px;">
               <li>A mortgage specialist will contact you within 24 hours</li>
               <li>We'll review your current mortgage details and property information</li>
-              <li>Receive personalized renewal options with competitive rates</li>
-              <li>Get expert advice on optimizing your mortgage terms</li>
+              ${
+                mortgageData.path === "refinance"
+                  ? "<li>Explore refinancing options to access equity or improve terms</li><li>Calculate potential savings and available equity</li>"
+                  : "<li>Receive personalized renewal options with competitive rates</li><li>Compare renewal terms from multiple lenders</li>"
+              }
+              <li>Get expert advice on optimizing your mortgage ${mortgageData.path === "refinance" ? "refinance" : "renewal"}</li>
             </ul>
           </div>
 
           <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">
-            If you have any urgent questions or need to update any information, feel free to reply to this email or call us directly. We're here to help make your mortgage renewal as smooth as possible.
+            If you have any urgent questions or need to update any information, feel free to reply to this email or call us directly. We're here to help make your mortgage ${mortgageData.path === "refinance" ? "refinance" : "renewal"} as smooth as possible.
           </p>
 
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
 
           <div style="text-align: center;">
             <p style="margin-bottom: 5px; font-size: 16px;"><strong>Best regards,</strong></p>
-            <p style="margin: 0; color: #2563eb; font-weight: bold; font-size: 16px;">The Mortgage Renewals Team</p>
-            <p style="margin: 5px 0 0 0; font-size: 14px; color: #6b7280;">Your trusted mortgage renewal specialists</p>
+            <p style="margin: 0; color: #2563eb; font-weight: bold; font-size: 16px;">The Mortgage ${mortgageData.path === "refinance" ? "Refinance" : "Renewals"} Team</p>
+            <p style="margin: 5px 0 0 0; font-size: 14px; color: #6b7280;">Your trusted mortgage ${mortgageData.path === "refinance" ? "refinance" : "renewal"} specialists</p>
           </div>
         </div>
       </div>
@@ -236,7 +259,7 @@ export async function POST(request) {
     const { data: userData, error: userError } = await resend.emails.send({
       from: "Mortgage Renewals <onboarding@resend.dev>",
       to: [recipientEmail],
-      subject: `Thank you for your mortgage renewal inquiry ${isTestMode ? `(Test - for: ${email})` : ""}`,
+      subject: `Thank you for your mortgage ${mortgageData.path === "refinance" ? "refinance" : "renewal"} inquiry ${isTestMode ? `(Test - for: ${email})` : ""}`,
       html: emailHtml,
     });
 
@@ -259,7 +282,7 @@ export async function POST(request) {
         const { data: bizData, error: bizError } = await resend.emails.send({
           from: "Mortgage Renewals <onboarding@resend.dev>",
           to: [businessRecipient],
-          subject: `New Mortgage Inquiry from ${fullName} ${isTestMode ? `(Test - original: ${email})` : ""}`,
+          subject: `New Mortgage ${mortgageData.path === "refinance" ? "Refinance" : "Renewal"} Inquiry from ${fullName} ${isTestMode ? `(Test - original: ${email})` : ""}`,
           html: emailHtml,
         });
 

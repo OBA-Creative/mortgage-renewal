@@ -9,9 +9,27 @@ import FormDatePicker from "@/components/form-elements/form-date-picker";
 import Dropdown from "@/components/form-elements/dropdown";
 import TextInput from "@/components/form-elements/text-input";
 import NextButton from "@/components/form-elements/next-button";
+import BorrowAdditionalFunds from "@/components/form-elements/borrow-additional-funds";
+import { useMortgageStore } from "@/stores/useMortgageStore";
 
 export default function MortgagePage() {
-  const [mortgageBalance, setMortgageBalance] = useState("");
+  const { formData, setFormData } = useMortgageStore();
+
+  // Initialize state variables from store if they exist
+  const [mortgageBalance, setMortgageBalance] = useState(
+    formData.mortgageBalance ? formData.mortgageBalance.toLocaleString() : ""
+  );
+  const [propertyValue, setPropertyValue] = useState(
+    formData.propertyValue ? formData.propertyValue.toLocaleString() : ""
+  );
+  const [helocBalance, setHelocBalance] = useState(
+    formData.helocBalance ? formData.helocBalance.toLocaleString() : ""
+  );
+  const [borrowInput, setBorrowInput] = useState(
+    formData.borrowAdditionalAmount
+      ? formData.borrowAdditionalAmount.toLocaleString()
+      : ""
+  );
 
   const {
     register,
@@ -22,15 +40,37 @@ export default function MortgagePage() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      belowOneMillion: "",
-      lender: "",
-      mortgageBalance: "",
-      otherLender: "",
-      maturityDate: "",
+      propertyValue: formData.propertyValue
+        ? formData.propertyValue.toLocaleString()
+        : "",
+      heloc: formData.heloc || "",
+      helocBalance: formData.helocBalance
+        ? formData.helocBalance.toLocaleString()
+        : "",
+      borrowAdditionalFunds: formData.borrowAdditionalFunds || "",
+      borrowAdditionalAmount: formData.borrowAdditionalAmount
+        ? formData.borrowAdditionalAmount.toLocaleString()
+        : "",
+      belowOneMillion: formData.belowOneMillion || "",
+      lender: formData.lender || "",
+      mortgageBalance: formData.mortgageBalance
+        ? formData.mortgageBalance.toLocaleString()
+        : "",
+      otherLender: formData.otherLender || "",
+      maturityDate: formData.maturityDate || "",
     },
   });
 
   const helpTexts = {
+    propertyValue: "Enter the current estimated market value of your property.",
+    heloc:
+      "A Home Equity Line of Credit (HELOC) is a revolving credit line secured by your home's equity. Let us know if you currently have one.",
+    helocBalance:
+      "Enter the current outstanding balance on your HELOC. This will be included in your total debt calculations.",
+    borrowAdditionalFunds:
+      "Would you like to borrow additional funds on top of your current mortgage? This can be used for renovations, investments, or other purposes.",
+    borrowAdditionalAmount:
+      "Enter the amount you'd like to borrow in addition to your current mortgage balance.",
     belowOneMillion:
       "This information helps determine which mortgage stress test rules apply to you. Properties under $1M have different qualification requirements.",
     lender:
@@ -45,18 +85,84 @@ export default function MortgagePage() {
 
   const router = useRouter();
   const selectedLender = watch("lender");
+  const heloc = watch("heloc");
+  const borrowSelection = watch("borrowAdditionalFunds");
+
+  // Parse numeric values for calculations
+  const parseNumber = (value) => {
+    if (!value) return 0;
+    return parseFloat(String(value).replace(/,/g, "")) || 0;
+  };
+
+  const formatNumber = (value) => {
+    if (!value && value !== 0) return "";
+    const raw = String(value).replace(/\D/g, "");
+    if (!raw) return "";
+    return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  // Calculate values for BorrowAdditionalFunds component
+  const currentPropertyValue =
+    parseNumber(propertyValue) || parseNumber(formData.propertyValue);
+  const currentMortgageBalance =
+    parseNumber(mortgageBalance) || parseNumber(formData.mortgageBalance);
+  const currentHelocBalance =
+    parseNumber(helocBalance) || parseNumber(formData.helocBalance);
+
+  // Calculate max borrow (80% of property value minus mortgage and heloc)
+  const maxBorrow = Math.max(
+    0,
+    currentPropertyValue * 0.8 - currentMortgageBalance - currentHelocBalance
+  );
+  const formattedMaxBorrow = formatNumber(maxBorrow);
+
+  // Show borrow question only if we have property value and mortgage balance
+  const showBorrowQuestion =
+    currentPropertyValue > 0 && currentMortgageBalance > 0;
 
   const onSubmit = (data) => {
     // If 'Other' is selected, use the custom lender value
-    const payload = {
-      ...data,
-      lender: data.lender === "Other" ? data.otherLender : data.lender,
+    const finalLender =
+      data.lender === "Other" ? data.otherLender : data.lender;
+
+    // Parse and validate all numeric fields
+    const parsedPropertyValue = data.propertyValue
+      ? parseFloat(data.propertyValue.replace(/,/g, ""))
+      : null;
+
+    const parsedHelocBalance = data.helocBalance
+      ? parseFloat(data.helocBalance.replace(/,/g, ""))
+      : null;
+
+    const parsedBorrowAmount = data.borrowAdditionalAmount
+      ? parseFloat(data.borrowAdditionalAmount.replace(/,/g, ""))
+      : null;
+
+    const parsedMortgageBalance = data.mortgageBalance
+      ? parseFloat(data.mortgageBalance.replace(/,/g, ""))
+      : null;
+
+    // Save all data to store
+    const updatedFormData = {
+      propertyValue: parsedPropertyValue,
+      heloc: data.heloc || "",
+      helocBalance: parsedHelocBalance,
+      borrowAdditionalFunds: data.borrowAdditionalFunds || "",
+      borrowAdditionalAmount: parsedBorrowAmount,
+      belowOneMillion: data.belowOneMillion || "",
+      lender: finalLender || "",
+      mortgageBalance: parsedMortgageBalance,
+      otherLender: data.otherLender || "",
+      maturityDate: data.maturityDate || "",
     };
-    console.log("Mortgage data:", payload);
+
+    setFormData(updatedFormData);
+    console.log("Mortgage data saved to store:", updatedFormData);
     router.push("/questionnaire/rates");
   };
 
   const yesNoOptions = ["yes", "no"];
+  const helocOptions = ["yes", "no"];
   const lenderOptions = [
     "Royal Bank of Canada (RBC)",
     "Toronto-Dominion Bank (TD)",
@@ -75,6 +181,20 @@ export default function MortgagePage() {
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {/* Property Value */}
+        <DollarInput
+          id="propertyValue"
+          label="Property value?"
+          setValue={setValue}
+          valueState={propertyValue}
+          setValueState={setPropertyValue}
+          register={register}
+          requiredText="Property value is required"
+          helpTexts={helpTexts.propertyValue}
+          error={errors.propertyValue}
+          placeholder="e.g. 850,000"
+        />
+
         {/* Below One Million Radio */}
         <MapRadio
           id="belowOneMillion"
@@ -126,6 +246,51 @@ export default function MortgagePage() {
             />
           )}
         </div>
+
+        {/* HELOC Questions */}
+        <div className="flex flex-col space-y-4">
+          <MapRadio
+            id="heloc"
+            register={register}
+            requiredText="Select an option"
+            label="Do you have a HELOC?"
+            options={helocOptions}
+            helpTexts={helpTexts.heloc}
+            error={errors.heloc}
+          />
+
+          {heloc === "yes" && (
+            <DollarInput
+              id="helocBalance"
+              label="What is your current HELOC balance?"
+              setValue={setValue}
+              valueState={helocBalance}
+              setValueState={setHelocBalance}
+              register={register}
+              requiredText="HELOC balance is required"
+              helpTexts={helpTexts.helocBalance}
+              error={errors.helocBalance}
+              placeholder="e.g. 75,000"
+            />
+          )}
+        </div>
+
+        {/* Borrow Additional Funds */}
+        <BorrowAdditionalFunds
+          register={register}
+          setValue={setValue}
+          errors={errors}
+          borrowSelection={borrowSelection}
+          borrowInput={borrowInput}
+          setBorrowInput={setBorrowInput}
+          propertyValue={currentPropertyValue}
+          mortgageBalance={currentMortgageBalance}
+          maxBorrow={maxBorrow}
+          formattedMaxBorrow={formattedMaxBorrow}
+          formData={formData}
+          helpTexts={helpTexts}
+          showBorrowQuestion={showBorrowQuestion}
+        />
 
         {/* Maturity Date */}
         <FormDatePicker
