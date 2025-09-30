@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import "react-datepicker/dist/react-datepicker.css";
 
 import DollarInput from "@/components/form-elements/dollar-input";
 import MapRadio from "@/components/form-elements/map-radio";
@@ -76,7 +75,7 @@ export default function MortgagePage() {
     borrowAdditionalAmount:
       "Enter the amount you'd like to borrow. The maximum is calculated based on 80% of your property value minus your current mortgage and HELOC balances.",
     amortizationPeriod:
-      "Enter the remaining years left on your current amortization schedule. This affects your payment amount and available rates.",
+      "Enter the number (between 0 and 30) of years left on your current amortization schedule. This affects your payment amount and available rates.",
     maturityDate:
       "This is the date when your current mortgage term expires and you'll need to renew. You can find this date on your mortgage documents or statement.",
   };
@@ -110,11 +109,11 @@ export default function MortgagePage() {
       province: formData?.province || "",
       lender: formData?.lender || "",
       otherLender: formData?.otherLender || "",
-      propertyValue: formData?.propertyValue || 0,
-      mortgageBalance: formData?.mortgageBalance || 0,
+      propertyValue: formData?.propertyValue || null,
+      mortgageBalance: formData?.mortgageBalance || null,
       borrowAdditionalFunds: formData?.borrowAdditionalFunds || "",
-      borrowAdditionalAmount: formData?.borrowAdditionalAmount || 0,
-      amortizationPeriod: formData?.amortizationPeriod || 0,
+      borrowAdditionalAmount: formData?.borrowAdditionalAmount || null,
+      amortizationPeriod: formData?.amortizationPeriod || null,
       maturityDate: parseStoredDate(formData?.maturityDate),
     },
   });
@@ -126,11 +125,14 @@ export default function MortgagePage() {
       setValue("province", formData.province || "");
       setValue("lender", formData.lender || "");
       setValue("otherLender", formData.otherLender || "");
-      setValue("propertyValue", formData.propertyValue || 0);
-      setValue("mortgageBalance", formData.mortgageBalance || 0);
+      setValue("propertyValue", formData.propertyValue || null);
+      setValue("mortgageBalance", formData.mortgageBalance || null);
       setValue("borrowAdditionalFunds", formData.borrowAdditionalFunds || "");
-      setValue("borrowAdditionalAmount", formData.borrowAdditionalAmount || 0);
-      setValue("amortizationPeriod", formData.amortizationPeriod || 0);
+      setValue(
+        "borrowAdditionalAmount",
+        formData.borrowAdditionalAmount || null
+      );
+      setValue("amortizationPeriod", formData.amortizationPeriod || null);
       setValue("maturityDate", parseStoredDate(formData.maturityDate));
     }
   }, [formData, setValue]);
@@ -154,7 +156,9 @@ export default function MortgagePage() {
     propertyValue && mortgageBalance && mortgageBalance < propertyValue * 0.8;
 
   const maxBorrow = showBorrowQuestion
-    ? Math.floor(propertyValue * 0.8 - mortgageBalance - formData.helocBalance)
+    ? Math.floor(
+        propertyValue * 0.8 - mortgageBalance - (formData.helocBalance || 0)
+      )
     : 0;
 
   const formatedMortgageBalance = formatNumber(mortgageBalance?.toString());
@@ -162,7 +166,8 @@ export default function MortgagePage() {
   const formattedborrowAdditionalAmount = formatNumber(
     borrowAdditionalAmount?.toString()
   );
-  const totalMortgageAmount = mortgageBalance + borrowAdditionalAmount;
+  const totalMortgageAmount =
+    (mortgageBalance || 0) + (borrowAdditionalAmount || 0);
   const formattedTotalMortgageAmount = formatNumber(
     totalMortgageAmount.toString()
   );
@@ -274,6 +279,7 @@ export default function MortgagePage() {
             requiredText="Property value is required"
             error={errors.propertyValue}
             defaultValue={formData?.propertyValue}
+            placeholder="e.g. 850,000"
           />
           {/* Mortgage Balance */}
           <DollarInput
@@ -287,6 +293,7 @@ export default function MortgagePage() {
             requiredText="Current mortgage balance is required"
             error={errors.mortgageBalance}
             defaultValue={formData?.mortgageBalance}
+            placeholder="e.g. 600,000"
           />
         </div>
 
@@ -329,6 +336,7 @@ export default function MortgagePage() {
                 helpTexts={helpTexts.borrowAdditionalAmount}
                 error={errors.borrowAdditionalAmount}
                 defaultValue={formData?.borrowAdditionalAmount}
+                placeholder="e.g. 100,000"
               />
             )}
             {/* Conditional borrow table*/}
@@ -350,10 +358,31 @@ export default function MortgagePage() {
           id="amortizationPeriod"
           label="What's the amortization remaining in years?"
           type="number"
+          min={0}
+          max={30}
+          step="1"
           register={register}
           requiredText="Please enter remaining amortization"
+          validationRules={{
+            min: {
+              value: 0,
+              message: "Amortization must be at least 0 years",
+            },
+            max: {
+              value: 30,
+              message: "Amortization cannot exceed 30 years",
+            },
+            pattern: {
+              value: /^\d+$/,
+              message: "Please enter a whole number only",
+            },
+          }}
           helpTexts={helpTexts.amortizationPeriod}
           error={errors.amortizationPeriod}
+          inputMode="numeric"
+          realTimeValidation={true}
+          onWheel={(e) => e.target.blur()}
+          placeholder="e.g. 22"
         />
 
         {/* Maturity Date */}

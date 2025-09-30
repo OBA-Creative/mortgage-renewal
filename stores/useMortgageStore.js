@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 const emptyForm = () => ({
+  path: "", // "renew" or "refinance"
   propertyUsage: "",
   downpaymentValue: null,
   heloc: "",
@@ -31,6 +32,10 @@ export const useMortgageStore = create(
       setFormData: (data) =>
         set((state) => ({
           formData: { ...state.formData, ...data },
+        })),
+      setPath: (path) =>
+        set((state) => ({
+          formData: { ...state.formData, path },
         })),
       resetForm: () => set({ formData: emptyForm() }),
 

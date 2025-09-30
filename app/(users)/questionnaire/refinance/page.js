@@ -139,6 +139,7 @@ export default function PropertyPage() {
               requiredText="Current HELOC balance is required"
               error={errors.helocBalance}
               defaultValue={formData?.helocBalance}
+              placeholder="e.g. 75,000"
             />
           )}
         </div>

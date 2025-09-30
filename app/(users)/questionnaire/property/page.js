@@ -113,6 +113,7 @@ export default function PropertyPage() {
               requiredText="HELOC balance is required"
               helpTexts={helpTexts.helocBalance}
               error={errors.helocBalance}
+              placeholder="e.g. 75,000"
             />
           )}
         </div>
@@ -129,6 +130,7 @@ export default function PropertyPage() {
           requiredText="Property value is required"
           helpTexts={helpTexts.propertyValue}
           error={errors.purchasePrice}
+          placeholder="e.g. 850,000"
         />
 
         {/* Submit Button */}

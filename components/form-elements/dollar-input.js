@@ -29,6 +29,7 @@ export default function DollarInput({
   helpTexts,
   error,
   defaultValue, // Add support for default values
+  placeholder = "Enter amount", // Add placeholder support with default
 }) {
   const [activeHelp, setActiveHelp] = useState(null);
 
@@ -67,7 +68,8 @@ export default function DollarInput({
         <input
           id={id}
           type="text"
-          value={valueState}
+          value={valueState || ""}
+          placeholder={placeholder}
           {...register(id, rules)}
           onChange={(e) => {
             const inputValue = e.target.value;
@@ -81,7 +83,7 @@ export default function DollarInput({
               shouldDirty: true,
             });
           }}
-          className="w-full rounded-md pl-7 pr-5 py-4 text-lg"
+          className="w-full rounded-md pl-7 pr-5 py-4 text-lg placeholder-gray-400"
         />
       </div>
       {error && <p className="text-red-600 mt-1">{error.message}</p>}

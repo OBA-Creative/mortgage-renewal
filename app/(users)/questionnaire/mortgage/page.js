@@ -97,6 +97,7 @@ export default function MortgagePage() {
           helpTexts={helpTexts.mortgageBalance}
           requiredText="Mortgage balance is required"
           error={errors.mortgageBalance}
+          placeholder="e.g. 600,000"
         />
 
         {/* Lender Select */}

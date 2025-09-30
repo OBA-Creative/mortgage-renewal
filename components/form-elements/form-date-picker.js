@@ -1,7 +1,6 @@
-import { Controller } from "react-hook-form";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+"use client";
 
+import { Controller } from "react-hook-form";
 import { HelpCircle } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -21,6 +20,20 @@ export default function FormDatePicker({
   );
 
   const rules = requiredText ? { required: requiredText } : undefined;
+
+  // Convert Date object to YYYY-MM-DD format for HTML date input
+  const formatDateForInput = (date) => {
+    if (!date) return "";
+    if (typeof date === "string") return date;
+    return date.toISOString().split("T")[0];
+  };
+
+  // Convert YYYY-MM-DD string to Date object
+  const parseDateFromInput = (dateString) => {
+    if (!dateString) return null;
+    return new Date(dateString);
+  };
+
   return (
     <div className="flex flex-col space-y-2">
       <div className="flex items-center justify-between">
@@ -45,26 +58,23 @@ export default function FormDatePicker({
         control={control}
         name={id}
         rules={rules}
-        render={({ field }) => (
-          <div className="react-datepicker-wrapper">
-            <DatePicker
-              id={id}
-              placeholderText="MM‑DD‑YYYY"
-              selected={field.value}
-              onChange={(date) => field.onChange(date)}
-              dateFormat="MM-dd-yyyy"
-              showMonthDropdown
-              showYearDropdown
-              dropdownMode="select"
-              yearDropdownItemNumber={15}
-              scrollableYearDropdown
-              showPopperArrow={false}
-              previousMonthButtonLabel=""
-              nextMonthButtonLabel=""
-              disabledKeyboardNavigation
-              className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
-            />
-          </div>
+        render={({ field: { onChange, onBlur, value } }) => (
+          <input
+            id={id}
+            type="date"
+            value={formatDateForInput(value)}
+            onChange={(e) => onChange(parseDateFromInput(e.target.value))}
+            onBlur={onBlur}
+            min={new Date().toISOString().split("T")[0]}
+            max={(() => {
+              const maxDate = new Date();
+              maxDate.setFullYear(maxDate.getFullYear() + 30);
+              return maxDate.toISOString().split("T")[0];
+            })()}
+            className={`w-full rounded-md border py-4 px-4 text-lg cursor-pointer placeholder-gray-400 ${
+              error ? "border-red-500 bg-white" : "border-gray-300 bg-white"
+            }`}
+          />
         )}
       />
       {error && <p className="text-red-600 mt-1">{error.message}</p>}
