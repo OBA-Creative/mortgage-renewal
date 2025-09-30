@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Building2Icon,
   ChartAreaIcon,
@@ -115,12 +116,18 @@ export default function AdminLayout({ children }) {
 
       {/* Sidebar */}
       <div
-        className={`sticky top-0 h-screen  left-0 z-50 w-64 bg-white shadow-lg`}
+        className={`sticky top-0 h-screen  left-0 z-50 w-64 bg-white border-r-1  border-gray-300 drop-shadow-2xl rounded-r-xl overflow-hidden `}
       >
         <div className="flex flex-col h-full">
           {/* Logo/Header */}
-          <div className="flex items-center justify-center h-16 px-4 bg-blue-600">
-            <h1 className="text-xl font-bold text-white">{`Z's Dashboard`}</h1>
+          <div className=" h-18 p-4 flex items-center justify-center bg-blue-600 border-b border-gray-300 shadow-md">
+            <Image
+              src="/images/mobile-logo-white.svg"
+              alt="Logo"
+              width={160}
+              height={40}
+              className="m-auto"
+            />
           </div>
 
           {/* Navigation */}
