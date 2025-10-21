@@ -126,6 +126,27 @@ export async function POST(request) {
             }
           });
         }
+
+        // Handle rental rates
+        if (sourceData[rateType].rental) {
+          if (rateType.includes("Variable")) {
+            // For variable rates, use adjustment
+            updateObj[`${sourceProvinceCode}.${rateType}.rental`] = {
+              adjustment: sourceData[rateType].rental.adjustment,
+              lender: sourceData[rateType].rental.lender,
+            };
+          } else {
+            // For fixed rates, use rate
+            updateObj[`${sourceProvinceCode}.${rateType}.rental`] = {
+              rate: sourceData[rateType].rental.rate,
+              lender: sourceData[rateType].rental.lender,
+            };
+          }
+          console.log(
+            `Set ${sourceProvinceCode}.${rateType}.rental:`,
+            updateObj[`${sourceProvinceCode}.${rateType}.rental`]
+          );
+        }
       }
     });
 
@@ -197,6 +218,27 @@ export async function POST(request) {
                 );
               }
             });
+          }
+
+          // Handle rental rates
+          if (sourceData[rateType].rental) {
+            if (rateType.includes("Variable")) {
+              // For variable rates, use adjustment
+              updateObj[`${targetProvinceCode}.${rateType}.rental`] = {
+                adjustment: sourceData[rateType].rental.adjustment,
+                lender: sourceData[rateType].rental.lender,
+              };
+            } else {
+              // For fixed rates, use rate
+              updateObj[`${targetProvinceCode}.${rateType}.rental`] = {
+                rate: sourceData[rateType].rental.rate,
+                lender: sourceData[rateType].rental.lender,
+              };
+            }
+            console.log(
+              `Set ${targetProvinceCode}.${rateType}.rental:`,
+              updateObj[`${targetProvinceCode}.${rateType}.rental`]
+            );
           }
         }
       });

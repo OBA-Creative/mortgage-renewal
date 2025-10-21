@@ -1,13 +1,17 @@
+import { TrendingDown } from "lucide-react";
 import Link from "next/link";
 
 export default function UpsellRateCard({ monthlyPayment }) {
   return (
-    <div className="p-4 space-y-2 border border-blue-300 rounded-lg bg-blue-50">
+    <div className="p-4 pt-2 space-y-2 border border-blue-300 rounded-lg bg-blue-50">
       <div className="flex flex-col space-y-2 text-center">
         <div>
-          <p className="text-xl font-semibold text-center ">
-            Drop Your Payments Further
-          </p>
+          <div>
+            <TrendingDown className="w-8 h-8 mx-auto text-blue-600" />
+            <p className="text-xl font-semibold text-center ">
+              Lower Your Payments Further
+            </p>
+          </div>
           <p className="text-sm">your monthly payment as low as</p>
           <div className="text-lg font-semibold">
             {monthlyPayment}{" "}

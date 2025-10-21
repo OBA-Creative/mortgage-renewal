@@ -84,16 +84,7 @@ export default function AdminLayout({ children }) {
       href: "/adminz",
       icon: <ChartAreaIcon className="w-5 h-5" />,
     },
-    {
-      name: "Rentals",
-      href: "/adminz/rentals",
-      icon: <Building2Icon className="w-5 h-5" />,
-    },
-    {
-      name: "Spreadsheet",
-      href: "/adminz/horizontal",
-      icon: <TableIcon className="w-5 h-5" />,
-    },
+
     {
       name: "Lenders",
       href: "/adminz/lenders",
@@ -109,94 +100,107 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <div className="relative flex min-h-screen bg-blue-50">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div
-            className="fixed inset-0 bg-gray-600 bg-opacity-75"
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-        </div>
-      )}
+    <div className="min-h-screen bg-blue-50">
+      {/* Horizontal Navigation Header */}
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between ">
+            <div className="flex items-center space-x-16">
+              {/* Logo */}
+              <div className="flex items-center w-96">
+                <Image
+                  src="/images/logo-blue-600.svg"
+                  alt="Logo"
+                  width={180}
+                  height={45}
+                  className="w-auto h-8"
+                />
+              </div>
 
-      {/* Sidebar */}
-      <div
-        className={`sticky top-0 h-screen  left-0 z-50 w-64 bg-white border-r-1  border-gray-300 drop-shadow-2xl rounded-r-xl overflow-hidden `}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo/Header */}
-          <div className="flex items-center justify-center p-4 bg-blue-600 border-b border-gray-300 shadow-md  h-18">
-            <Image
-              src="/images/mobile-logo-white.svg"
-              alt="Logo"
-              width={160}
-              height={40}
-              className="m-auto"
-            />
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  isCurrentPage(item.href)
-                    ? "bg-blue-50 text-blue-700 "
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                {item.icon}
-                <span className="ml-3">{item.name}</span>
-              </Link>
-            ))}
-          </nav>
-
-          {/* Logout */}
-          <div className="p-4 border-t border-gray-200">
+              {/* Navigation Menu */}
+              <nav className="items-center hidden space-x-8 md:flex">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isCurrentPage(item.href)
+                        ? "bg-blue-100 text-blue-700 border border-blue-200"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="ml-2">{item.name}</span>
+                  </Link>
+                ))}
+              </nav>
+            </div>
+            {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 transition-colors rounded-lg cursor-pointer hover:bg-red-50"
+              className="flex items-center px-4 py-2 text-sm font-medium text-red-600 transition-colors border border-red-200 rounded-lg cursor-pointer hover:bg-red-50"
             >
-              <LogOut className="w-5 h-5" />
-              <span className="ml-3">Logout</span>
+              <LogOut className="w-4 h-4" />
+              <span className="ml-2">Logout</span>
             </button>
           </div>
+
+          {/* Mobile Navigation */}
+          <div className="mt-4 md:hidden">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Navigation
+              </h2>
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 text-gray-600 rounded-lg hover:text-gray-900 hover:bg-gray-100"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d={
+                      sidebarOpen
+                        ? "M6 18L18 6M6 6l12 12"
+                        : "M4 6h16M4 12h16M4 18h16"
+                    }
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Mobile Menu Items */}
+            {sidebarOpen && (
+              <div className="pt-4 pb-4 space-y-2 border-t border-gray-200">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      isCurrentPage(item.href)
+                        ? "bg-blue-100 text-blue-700 border border-blue-200"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    }`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    {item.icon}
+                    <span className="ml-3">{item.name}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Main content */}
-      <div className="w-full lg:pl-8">
-        {/* Mobile header */}
-        <div className="flex items-center justify-between h-16 px-4 bg-white shadow-sm lg:hidden">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 text-gray-600 rounded-lg hover:text-gray-900 hover:bg-gray-100"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-          <h1 className="text-lg font-semibold text-gray-900">Admin Panel</h1>
-          <div className="w-10"></div> {/* Spacer for centering */}
-        </div>
-
-        {/* Page content */}
-        <main className="flex-1">{children}</main>
-      </div>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

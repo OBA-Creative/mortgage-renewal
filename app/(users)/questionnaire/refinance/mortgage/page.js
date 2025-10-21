@@ -11,9 +11,6 @@ import FormDatePicker from "@/components/form-elements/form-date-picker";
 import NextButton from "@/components/form-elements/next-button";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import Dropdown from "@/components/form-elements/dropdown";
-import PlacesAutocompleteInput from "@/components/form-elements/places-autocomplete-input";
-import AvailableEquityCard from "@/components/cards/available-equity-card";
-import YourTotalMortgageCard from "@/components/cards/your-total-mortgage-card";
 import BorrowAdditionalFunds from "@/components/form-elements/borrow-additional-funds";
 
 // Safe number formatting that handles both strings and numbers

@@ -11,7 +11,6 @@ import UpsellRateCard from "@/components/cards/upsell-rate-card";
 export default function RatesPage() {
   const { formData } = useMortgageStore();
   const [rates, setRates] = useState(null);
-  const [rentalRates, setRentalRates] = useState(null);
   const [prime, setPrime] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,30 +28,16 @@ export default function RatesPage() {
       try {
         setLoading(true);
 
-        // Fetch both standard rates and rental rates
-        const [ratesResponse, rentalRatesResponse] = await Promise.all([
-          fetch("/api/rates"),
-          fetch("/api/rates?type=rental"),
-        ]);
+        // Fetch standard rates (which now include rental rates)
+        const ratesResponse = await fetch("/api/rates");
 
         if (!ratesResponse.ok) {
-          throw new Error("Failed to fetch standard rates");
+          throw new Error("Failed to fetch rates");
         }
 
         const ratesData = await ratesResponse.json();
         setRates(ratesData.rates);
         setPrime(ratesData.prime);
-
-        // Handle rental rates (may not exist yet)
-        if (rentalRatesResponse.ok) {
-          const rentalRatesData = await rentalRatesResponse.json();
-          setRentalRates(rentalRatesData.rates);
-        } else {
-          console.warn(
-            "Rental rates not available, using standard rates as fallback"
-          );
-          setRentalRates(null);
-        }
       } catch (err) {
         setError(err.message);
         console.error("Error fetching rates:", err);
@@ -186,10 +171,20 @@ export default function RatesPage() {
   // Determine property usage from store
   const currentPropertyUsage = formData?.propertyUsage || "";
 
-  // Determine if we should use rental rates
+  console.log("Current property usage:", currentPropertyUsage);
+  console.log("Property usage length:", currentPropertyUsage.length);
+  console.log(
+    "Property usage char codes:",
+    currentPropertyUsage.split("").map((c) => c.charCodeAt(0))
+  );
+
+  // Determine if we should use rental rates (trim to handle any whitespace issues)
+  const trimmedPropertyUsage = currentPropertyUsage.trim();
   const useRentalRates =
-    currentPropertyUsage === "Rental / Investment" ||
-    currentPropertyUsage === "Second Home";
+    trimmedPropertyUsage === "Owner-occupied and Rental" ||
+    trimmedPropertyUsage === "Rental / Investment";
+
+  console.log("Should use rental rates:", useRentalRates);
 
   const totalMortgageRequired =
     (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
@@ -265,23 +260,18 @@ export default function RatesPage() {
 
   // Get city-based rates for the user's province
   const cityBasedRates = useMemo(() => {
-    const selectedCollection =
-      useRentalRates && rentalRates ? rentalRates : rates;
-    const cityRates = selectedCollection?.[prov];
-    const usingRental = useRentalRates && rentalRates;
+    const cityRates = rates?.[prov];
 
     // Log which rates we're using for debugging
     console.log(
       "🏠 Property usage:",
       currentPropertyUsage,
       "📊 Using rental rates:",
-      usingRental ? "Yes" : "No",
-      "🏢 Rate collection:",
-      usingRental ? "Rental" : "Standard"
+      useRentalRates ? "Yes" : "No"
     );
 
     return cityRates;
-  }, [useRentalRates, rentalRates, rates, prov, currentPropertyUsage]);
+  }, [rates, prov, currentPropertyUsage, useRentalRates]);
 
   // Show loading or error states
   if (loading) return <div className="p-8 text-center">Loading rates...</div>;
@@ -343,25 +333,54 @@ export default function RatesPage() {
   );
 
   // Always use standard renewal rates (no refinance logic)
-  r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
-  r3FLender =
-    cityBasedRates.threeYrFixed[rateCategory]?.lender || "Default Lender";
+  if (useRentalRates) {
+    // Use rental rates for investment properties
+    r3F = cityBasedRates.threeYrFixed.rental?.rate || 0;
+    r3FLender = cityBasedRates.threeYrFixed.rental?.lender || "Default Lender";
 
-  r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
-  r4FLender =
-    cityBasedRates.fourYrFixed[rateCategory]?.lender || "Default Lender";
+    r4F = cityBasedRates.fourYrFixed.rental?.rate || 0;
+    r4FLender = cityBasedRates.fourYrFixed.rental?.lender || "Default Lender";
 
-  r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
-  r5FLender =
-    cityBasedRates.fiveYrFixed[rateCategory]?.lender || "Default Lender";
+    r5F = cityBasedRates.fiveYrFixed.rental?.rate || 0;
+    r5FLender = cityBasedRates.fiveYrFixed.rental?.lender || "Default Lender";
 
-  r3VAdjustment = cityBasedRates.threeYrVariable[rateCategory]?.adjustment || 0;
-  r3VLender =
-    cityBasedRates.threeYrVariable[rateCategory]?.lender || "Default Lender";
+    r3VAdjustment = cityBasedRates.threeYrVariable.rental?.adjustment || 0;
+    r3VLender =
+      cityBasedRates.threeYrVariable.rental?.lender || "Default Lender";
 
-  r5VAdjustment = cityBasedRates.fiveYrVariable[rateCategory]?.adjustment || 0;
-  r5VLender =
-    cityBasedRates.fiveYrVariable[rateCategory]?.lender || "Default Lender";
+    r5VAdjustment = cityBasedRates.fiveYrVariable.rental?.adjustment || 0;
+    r5VLender =
+      cityBasedRates.fiveYrVariable.rental?.lender || "Default Lender";
+
+    console.log("🏢 Using rental rates for investment property");
+  } else {
+    // Use regular LTV-based rates for owner-occupied properties
+    r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
+    r3FLender =
+      cityBasedRates.threeYrFixed[rateCategory]?.lender || "Default Lender";
+
+    r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
+    r4FLender =
+      cityBasedRates.fourYrFixed[rateCategory]?.lender || "Default Lender";
+
+    r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
+    r5FLender =
+      cityBasedRates.fiveYrFixed[rateCategory]?.lender || "Default Lender";
+
+    r3VAdjustment =
+      cityBasedRates.threeYrVariable[rateCategory]?.adjustment || 0;
+    r3VLender =
+      cityBasedRates.threeYrVariable[rateCategory]?.lender || "Default Lender";
+
+    r5VAdjustment =
+      cityBasedRates.fiveYrVariable[rateCategory]?.adjustment || 0;
+    r5VLender =
+      cityBasedRates.fiveYrVariable[rateCategory]?.lender || "Default Lender";
+
+    console.log(
+      `🏠 Using LTV-based rates for owner-occupied property (${rateCategory})`
+    );
+  }
 
   console.log(`💰 Renewal rates - 3F: ${r3F}%, 4F: ${r4F}%, 5F: ${r5F}%`);
   console.log(

@@ -38,10 +38,10 @@ export default function PrimeRateCard({
   return (
     <>
       {/* Prime Rate Card */}
-      <div className="bg-white border-gray-300 border rounded-lg shadow-lg p-4 flex justify-between h-full items-end relative w-112 pt-6">
+      <div className="relative flex items-end justify-between w-64 h-16 p-2 pb-1 bg-white border border-gray-300 rounded-lg shadow-lg">
         <button
           onClick={openPrimeModal}
-          className="text-gray-400 cursor-pointer absolute top-2 right-2 p-2 hover:text-blue-600 hover:bg-blue-50 rounded"
+          className="absolute p-1 text-gray-400 rounded cursor-pointer top-1 right-1 hover:text-blue-600 hover:bg-blue-50"
         >
           <svg
             className="w-4 h-4"
@@ -57,23 +57,23 @@ export default function PrimeRateCard({
             />
           </svg>
         </button>
-        <div className="flex space-x-4 pb-2 items-end justify-between w-full">
+        <div className="flex justify-between w-full space-x-4 items-baseline-last ">
           <div className="flex space-x-2">
-            <div className="w-12 h-8 rounded-md overflow-hidden shadow-md border border-gray-200">
+            <div className="w-8 h-5 overflow-hidden border border-gray-200 rounded-md shadow-md">
               <Image
                 src={"/images/canadian_flag.svg"}
                 alt={"Canadian flag"}
                 width={48}
                 height={32}
-                className="w-full h-full object-cover"
+                className="object-cover w-full h-full"
               />
             </div>
-            <div className="border-l pl-2 border-gray-200">
-              <p className="text-sm text-gray-500">Canada</p>
-              <h2 className="text-xl">Prime Rate</h2>
+            <div className="pl-2 border-l border-gray-200">
+              <p className="text-xs text-gray-500">Canada</p>
+              <h2 className="">Prime Rate</h2>
             </div>
           </div>
-          <p className="text-xl font-bold text-blue-600">
+          <p className="text-lg font-bold text-blue-600">
             {formatRate(primeRate)}%
           </p>
         </div>
@@ -81,8 +81,8 @@ export default function PrimeRateCard({
 
       {/* Prime Rate Update Modal */}
       {isPrimeModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 bg-black/60 backdrop-blur-md">
+          <div className="w-full max-w-md bg-white rounded-lg shadow-xl">
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900">
@@ -90,7 +90,7 @@ export default function PrimeRateCard({
                 </h3>
                 <button
                   onClick={() => setIsPrimeModalOpen(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md cursor-pointer"
+                  className="p-2 text-gray-400 rounded-md cursor-pointer hover:text-gray-600 hover:bg-gray-100"
                 >
                   <svg
                     className="w-5 h-5"
@@ -112,7 +112,7 @@ export default function PrimeRateCard({
             <div className="px-6 py-4">
               <form onSubmit={handlePrimeUpdate}>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
                     Prime Rate (%)
                   </label>
                   <input
@@ -135,14 +135,14 @@ export default function PrimeRateCard({
                   <button
                     type="button"
                     onClick={() => setIsPrimeModalOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 cursor-pointer"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isUpdating}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors duration-200"
+                    className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdating ? "Updating..." : buttonText}
                   </button>

@@ -1,35 +1,13 @@
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import UpdateRatesForm from "../form-elements/update-rates-form";
+import { useState } from "react";
+import { useMortgageStore } from "../../stores/useMortgageStore";
 
-// Helper function to format rates to always show 2 decimal places
-const formatRate = (rate) => {
-  if (rate == null || rate === undefined) return "";
-  return parseFloat(rate).toFixed(2);
+// Store-based lender hook
+const useLenders = (isRental = false) => {
+  const { getLenders } = useMortgageStore();
+  return { lenders: getLenders(isRental), loading: false, error: null };
 };
 
-// Canadian lenders list
-const lenders = [
-  "TD Bank",
-  "RBC",
-  "BMO",
-  "Scotiabank",
-  "CIBC",
-  "National Bank",
-  "Credit Union",
-  "Alternative Lender",
-  "First National",
-  "MCAP",
-  "Dominion Lending",
-];
-
-// Variable rate discounts from prime
-const variableRateDiscounts = {
-  threeYrVariable: 0.8, // Prime - 0.8
-  fiveYrVariable: 0.9, // Prime - 0.9
-};
-
-// Variable rate input component with lender dropdown (uses adjustment instead of rate)
+// Variable rate input component with adjustment field
 const VariableRateInputField = ({
   ltv,
   rateType,
@@ -38,16 +16,20 @@ const VariableRateInputField = ({
   onLenderChange,
   isRefinance = false,
   refinanceType = null,
+  isRental = false,
 }) => {
+  const { lenders } = useLenders(isRental);
   const displayLtv = !ltv
     ? ""
-    : isRefinance
-      ? refinanceType === "under25"
-        ? "≤25 years of amortization"
-        : ">25 years of amortization"
-      : ltv === "over80"
-        ? ">80%"
-        : `≤${ltv.slice(-2)}%`;
+    : ltv === "rental"
+      ? "Rental"
+      : isRefinance
+        ? refinanceType === "under25"
+          ? "≤25 yrs"
+          : ">25 yrs"
+        : ltv === "over80"
+          ? "Insured"
+          : `≤${ltv.slice(-2)}%`;
 
   const fieldKey = !ltv ? "" : isRefinance ? `refinance.${refinanceType}` : ltv;
 
@@ -107,6 +89,7 @@ const VariableRateFormSection = ({
   selectedRates,
   toggleRateSelection,
   toggleCategorySelection,
+  isRental = false,
 }) => (
   <div className="mb-6">
     <div className="flex items-center mb-3">
@@ -127,75 +110,104 @@ const VariableRateFormSection = ({
         (Select all rates in this category)
       </span>
     </div>
-
-    {/* Regular LTV rates */}
-    <div className="grid grid-cols-3 gap-3 mb-4">
-      {["under65", "under70", "under75", "under80", "over80"].map((ltv) => (
-        <div key={ltv} className="flex items-start space-x-2">
-          <input
-            type="checkbox"
-            id={`${rateType}-${ltv}`}
-            checked={selectedRates[rateType][ltv]}
-            onChange={() => toggleRateSelection(rateType, ltv)}
-            className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-          <div className="flex-1">
-            <VariableRateInputField
-              ltv={ltv}
-              rateType={rateType}
-              value={formRates[rateType][ltv]}
-              onAdjustmentChange={handleAdjustmentChange}
-              onLenderChange={handleLenderChange}
+    <div>
+      {/* Regular LTV rates */}
+      <div className="flex space-x-4">
+        {["under65", "under70", "under75", "under80", "over80"].map((ltv) => (
+          <div key={ltv} className="flex items-start space-x-2">
+            <input
+              type="checkbox"
+              id={`${rateType}-${ltv}`}
+              checked={selectedRates[rateType][ltv]}
+              onChange={() => toggleRateSelection(rateType, ltv)}
+              className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             />
+            <div className="flex-1">
+              <VariableRateInputField
+                ltv={ltv}
+                rateType={rateType}
+                value={formRates[rateType][ltv]}
+                onAdjustmentChange={handleAdjustmentChange}
+                onLenderChange={handleLenderChange}
+                isRental={isRental}
+              />
+            </div>
+          </div>
+        ))}
+
+        {/* Refinance rates */}
+        <div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-refinanceUnder25`}
+                checked={selectedRates[rateType].refinanceUnder25}
+                onChange={() =>
+                  toggleRateSelection(rateType, "refinanceUnder25")
+                }
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <VariableRateInputField
+                  ltv="refinance"
+                  rateType={rateType}
+                  value={formRates[rateType].refinance?.under25}
+                  onAdjustmentChange={handleAdjustmentChange}
+                  onLenderChange={handleLenderChange}
+                  isRefinance={true}
+                  refinanceType="under25"
+                  isRental={isRental}
+                />
+              </div>
+            </div>
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-refinanceOver25`}
+                checked={selectedRates[rateType].refinanceOver25}
+                onChange={() =>
+                  toggleRateSelection(rateType, "refinanceOver25")
+                }
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <VariableRateInputField
+                  ltv="refinance"
+                  rateType={rateType}
+                  value={formRates[rateType].refinance?.over25}
+                  onAdjustmentChange={handleAdjustmentChange}
+                  onLenderChange={handleLenderChange}
+                  isRefinance={true}
+                  refinanceType="over25"
+                  isRental={isRental}
+                />
+              </div>
+            </div>
           </div>
         </div>
-      ))}
-    </div>
-
-    {/* Refinance rates */}
-    <div className="pt-3 border-t">
-      <h5 className="mb-2 text-xs font-medium text-gray-600">
-        Refinance Rates
-      </h5>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex items-start space-x-2">
-          <input
-            type="checkbox"
-            id={`${rateType}-refinanceUnder25`}
-            checked={selectedRates[rateType].refinanceUnder25}
-            onChange={() => toggleRateSelection(rateType, "refinanceUnder25")}
-            className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-          <div className="flex-1">
-            <VariableRateInputField
-              ltv="refinance"
-              rateType={rateType}
-              value={formRates[rateType].refinance?.under25}
-              onAdjustmentChange={handleAdjustmentChange}
-              onLenderChange={handleLenderChange}
-              isRefinance={true}
-              refinanceType="under25"
-            />
-          </div>
-        </div>
-        <div className="flex items-start space-x-2">
-          <input
-            type="checkbox"
-            id={`${rateType}-refinanceOver25`}
-            checked={selectedRates[rateType].refinanceOver25}
-            onChange={() => toggleRateSelection(rateType, "refinanceOver25")}
-            className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-          <div className="flex-1">
-            <VariableRateInputField
-              ltv="refinance"
-              rateType={rateType}
-              value={formRates[rateType].refinance?.over25}
-              onAdjustmentChange={handleAdjustmentChange}
-              onLenderChange={handleLenderChange}
-              isRefinance={true}
-              refinanceType="over25"
-            />
+        {/* Rental rates */}
+        <div className="">
+          <div>
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-rental`}
+                checked={selectedRates[rateType].rental}
+                onChange={() => toggleRateSelection(rateType, "rental")}
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <VariableRateInputField
+                  ltv="rental"
+                  rateType={rateType}
+                  value={formRates[rateType].rental}
+                  onAdjustmentChange={handleAdjustmentChange}
+                  onLenderChange={handleLenderChange}
+                  isRental={isRental}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -212,16 +224,20 @@ const RateInputField = ({
   onLenderChange,
   isRefinance = false,
   refinanceType = null,
+  isRental = false,
 }) => {
+  const { lenders } = useLenders(isRental);
   const displayLtv = !ltv
     ? ""
-    : isRefinance
-      ? refinanceType === "under25"
-        ? "≤25 years of amortization"
-        : ">25 years of amortization"
-      : ltv === "over80"
-        ? ">80%"
-        : `≤${ltv.slice(-2)}%`;
+    : ltv === "rental"
+      ? "Rental"
+      : isRefinance
+        ? refinanceType === "under25"
+          ? "≤25 yrs"
+          : ">25 yrs"
+        : ltv === "over80"
+          ? "Insured"
+          : `≤${ltv.slice(-2)}%`;
 
   const fieldKey = !ltv ? "" : isRefinance ? `refinance.${refinanceType}` : ltv;
 
@@ -281,6 +297,7 @@ const FixedRateSection = ({
   selectedRates,
   toggleRateSelection,
   toggleCategorySelection,
+  isRental = false,
 }) => (
   <div className="mb-6">
     <div className="flex items-center mb-3">
@@ -301,75 +318,104 @@ const FixedRateSection = ({
         (Select all rates in this category)
       </span>
     </div>
-
-    {/* Regular LTV rates */}
-    <div className="grid grid-cols-3 gap-3 mb-4">
-      {["under65", "under70", "under75", "under80", "over80"].map((ltv) => (
-        <div key={ltv} className="flex items-start space-x-2">
-          <input
-            type="checkbox"
-            id={`${rateType}-${ltv}`}
-            checked={selectedRates[rateType][ltv]}
-            onChange={() => toggleRateSelection(rateType, ltv)}
-            className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-          <div className="flex-1">
-            <RateInputField
-              ltv={ltv}
-              rateType={rateType}
-              value={formRates[rateType][ltv]}
-              onRateChange={handleRateChange}
-              onLenderChange={handleLenderChange}
+    <div>
+      {/* Regular LTV rates */}
+      <div className="flex space-x-4">
+        {["under65", "under70", "under75", "under80", "over80"].map((ltv) => (
+          <div key={ltv} className="flex items-start space-x-2">
+            <input
+              type="checkbox"
+              id={`${rateType}-${ltv}`}
+              checked={selectedRates[rateType][ltv]}
+              onChange={() => toggleRateSelection(rateType, ltv)}
+              className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             />
+            <div className="flex-1">
+              <RateInputField
+                ltv={ltv}
+                rateType={rateType}
+                value={formRates[rateType][ltv]}
+                onRateChange={handleRateChange}
+                onLenderChange={handleLenderChange}
+                isRental={isRental}
+              />
+            </div>
+          </div>
+        ))}
+
+        {/* Refinance rates */}
+        <div className="">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-refinanceUnder25`}
+                checked={selectedRates[rateType].refinanceUnder25}
+                onChange={() =>
+                  toggleRateSelection(rateType, "refinanceUnder25")
+                }
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <RateInputField
+                  ltv="refinance"
+                  rateType={rateType}
+                  value={formRates[rateType].refinance?.under25}
+                  onRateChange={handleRateChange}
+                  onLenderChange={handleLenderChange}
+                  isRefinance={true}
+                  refinanceType="under25"
+                  isRental={isRental}
+                />
+              </div>
+            </div>
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-refinanceOver25`}
+                checked={selectedRates[rateType].refinanceOver25}
+                onChange={() =>
+                  toggleRateSelection(rateType, "refinanceOver25")
+                }
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <RateInputField
+                  ltv="refinance"
+                  rateType={rateType}
+                  value={formRates[rateType].refinance?.over25}
+                  onRateChange={handleRateChange}
+                  onLenderChange={handleLenderChange}
+                  isRefinance={true}
+                  refinanceType="over25"
+                  isRental={isRental}
+                />
+              </div>
+            </div>
           </div>
         </div>
-      ))}
-    </div>
-
-    {/* Refinance rates */}
-    <div className="pt-3 border-t">
-      <h5 className="mb-2 text-xs font-medium text-gray-600">
-        Refinance Rates
-      </h5>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex items-start space-x-2">
-          <input
-            type="checkbox"
-            id={`${rateType}-refinanceUnder25`}
-            checked={selectedRates[rateType].refinanceUnder25}
-            onChange={() => toggleRateSelection(rateType, "refinanceUnder25")}
-            className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-          <div className="flex-1">
-            <RateInputField
-              ltv="refinance"
-              rateType={rateType}
-              value={formRates[rateType].refinance?.under25}
-              onRateChange={handleRateChange}
-              onLenderChange={handleLenderChange}
-              isRefinance={true}
-              refinanceType="under25"
-            />
-          </div>
-        </div>
-        <div className="flex items-start space-x-2">
-          <input
-            type="checkbox"
-            id={`${rateType}-refinanceOver25`}
-            checked={selectedRates[rateType].refinanceOver25}
-            onChange={() => toggleRateSelection(rateType, "refinanceOver25")}
-            className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-          />
-          <div className="flex-1">
-            <RateInputField
-              ltv="refinance"
-              rateType={rateType}
-              value={formRates[rateType].refinance?.over25}
-              onRateChange={handleRateChange}
-              onLenderChange={handleLenderChange}
-              isRefinance={true}
-              refinanceType="over25"
-            />
+        {/* Rental rates */}
+        <div className="">
+          <div>
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-rental`}
+                checked={selectedRates[rateType].rental}
+                onChange={() => toggleRateSelection(rateType, "rental")}
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <RateInputField
+                  ltv="rental"
+                  rateType={rateType}
+                  value={formRates[rateType].rental}
+                  onRateChange={handleRateChange}
+                  onLenderChange={handleLenderChange}
+                  isRental={isRental}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -377,7 +423,50 @@ const FixedRateSection = ({
   </div>
 );
 
-const OldUpdateRatesForm = ({ province, rates, onClose }) => {
+const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
+  // Debug log to see what rates structure we're receiving
+  console.log(
+    "UpdateRatesForm received rates:",
+    JSON.stringify(rates, null, 2)
+  );
+
+  // Helper function to normalize rental data that might have corrupted nested structure
+  const normalizeRental = (rentalData, isFixed = true) => {
+    if (!rentalData) {
+      // Return appropriate default based on rate type
+      return isFixed ? { rate: 0, lender: "" } : { adjustment: 0, lender: "" };
+    }
+
+    // Check if this is the old corrupted nested structure from database for variable rates
+    // Variable rates in DB currently look like: { adjustment: { adjustment: -0.54, lender: "MCAP" } }
+    if (
+      rentalData.adjustment &&
+      typeof rentalData.adjustment === "object" &&
+      rentalData.adjustment.adjustment !== undefined
+    ) {
+      return {
+        adjustment: rentalData.adjustment.adjustment || 0,
+        lender: rentalData.adjustment.lender || "",
+      };
+    }
+
+    // Check if this is corrupted nested structure for fixed rates in database
+    // Fixed rates in DB currently look like: { rate: { rate: 5.43, lender: "Credit Union" } }
+    if (
+      rentalData.rate &&
+      typeof rentalData.rate === "object" &&
+      rentalData.rate.rate !== undefined
+    ) {
+      return {
+        rate: rentalData.rate.rate || 0,
+        lender: rentalData.rate.lender || "",
+      };
+    }
+
+    // Return the data as-is if it's already properly structured
+    return rentalData;
+  };
+
   // Province list for checkboxes
   const allProvinces = [
     { code: "AB", name: "Alberta" },
@@ -428,6 +517,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
           lender: rates.threeYrFixed?.refinance?.over25?.lender || "",
         },
       },
+      rental: normalizeRental(rates.threeYrFixed?.rental, true), // Fixed rates
     },
     fourYrFixed: {
       under65: {
@@ -460,6 +550,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
           lender: rates.fourYrFixed?.refinance?.over25?.lender || "",
         },
       },
+      rental: normalizeRental(rates.fourYrFixed?.rental, true), // Fixed rates
     },
     fiveYrFixed: {
       under65: {
@@ -492,6 +583,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
           lender: rates.fiveYrFixed?.refinance?.over25?.lender || "",
         },
       },
+      rental: normalizeRental(rates.fiveYrFixed?.rental, true), // Fixed rates
     },
     threeYrVariable: {
       under65: {
@@ -525,6 +617,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
           lender: rates.threeYrVariable?.refinance?.over25?.lender || "",
         },
       },
+      rental: normalizeRental(rates.threeYrVariable?.rental, false), // Variable rates
     },
     fiveYrVariable: {
       under65: {
@@ -557,6 +650,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
           lender: rates.fiveYrVariable?.refinance?.over25?.lender || "",
         },
       },
+      rental: normalizeRental(rates.fiveYrVariable?.rental, false), // Variable rates
     },
   });
 
@@ -580,6 +674,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      rental: false,
     },
     fourYrFixed: {
       categorySelected: false,
@@ -590,6 +685,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      rental: false,
     },
     fiveYrFixed: {
       categorySelected: false,
@@ -600,6 +696,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      rental: false,
     },
     threeYrVariable: {
       categorySelected: false,
@@ -610,6 +707,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      rental: false,
     },
     fiveYrVariable: {
       categorySelected: false,
@@ -620,6 +718,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      rental: false,
     },
   });
 
@@ -727,7 +826,10 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
         ...formRates,
       };
 
-      const response = await fetch("/api/admin/rates/update", {
+      const apiEndpoint = isRental
+        ? "/api/admin/rental-rates/update"
+        : "/api/admin/rates/update";
+      const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -739,14 +841,22 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
       });
 
       if (response.ok) {
-        alert("Rates updated successfully!");
+        const successMessage = isRental
+          ? "Rental rates updated successfully!"
+          : "Rates updated successfully!";
+        alert(successMessage);
         onClose();
         window.location.reload();
       } else {
-        throw new Error("Failed to update rates");
+        throw new Error(
+          isRental ? "Failed to update rental rates" : "Failed to update rates"
+        );
       }
     } catch (error) {
-      alert("Error updating rates: " + error.message);
+      const errorMessage = isRental
+        ? "Error updating rental rates: "
+        : "Error updating rates: ";
+      alert(errorMessage + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -769,10 +879,11 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
     }
 
     const provinceNames = checkedProvinces.map((p) => p.name).join(", ");
-    const confirmUpdate = window.confirm(
-      `Are you sure you want to update ${checkedProvinces.length} province(s) (${provinceNames}) with ${selectedRatesCount} selected rate(s) from ${province.name}? This action cannot be undone.`
-    );
+    const confirmMessage = isRental
+      ? `Are you sure you want to update ${checkedProvinces.length} province(s) (${provinceNames}) with ${selectedRatesCount} selected rental rate(s) from ${province.name}? This action cannot be undone.`
+      : `Are you sure you want to update ${checkedProvinces.length} province(s) (${provinceNames}) with ${selectedRatesCount} selected rate(s) from ${province.name}? This action cannot be undone.`;
 
+    const confirmUpdate = window.confirm(confirmMessage);
     if (!confirmUpdate) return;
 
     setIsUpdatingMultiple(true);
@@ -813,10 +924,18 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
                 formRates[rateType].refinance?.over25;
             }
           }
+
+          // Add selected rental rates
+          if (rateCategory.rental) {
+            filteredRateData[rateType].rental = formRates[rateType].rental;
+          }
         }
       });
 
-      const response = await fetch("/api/admin/rates/update-multiple", {
+      const apiEndpoint = isRental
+        ? "/api/admin/rental-rates/update-multiple"
+        : "/api/admin/rates/update-multiple";
+      const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -830,17 +949,24 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
 
       if (response.ok) {
         const data = await response.json();
-        alert(
-          `Successfully updated ${checkedProvinces.length} provinces with ${selectedRatesCount} selected rate(s) from ${province.name}!`
-        );
+        const successMessage = isRental
+          ? `Successfully updated ${checkedProvinces.length} provinces with ${selectedRatesCount} selected rental rate(s) from ${province.name}!`
+          : `Successfully updated ${checkedProvinces.length} provinces with ${selectedRatesCount} selected rate(s) from ${province.name}!`;
+        alert(successMessage);
         onClose();
         window.location.reload();
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update provinces");
+        const errorMessage = isRental
+          ? "Failed to update rental rates for provinces"
+          : "Failed to update provinces";
+        throw new Error(errorData.message || errorMessage);
       }
     } catch (error) {
-      alert("Error updating provinces: " + error.message);
+      const errorPrefix = isRental
+        ? "Error updating rental rate provinces: "
+        : "Error updating provinces: ";
+      alert(errorPrefix + error.message);
     } finally {
       setIsUpdatingMultiple(false);
     }
@@ -910,6 +1036,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
           over80: categorySelected,
           refinanceUnder25: categorySelected,
           refinanceOver25: categorySelected,
+          rental: categorySelected,
         },
       };
     });
@@ -926,6 +1053,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
         "over80",
         "refinanceUnder25",
         "refinanceOver25",
+        "rental",
       ];
       categoryKeys.forEach((key) => {
         if (selectedRates[rateType][key]) count++;
@@ -947,6 +1075,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
           over80: true,
           refinanceUnder25: true,
           refinanceOver25: true,
+          rental: true,
         };
       });
       return newSelectedRates;
@@ -966,6 +1095,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
           over80: false,
           refinanceUnder25: false,
           refinanceOver25: false,
+          rental: false,
         };
       });
       return newSelectedRates;
@@ -973,7 +1103,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -1013,6 +1143,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
               selectedRates={selectedRates}
               toggleRateSelection={toggleRateSelection}
               toggleCategorySelection={toggleCategorySelection}
+              isRental={isRental}
             />
 
             <FixedRateSection
@@ -1024,6 +1155,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
               selectedRates={selectedRates}
               toggleRateSelection={toggleRateSelection}
               toggleCategorySelection={toggleCategorySelection}
+              isRental={isRental}
             />
 
             <FixedRateSection
@@ -1035,6 +1167,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
               selectedRates={selectedRates}
               toggleRateSelection={toggleRateSelection}
               toggleCategorySelection={toggleCategorySelection}
+              isRental={isRental}
             />
 
             {/* Variable Rate Sections */}
@@ -1047,6 +1180,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
               selectedRates={selectedRates}
               toggleRateSelection={toggleRateSelection}
               toggleCategorySelection={toggleCategorySelection}
+              isRental={isRental}
             />
 
             <VariableRateFormSection
@@ -1058,6 +1192,7 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
               selectedRates={selectedRates}
               toggleRateSelection={toggleRateSelection}
               toggleCategorySelection={toggleCategorySelection}
+              isRental={isRental}
             />
 
             {/* Province Selection for Multiple Updates */}
@@ -1187,372 +1322,4 @@ const OldUpdateRatesForm = ({ province, rates, onClose }) => {
   );
 };
 
-// Variable rate section component (displays adjustments and calculated rates)
-const VariableRateSection = ({ title, rateType, rates, primeRate }) => {
-  console.log(`${title} rates:`, rates);
-  return (
-    <div className="pb-3 border-b border-gray-100">
-      <h4 className="mb-2 text-xl font-semibold text-blue-800">{title}</h4>
-      {!rates ? (
-        <div className="p-3 text-sm text-red-500 rounded bg-red-50">
-          ❌ No rates data for {title}
-        </div>
-      ) : Object.keys(rates).length === 0 ? (
-        <div className="p-3 text-sm text-orange-500 rounded bg-orange-50">
-          ⚠️ Empty rates object for {title}
-        </div>
-      ) : (
-        <div className="grid grid-cols-4 gap-2 text-xs">
-          <div className="text-center">
-            <div className="text-gray-500">≤65%</div>
-            <div className="font-semibold text-blue-800">
-              {primeRate && rates?.under65?.adjustment !== undefined
-                ? (primeRate + rates.under65.adjustment).toFixed(2)
-                : "0.00"}
-              %
-            </div>
-            <div className="text-gray-400 text-[10px]">
-              {rates?.under65?.adjustment >= 0 ? "+" : ""}
-              {rates?.under65?.adjustment}%
-            </div>
-            {rates?.under65?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.under65.lender}
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500">≤70%</div>
-            <div className="font-semibold text-blue-800">
-              {primeRate && rates?.under70?.adjustment !== undefined
-                ? (primeRate + rates.under70.adjustment).toFixed(2)
-                : "0.00"}
-              %
-            </div>
-            <div className="text-gray-400 text-[10px]">
-              {rates?.under70?.adjustment >= 0 ? "+" : ""}
-              {rates?.under70?.adjustment}%
-            </div>
-            {rates?.under70?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.under70.lender}
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500">≤75%</div>
-            <div className="font-semibold text-blue-800">
-              {primeRate && rates?.under75?.adjustment !== undefined
-                ? (primeRate + rates.under75.adjustment).toFixed(2)
-                : "0.00"}
-              %
-            </div>
-            <div className="text-gray-400 text-[10px]">
-              {rates?.under75?.adjustment >= 0 ? "+" : ""}
-              {rates?.under75?.adjustment}%
-            </div>
-            {rates?.under75?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.under75.lender}
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500">≤80%</div>
-            <div className="font-semibold text-blue-800">
-              {primeRate && rates?.under80?.adjustment !== undefined
-                ? (primeRate + rates.under80.adjustment).toFixed(2)
-                : "0.00"}
-              %
-            </div>
-            <div className="text-gray-400 text-[10px]">
-              {rates?.under80?.adjustment >= 0 ? "+" : ""}
-              {rates?.under80?.adjustment}%
-            </div>
-            {rates?.under80?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.under80.lender}
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500">&gt;80%</div>
-            <div className="font-semibold text-blue-800">
-              {primeRate && rates?.over80?.adjustment !== undefined
-                ? (primeRate + rates.over80.adjustment).toFixed(2)
-                : "0.00"}
-              %
-            </div>
-            <div className="text-gray-400 text-[10px]">
-              {rates?.over80?.adjustment >= 0 ? "+" : ""}
-              {rates?.over80?.adjustment}%
-            </div>
-            {rates?.over80?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.over80.lender}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Refinance rates section */}
-      {rates?.refinance && (
-        <div className="pt-3 mt-3 border-t border-gray-100">
-          <div className="mb-2 font-medium text-gray-600">Refinance Rates</div>
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="text-center">
-              <div className="text-gray-500">≤25 years of amortization</div>
-              <div className="font-semibold text-blue-800">
-                {primeRate &&
-                rates?.refinance?.under25?.adjustment !== undefined
-                  ? (primeRate + rates.refinance.under25.adjustment).toFixed(2)
-                  : "0.00"}
-                %
-              </div>
-              <div className="text-gray-400 text-[10px]">
-                {rates?.refinance?.under25?.adjustment >= 0 ? "+" : ""}
-                {rates?.refinance?.under25?.adjustment}%
-              </div>
-              {rates?.refinance?.under25?.lender && (
-                <div className="text-gray-400 text-[10px]">
-                  {rates.refinance.under25.lender}
-                </div>
-              )}
-            </div>
-            <div className="text-center">
-              <div className="text-gray-500">&gt;25 years of amortization</div>
-              <div className="font-semibold text-blue-800">
-                {primeRate && rates?.refinance?.over25?.adjustment !== undefined
-                  ? (primeRate + rates.refinance.over25.adjustment).toFixed(2)
-                  : "0.00"}
-                %
-              </div>
-              <div className="text-gray-400 text-[10px]">
-                {rates?.refinance?.over25?.adjustment >= 0 ? "+" : ""}
-                {rates?.refinance?.over25?.adjustment}%
-              </div>
-              {rates?.refinance?.over25?.lender && (
-                <div className="text-gray-400 text-[10px]">
-                  {rates.refinance.over25.lender}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const RateSection = ({
-  title,
-  rates,
-  titleStyle = "text-gray-700",
-  rateStyle = "font-semibold",
-}) => {
-  console.log(`${title} rates:`, rates);
-  return (
-    <div className="pb-3 border-b border-gray-100">
-      <h4 className="mb-2 text-xl font-semibold text-blue-600">{title}</h4>
-      {!rates ? (
-        <div className="p-3 text-sm text-red-500 rounded bg-red-50">
-          ❌ No rates data for {title}
-        </div>
-      ) : Object.keys(rates).length === 0 ? (
-        <div className="p-3 text-sm text-orange-500 rounded bg-orange-50">
-          ⚠️ Empty rates object for {title}
-        </div>
-      ) : (
-        <div className="grid grid-cols-4 gap-2 text-xs">
-          <div className="text-center">
-            <div className="text-gray-500">≤65%</div>
-            <div className={rateStyle}>
-              {formatRate(rates?.under65?.rate || rates?.under65)}%
-            </div>
-            {rates?.under65?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.under65.lender}
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500">≤70%</div>
-            <div className={rateStyle}>
-              {formatRate(rates?.under70?.rate || rates?.under70)}%
-            </div>
-            {rates?.under70?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.under70.lender}
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500">≤75%</div>
-            <div className={rateStyle}>
-              {formatRate(rates?.under75?.rate || rates?.under75)}%
-            </div>
-            {rates?.under75?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.under75.lender}
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500">≤80%</div>
-            <div className={rateStyle}>
-              {formatRate(rates?.under80?.rate || rates?.under80)}%
-            </div>
-            {rates?.under80?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.under80.lender}
-              </div>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500">&gt;80%</div>
-            <div className={rateStyle}>
-              {formatRate(rates?.over80?.rate || rates?.over80)}%
-            </div>
-            {rates?.over80?.lender && (
-              <div className="text-gray-400 text-[10px]">
-                {rates.over80.lender}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Refinance rates section */}
-      {rates?.refinance && (
-        <div className="pt-3 mt-3 border-t border-gray-100">
-          <div className="mb-2 font-medium text-gray-600">Refinance Rates</div>
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="text-center">
-              <div className="text-gray-500">≤25 years of amortization</div>
-              <div className={rateStyle}>
-                {formatRate(rates?.refinance?.under25?.rate)}%
-              </div>
-              {rates?.refinance?.under25?.lender && (
-                <div className="text-gray-400 text-[10px]">
-                  {rates.refinance.under25.lender}
-                </div>
-              )}
-            </div>
-            <div className="text-center">
-              <div className="text-gray-500">&gt;25 years of amortization</div>
-              <div className={rateStyle}>
-                {formatRate(rates?.refinance?.over25?.rate)}%
-              </div>
-              {rates?.refinance?.over25?.lender && (
-                <div className="text-gray-400 text-[10px]">
-                  {rates.refinance.over25.lender}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const AdminProvinceCard = ({ province, rates, primeRate }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Debug the entire rates object for this province
-  console.log(
-    `AdminProvinceCard for ${province.name} (${province.code}):`,
-    rates
-  );
-
-  if (!rates) {
-    console.log(`No rates found for ${province.code}`);
-    return null;
-  }
-
-  return (
-    <div className="relative overflow-hidden bg-white rounded-lg shadow">
-      <div className="px-4 py-5 sm:p-6">
-        {/* Update Button */}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="absolute p-2 text-gray-400 transition-colors duration-200 rounded-md cursor-pointer top-3 right-3 hover:text-blue-600 hover:bg-blue-50"
-          title="Update rates"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
-        </button>
-
-        {/* Province Header */}
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <div className="w-12 h-8 overflow-hidden border border-gray-200 rounded-md shadow-md">
-              <Image
-                src={province.flagImage}
-                alt={`${province.name} flag`}
-                width={48}
-                height={32}
-                className="object-cover w-full h-full"
-              />
-            </div>
-          </div>
-          <div className="flex-1 w-0 ml-4">
-            <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                {province.name}
-              </dt>
-              <dd className="text-xs text-gray-400 ">{province.code}</dd>
-            </dl>
-          </div>
-        </div>
-
-        {/* Rate Sections */}
-        <div className="mt-4 space-y-4">
-          <RateSection title="3-Year Fixed" rates={rates.threeYrFixed} />
-
-          <RateSection title="4-Year Fixed" rates={rates.fourYrFixed} />
-
-          <RateSection title="5-Year Fixed" rates={rates.fiveYrFixed} />
-
-          <VariableRateSection
-            title="3-Year Variable"
-            rateType="threeYrVariable"
-            rates={rates.threeYrVariable}
-            primeRate={primeRate}
-          />
-
-          <VariableRateSection
-            title="5-Year Variable"
-            rateType="fiveYrVariable"
-            rates={rates.fiveYrVariable}
-            primeRate={primeRate}
-          />
-        </div>
-      </div>
-
-      {/* Update Modal */}
-      {isModalOpen && (
-        <UpdateRatesForm
-          province={province}
-          rates={rates}
-          onClose={() => setIsModalOpen(false)}
-          isRental={false}
-        />
-      )}
-    </div>
-  );
-};
-
-export default AdminProvinceCard;
+export default UpdateRatesForm;

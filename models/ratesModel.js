@@ -62,6 +62,12 @@ const variableRefinanceSchema = new mongoose.Schema(
   { _id: false }
 );
 
+//Define rental structure for fixed rates
+const rentalSchema = rateLenderSchema;
+
+// Define rental structure for variable rates (using prime adjustments)
+const variableRentalSchema = variableRateSchema;
+
 // Define LTV structure for fixed rates
 const ltvRateSchema = new mongoose.Schema(
   {
@@ -71,6 +77,7 @@ const ltvRateSchema = new mongoose.Schema(
     under80: rateLenderSchema,
     over80: rateLenderSchema,
     refinance: refinanceSchema,
+    rental: rentalSchema,
   },
   { _id: false }
 );
@@ -84,6 +91,7 @@ const variableLtvSchema = new mongoose.Schema(
     under80: variableRateSchema,
     over80: variableRateSchema,
     refinance: variableRefinanceSchema,
+    rental: variableRentalSchema,
   },
   { _id: false }
 );
