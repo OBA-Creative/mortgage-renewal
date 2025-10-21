@@ -37,8 +37,9 @@ export default function MortgagePage() {
     setValue,
     control,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm({
+    mode: "onChange", // Enable real-time validation
     defaultValues: {
       propertyValue: formData.propertyValue
         ? formData.propertyValue.toLocaleString()
@@ -57,7 +58,8 @@ export default function MortgagePage() {
         ? formData.mortgageBalance.toLocaleString()
         : "",
       otherLender: formData.otherLender || "",
-      maturityDate: formData.maturityDate || "",
+      amortizationPeriod: formData.amortizationPeriod || "",
+      maturityDate: formData.maturityDate || "", // Use empty string for dates
     },
   });
 
@@ -79,6 +81,8 @@ export default function MortgagePage() {
       "Enter the remaining balance on your current mortgage. You can find this on your most recent mortgage statement or by contacting your lender.",
     otherLender:
       "Enter the name of your mortgage lender if it wasn't listed in the dropdown menu above.",
+    amortizationPeriod:
+      "Enter the number (between 0 and 30) of years left on your current amortization schedule. This affects your payment amount and available rates.",
     maturityDate:
       "This is the date when your current mortgage term expires and you'll need to renew. You can find this date on your mortgage documents or statement.",
   };
@@ -121,6 +125,13 @@ export default function MortgagePage() {
     currentPropertyValue > 0 && currentMortgageBalance > 0;
 
   const onSubmit = (data) => {
+    // Validate that maturity date is provided
+    if (!data.maturityDate || data.maturityDate.trim() === "") {
+      console.error("Maturity date is required but not provided");
+      // Don't proceed with form submission if maturity date is missing
+      return;
+    }
+
     // If 'Other' is selected, use the custom lender value
     const finalLender =
       data.lender === "Other" ? data.otherLender : data.lender;
@@ -142,6 +153,10 @@ export default function MortgagePage() {
       ? parseFloat(data.mortgageBalance.replace(/,/g, ""))
       : null;
 
+    const parsedAmortizationPeriod = data.amortizationPeriod
+      ? parseInt(data.amortizationPeriod)
+      : null;
+
     // Save all data to store
     const updatedFormData = {
       propertyValue: parsedPropertyValue,
@@ -153,6 +168,7 @@ export default function MortgagePage() {
       lender: finalLender || "",
       mortgageBalance: parsedMortgageBalance,
       otherLender: data.otherLender || "",
+      amortizationPeriod: parsedAmortizationPeriod,
       maturityDate: data.maturityDate || "",
     };
 
@@ -175,8 +191,8 @@ export default function MortgagePage() {
   ];
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center my-8 max-w-2xl">
+    <div className="max-w-xl p-6 mx-auto">
+      <h1 className="max-w-2xl my-8 text-4xl font-semibold text-center">
         {"Now let's learn about your mortgage"}
       </h1>
 
@@ -290,6 +306,41 @@ export default function MortgagePage() {
           formData={formData}
           helpTexts={helpTexts}
           showBorrowQuestion={showBorrowQuestion}
+          // Pass current form values for heloc (not from store)
+          currentHeloc={heloc}
+          currentHelocBalance={currentHelocBalance}
+        />
+
+        {/* Amortization Remaining */}
+        <TextInput
+          id="amortizationPeriod"
+          label="What's the amortization remaining in years?"
+          type="number"
+          min={0}
+          max={30}
+          step="1"
+          register={register}
+          requiredText="Please enter remaining amortization"
+          validationRules={{
+            min: {
+              value: 0,
+              message: "Amortization must be at least 0 years",
+            },
+            max: {
+              value: 30,
+              message: "Amortization cannot exceed 30 years",
+            },
+            pattern: {
+              value: /^\d+$/,
+              message: "Please enter a whole number only",
+            },
+          }}
+          helpTexts={helpTexts.amortizationPeriod}
+          error={errors.amortizationPeriod}
+          inputMode="numeric"
+          realTimeValidation={true}
+          onWheel={(e) => e.target.blur()}
+          placeholder="e.g. 22"
         />
 
         {/* Maturity Date */}
@@ -303,7 +354,15 @@ export default function MortgagePage() {
         />
 
         {/* Submit */}
-        <NextButton label="Show me rates" />
+        <div className="space-y-2">
+          {!isValid && Object.keys(errors).length > 0 && (
+            <p className="text-center text-red-600">
+              Please complete all required fields to continue
+              {errors.maturityDate && " (including maturity date)"}
+            </p>
+          )}
+          <NextButton label="Show me rates" />
+        </div>
       </form>
     </div>
   );

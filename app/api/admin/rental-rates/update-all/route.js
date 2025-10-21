@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
-import Rate from "@/models/ratesModel";
+import RentalRate from "@/models/rentalRatesModel";
 
 // Helper function to validate and format rates to 2 decimal places
 const validateAndFormatRate = (rate) => {
@@ -11,9 +11,10 @@ const validateAndFormatRate = (rate) => {
     throw new Error(`Invalid rate value: ${rate}`);
   }
 
-  // Check if it's within reasonable bounds (0 to 30%)
-  if (numRate < 0 || numRate > 30) {
-    throw new Error(`Rate must be between 0 and 30, got: ${numRate}`);
+  // Check if it's within reasonable bounds (-10 to 30%)
+  // Rental rates can have negative adjustments for variable rates
+  if (numRate < -10 || numRate > 30) {
+    throw new Error(`Rate must be between -10 and 30, got: ${numRate}`);
   }
 
   // Use toFixed to ensure exactly 2 decimal places, then convert back to number
@@ -125,7 +126,7 @@ export async function POST(request) {
       };
 
       console.log(
-        "Formatted rates for all provinces:",
+        "Formatted rental rates for all provinces:",
         JSON.stringify(formattedRates, null, 2)
       );
     } catch (validationError) {
@@ -139,12 +140,12 @@ export async function POST(request) {
       );
     }
 
-    // Find the current rates document
-    const existingRates = await Rate.findOne().sort({ createdAt: -1 });
+    // Find the current rental rates document
+    const existingRates = await RentalRate.findOne().sort({ createdAt: -1 });
 
     if (!existingRates) {
       return NextResponse.json(
-        { success: false, message: "No existing rates found" },
+        { success: false, message: "No existing rental rates found" },
         { status: 404 }
       );
     }
@@ -155,25 +156,25 @@ export async function POST(request) {
       updateData[provinceCode] = formattedRates;
     });
 
-    const updatedRates = await Rate.findByIdAndUpdate(
+    const updatedRates = await RentalRate.findByIdAndUpdate(
       existingRates._id,
       { $set: updateData },
       { new: true, runValidators: true }
     );
 
-    console.log("Updated all provinces with new rates");
+    console.log("Updated all provinces with new rental rates");
 
     return NextResponse.json({
       success: true,
-      message: "All provinces updated successfully",
+      message: "All provinces updated successfully with rental rates",
       updatedProvinces: provinces,
     });
   } catch (error) {
-    console.error("Error updating all provinces:", error);
+    console.error("Error updating all provinces with rental rates:", error);
     return NextResponse.json(
       {
         success: false,
-        message: "Failed to update all provinces",
+        message: "Failed to update all provinces with rental rates",
         error: error.message,
       },
       { status: 500 }

@@ -6,7 +6,6 @@ import RateCard from "@/components/cards/rate-card";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import CurrencyField from "@/components/form-elements/currency-element";
 import BookingModal from "@/components/cards/booking-modal";
-import Dropdown from "@/components/form-elements/dropdown";
 
 export default function RatesPage() {
   const { formData } = useMortgageStore();
@@ -143,7 +142,6 @@ export default function RatesPage() {
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
       amortizationPeriod: Number(formData?.amortizationPeriod ?? 25),
       city: formData?.city ?? "",
-      propertyUsage: formData?.propertyUsage ?? "",
     }),
     [formData]
   );
@@ -154,7 +152,12 @@ export default function RatesPage() {
     reset,
     control,
     formState: { errors },
-  } = useForm({ defaultValues });
+    setError: setFormError,
+    clearErrors,
+  } = useForm({
+    defaultValues,
+    mode: "onChange", // Enable real-time validation
+  });
 
   useEffect(() => {
     reset(defaultValues);
@@ -173,22 +176,46 @@ export default function RatesPage() {
     Number(watched?.amortizationPeriod ?? formData?.amortizationPeriod ?? 0) ||
     0;
 
-  // Determine property usage from watched form or store
-  const currentPropertyUsage =
-    watched?.propertyUsage || formData?.propertyUsage || "";
+  // Get property usage from store (entered in previous step)
+  const currentPropertyUsage = formData?.propertyUsage || "";
 
-  // Determine if we should use rental rates
+  // Determine if we should use rental rates based on stored property usage
   const useRentalRates =
-    currentPropertyUsage === "Rental / Investment" ||
-    currentPropertyUsage === "Second Home";
+    currentPropertyUsage === "Rental / Investment " ||
+    currentPropertyUsage === "Second home";
 
-  // Debug effect to track property usage changes
-  useEffect(() => {
-    if (currentPropertyUsage) {
-      console.log("🔄 Property usage changed to:", currentPropertyUsage);
-      console.log("💰 Will use rental rates:", useRentalRates);
-    }
-  }, [currentPropertyUsage, useRentalRates]);
+  // Calculate initial total mortgage required (from store values)
+  const initialTotalMortgage = useMemo(() => {
+    return (
+      (sanitizeMoney(
+        formData?.currentMortgageBalance ?? formData?.mortgageBalance
+      ) || 0) +
+      (formData.borrowAdditionalFunds === "yes"
+        ? sanitizeMoney(formData?.borrowAdditionalAmount) || 0
+        : 0) +
+      (sanitizeMoney(formData?.helocBalance) || 0)
+    );
+  }, [formData]);
+
+  // Check if user has made changes from initial values
+  const hasUserMadeChanges = useMemo(() => {
+    const currentTotal =
+      (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
+      (formData.borrowAdditionalFunds === "yes"
+        ? isNaN(watchedBorrowAmt)
+          ? 0
+          : watchedBorrowAmt
+        : 0) +
+      (isNaN(helocBalance) ? 0 : helocBalance);
+
+    return Math.abs(currentTotal - initialTotalMortgage) > 1; // Allow for small rounding differences
+  }, [
+    watchedMortgageBal,
+    watchedBorrowAmt,
+    helocBalance,
+    initialTotalMortgage,
+    formData.borrowAdditionalFunds,
+  ]);
 
   const totalMortgageRequired =
     (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
@@ -199,33 +226,83 @@ export default function RatesPage() {
       : 0) +
     (isNaN(helocBalance) ? 0 : helocBalance);
 
+  // Calculate the LTV based on property value
+  const propVal = sanitizeMoney(formData?.propertyValue) || 0;
+
+  // Calculate maximum allowed mortgage (80% of property value)
+  const maxMortgageAllowed = propVal * 0.8;
+
+  // Check if total exceeds 80% LTV limit
+  const exceedsLTVLimit = totalMortgageRequired > maxMortgageAllowed;
+
+  // Only block rates if user has made changes AND exceeds LTV limit
+  const shouldBlockRates = exceedsLTVLimit && hasUserMadeChanges;
+
+  // LTV validation effect - only validate if user has made changes on this page
+  useEffect(() => {
+    if (propVal > 0 && exceedsLTVLimit && hasUserMadeChanges) {
+      const allowedAmount = maxMortgageAllowed - helocBalance;
+      const currentInputTotal =
+        (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
+        (formData.borrowAdditionalFunds === "yes"
+          ? isNaN(watchedBorrowAmt)
+            ? 0
+            : watchedBorrowAmt
+          : 0);
+
+      if (currentInputTotal > allowedAmount) {
+        setFormError("currentMortgageBalance", {
+          type: "ltv-limit",
+          message: `Total mortgage cannot exceed 80% of property value ($${maxMortgageAllowed.toLocaleString(
+            "en-CA",
+            {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }
+          )})`,
+        });
+
+        if (formData.borrowAdditionalFunds === "yes") {
+          setFormError("borrowAdditionalAmount", {
+            type: "ltv-limit",
+            message: `Total mortgage cannot exceed 80% of property value`,
+          });
+        }
+      }
+    } else {
+      // Clear errors when within limit or user hasn't made changes
+      clearErrors(["currentMortgageBalance", "borrowAdditionalAmount"]);
+    }
+  }, [
+    watchedMortgageBal,
+    watchedBorrowAmt,
+    maxMortgageAllowed,
+    exceedsLTVLimit,
+    propVal,
+    helocBalance,
+    formData.borrowAdditionalFunds,
+    setFormError,
+    clearErrors,
+    hasUserMadeChanges, // Added this dependency
+  ]);
+
   // Get rates for the user's province/city
   const prov = formData?.province ?? "ON"; // Default to ON if no province
 
-  // Memoize rate calculations to ensure they update when property usage changes
-  const { selectedRatesCollection, cityBasedRates, isUsingRentalRates } =
-    useMemo(() => {
-      const selectedCollection =
-        useRentalRates && rentalRates ? rentalRates : rates;
-      const cityRates = selectedCollection?.[prov];
-      const usingRental = useRentalRates && rentalRates;
+  // Get appropriate rates based on property usage (set in previous step)
+  const selectedRatesCollection =
+    useRentalRates && rentalRates ? rentalRates : rates;
+  const cityBasedRates = selectedRatesCollection?.[prov];
 
-      // Log which rates we're using for debugging
-      console.log(
-        "🏠 Property usage:",
-        currentPropertyUsage,
-        "📊 Using rental rates:",
-        usingRental ? "Yes" : "No",
-        "🏢 Rate collection:",
-        usingRental ? "Rental" : "Standard"
-      );
-
-      return {
-        selectedRatesCollection: selectedCollection,
-        cityBasedRates: cityRates,
-        isUsingRentalRates: usingRental,
-      };
-    }, [useRentalRates, rentalRates, rates, prov, currentPropertyUsage]);
+  // Log which rates we're using for debugging
+  console.log(
+    "🏠 Property usage:",
+    currentPropertyUsage,
+    "📊 Using rental rates:",
+    useRentalRates ? "Yes" : "No",
+    "🏢 Rate collection:",
+    useRentalRates ? "Rental" : "Standard"
+  );
 
   // Show loading or error states
   if (loading) return <div className="p-8 text-center">Loading rates...</div>;
@@ -246,9 +323,9 @@ export default function RatesPage() {
   }
 
   // For refinance page, always use refinance rates based on amortization period
-  // under25 = amortization period under 25 years (more than 25% equity remaining)
-  // over25 = amortization period 25+ years (less than 25% equity remaining)
-  const refinanceCategory = yearsNum < 25 ? "under25" : "over25";
+  // under25 = amortization period under and equal to 25 years (more than 25% equity remaining)
+  // over25 = amortization period over 25 years (less than 25% equity remaining)
+  const refinanceCategory = yearsNum <= 25 ? "under25" : "over25";
 
   // Get refinance rates for the user's province
   const r3F =
@@ -306,9 +383,10 @@ export default function RatesPage() {
 
   return (
     <div className="flex flex-col items-center ">
-      <div className=" mx-auto px-4 py-8 text-center space-y-4">
+      <div className="px-4 py-8 mx-auto space-y-4 text-center ">
         <h1 className="text-4xl font-semibold ">
-          Here are the best refinance rates that match your profile
+          Here are the best <span className="text-blue-500 ">refinance</span>{" "}
+          rates that match your profile
         </h1>
         <p className="text-xl">
           If we lock in your rate today, you will be protected from future rate
@@ -318,7 +396,7 @@ export default function RatesPage() {
       <div className="flex space-x-20 ">
         {/* Current Mortgage Balance */}
         <form>
-          <div className="min-w-72">
+          <div className="w-92 ">
             <CurrencyField
               name="currentMortgageBalance"
               label="Current Mortgage Balance"
@@ -334,11 +412,36 @@ export default function RatesPage() {
                 error={errors.borrowAdditionalAmount}
               />
             )}
+            {/* Total Mortgage Required */}
+            <div className="flex flex-col mt-8 space-y-2">
+              <div className="flex flex-col space-y-2 align-baseline ">
+                <p className="text-2xl font-semibold">
+                  Total Mortgage Required
+                </p>
+                <p
+                  className={`text-2xl font-semibold ${shouldBlockRates ? "text-red-400" : "text-blue-500"}`}
+                >
+                  $
+                  {totalMortgageRequired.toLocaleString("en-CA", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </p>
+              </div>
+              <p className="text-sm text-gray-400">
+                This is the total amount calculated from your mortgage balance
+                {formData.borrowAdditionalFunds === "yes"
+                  ? " and additional borrowing"
+                  : ""}
+                {helocBalance > 0 ? " plus HELOC balance" : ""}.
+              </p>
+            </div>
+
             {/* Amortization Period */}
-            <div className="mt-4">
+            <div className="mt-10">
               <label
                 htmlFor="amortizationPeriod"
-                className="block font-semibold mb-2"
+                className="block mb-2 font-semibold"
               >
                 Amortization Period:{" "}
                 <span className="font-normal">
@@ -355,7 +458,7 @@ export default function RatesPage() {
                 {...register("amortizationPeriod")}
                 className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
               />
-              <div className="flex justify-between text-sm text-gray-700 mt-1">
+              <div className="flex justify-between mt-1 text-sm text-gray-700">
                 <span>1 yr</span>
                 <span>30 yrs</span>
               </div>
@@ -381,102 +484,57 @@ export default function RatesPage() {
                 }
               `}</style>
             </div>
-
-            {/* Property Usage Dropdown */}
-
-            <div className="flex flex-col space-y-2 mt-4">
-              <label htmlFor="propertyUsage" className="text-md font-semibold">
-                Property Usage
-              </label>
-
-              <div className="relative border rounded-md border-gray-300 bg-white">
-                <select
-                  id="propertyUsage"
-                  {...register("propertyUsage")}
-                  className="appearance-none w-full bg-transparent py-4 pl-4 pr-10  rounded-md"
-                >
-                  <option value="" disabled>
-                    Select property usage
-                  </option>
-                  {[
-                    "Primary Residence",
-                    "Second Home",
-                    "Primary Residence With Suite",
-                    "Rental / Investment",
-                  ].map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <span className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </span>
-              </div>
-              {errors.propertyUsage && (
-                <p className="text-red-600 mt-1">
-                  {errors.propertyUsage.message}
-                </p>
-              )}
-            </div>
           </div>
         </form>
 
         {/* Rate Cards */}
-        <div className="p-4 bg-white rounded-lg border border-gray-300 space-y-4">
-          <RateCard
-            percentage={fmtRate(r3F)}
-            monthlyPayment={fmtMoney(pay3F)}
-            term="3-yr fixed"
-            lender={r3FLender}
-            onInquire={handleInquire}
-          />
-          <div className="border-b border-gray-300"></div>
-          <RateCard
-            percentage={fmtRate(r4F)}
-            monthlyPayment={fmtMoney(pay4F)}
-            term="4-yr fixed"
-            lender={r4FLender}
-            onInquire={handleInquire}
-          />
-          <div className="border-b border-gray-300"></div>
-          <RateCard
-            percentage={fmtRate(r5F)}
-            monthlyPayment={fmtMoney(pay5F)}
-            term="5-yr fixed"
-            lender={r5FLender}
-            onInquire={handleInquire}
-          />
-          <div className="border-b border-gray-300"></div>
-          <RateCard
-            percentage={fmtRate(r3V)}
-            monthlyPayment={fmtMoney(pay3V)}
-            term="3-yr variable"
-            lender={r3VLender}
-            onInquire={handleInquire}
-          />
-          <div className="border-b border-gray-300"></div>
-          <RateCard
-            percentage={fmtRate(r5V)}
-            monthlyPayment={fmtMoney(pay5V)}
-            term="5-yr variable"
-            lender={r5VLender}
-            onInquire={handleInquire}
-          />
-        </div>
+        {shouldBlockRates ? (
+          <p className="mt-8 text-xl text-center text-gray-500 max-w-72">
+            Lower the total mortgage required to see available rates.
+          </p>
+        ) : (
+          <div className="p-4 space-y-4 bg-white border border-gray-300 rounded-lg">
+            <RateCard
+              percentage={fmtRate(r3F)}
+              monthlyPayment={fmtMoney(pay3F)}
+              term="3-yr fixed"
+              lender={r3FLender}
+              onInquire={handleInquire}
+            />
+            <div className="border-b border-gray-300"></div>
+            <RateCard
+              percentage={fmtRate(r4F)}
+              monthlyPayment={fmtMoney(pay4F)}
+              term="4-yr fixed"
+              lender={r4FLender}
+              onInquire={handleInquire}
+            />
+            <div className="border-b border-gray-300"></div>
+            <RateCard
+              percentage={fmtRate(r5F)}
+              monthlyPayment={fmtMoney(pay5F)}
+              term="5-yr fixed"
+              lender={r5FLender}
+              onInquire={handleInquire}
+            />
+            <div className="border-b border-gray-300"></div>
+            <RateCard
+              percentage={fmtRate(r3V)}
+              monthlyPayment={fmtMoney(pay3V)}
+              term="3-yr variable"
+              lender={r3VLender}
+              onInquire={handleInquire}
+            />
+            <div className="border-b border-gray-300"></div>
+            <RateCard
+              percentage={fmtRate(r5V)}
+              monthlyPayment={fmtMoney(pay5V)}
+              term="5-yr variable"
+              lender={r5VLender}
+              onInquire={handleInquire}
+            />
+          </div>
+        )}
       </div>
 
       {/* Full-screen modal */}

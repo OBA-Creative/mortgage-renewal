@@ -157,6 +157,7 @@ export default function MortgagePage() {
 
   const selectedLender = watch("lender");
   const heloc = watch("heloc");
+  const helocBalance = watch("helocBalance");
 
   // Borrow options for styled radios
   const helocOptions = ["yes", "no"];
@@ -166,9 +167,7 @@ export default function MortgagePage() {
     propertyValue && mortgageBalance && mortgageBalance < propertyValue * 0.8;
 
   const maxBorrow = showBorrowQuestion
-    ? Math.floor(
-        propertyValue * 0.8 - mortgageBalance - (formData.helocBalance || 0)
-      )
+    ? Math.floor(propertyValue * 0.8 - mortgageBalance - (helocBalance || 0))
     : 0;
 
   const formatedMortgageBalance = formatNumber(mortgageBalance?.toString());
@@ -230,8 +229,8 @@ export default function MortgagePage() {
   ];
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center mb-8">
+    <div className="max-w-xl p-6 mx-auto">
+      <h1 className="mb-8 text-4xl font-semibold text-center">
         {"Now let's learn about your mortgage"}
       </h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -338,6 +337,9 @@ export default function MortgagePage() {
           formData={formData}
           helpTexts={helpTexts}
           showBorrowQuestion={showBorrowQuestion}
+          // Pass current form values for heloc (not from store)
+          currentHeloc={heloc}
+          currentHelocBalance={helocBalance}
         />
 
         {/* Amortization Remaining */}

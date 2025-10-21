@@ -44,6 +44,9 @@ export default function BorrowAdditionalFunds({
   helpTexts,
   // Show condition
   showBorrowQuestion,
+  // Current form values (for dynamic updates)
+  currentHeloc,
+  currentHelocBalance,
 }) {
   const helocOptions = ["yes", "no"];
 
@@ -68,8 +71,8 @@ export default function BorrowAdditionalFunds({
         <AvailableEquityCard
           propertyValue={propertyValue}
           mortgageBalance={mortgageBalance}
-          heloc={formData.heloc === "yes"}
-          helocBalance={parseFloat(formData?.helocBalance)}
+          heloc={currentHeloc === "yes"}
+          helocBalance={parseFloat(currentHelocBalance || 0)}
         />
       )}
 

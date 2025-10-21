@@ -9,6 +9,7 @@ import {
   ChartAreaIcon,
   LandmarkIcon,
   LogOut,
+  TableIcon,
 } from "lucide-react";
 
 export default function AdminLayout({ children }) {
@@ -63,9 +64,9 @@ export default function AdminLayout({ children }) {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
           <p className="text-gray-600">Checking authentication...</p>
         </div>
       </div>
@@ -89,6 +90,11 @@ export default function AdminLayout({ children }) {
       icon: <Building2Icon className="w-5 h-5" />,
     },
     {
+      name: "Spreadsheet",
+      href: "/adminz/horizontal",
+      icon: <TableIcon className="w-5 h-5" />,
+    },
+    {
       name: "Lenders",
       href: "/adminz/lenders",
       icon: <LandmarkIcon className="w-5 h-5" />,
@@ -103,7 +109,7 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50 flex relative">
+    <div className="relative flex min-h-screen bg-blue-50">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -120,7 +126,7 @@ export default function AdminLayout({ children }) {
       >
         <div className="flex flex-col h-full">
           {/* Logo/Header */}
-          <div className=" h-18 p-4 flex items-center justify-center bg-blue-600 border-b border-gray-300 shadow-md">
+          <div className="flex items-center justify-center p-4 bg-blue-600 border-b border-gray-300 shadow-md  h-18">
             <Image
               src="/images/mobile-logo-white.svg"
               alt="Logo"
@@ -153,7 +159,7 @@ export default function AdminLayout({ children }) {
           <div className="p-4 border-t border-gray-200">
             <button
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+              className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 transition-colors rounded-lg cursor-pointer hover:bg-red-50"
             >
               <LogOut className="w-5 h-5" />
               <span className="ml-3">Logout</span>
@@ -163,12 +169,12 @@ export default function AdminLayout({ children }) {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-8 w-full">
+      <div className="w-full lg:pl-8">
         {/* Mobile header */}
         <div className="flex items-center justify-between h-16 px-4 bg-white shadow-sm lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            className="p-2 text-gray-600 rounded-lg hover:text-gray-900 hover:bg-gray-100"
           >
             <svg
               className="w-6 h-6"

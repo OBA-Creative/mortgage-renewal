@@ -19,19 +19,45 @@ export default function FormDatePicker({
     []
   );
 
-  const rules = requiredText ? { required: requiredText } : undefined;
+  const rules = requiredText
+    ? {
+        required: requiredText,
+        validate: (value) => {
+          // Handle different value types: string, Date object, null, undefined
+          if (!value) {
+            return requiredText || "This field is required";
+          }
+
+          // If it's a string, check if it's empty or just whitespace
+          if (typeof value === "string" && value.trim() === "") {
+            return requiredText || "This field is required";
+          }
+
+          return true;
+        },
+      }
+    : undefined;
 
   // Convert Date object to YYYY-MM-DD format for HTML date input
   const formatDateForInput = (date) => {
     if (!date) return "";
-    if (typeof date === "string") return date;
-    return date.toISOString().split("T")[0];
+    if (typeof date === "string") {
+      // If it's already a string, check if it's in the right format
+      if (date.includes("T")) {
+        return date.split("T")[0];
+      }
+      return date;
+    }
+    if (date instanceof Date && !isNaN(date)) {
+      return date.toISOString().split("T")[0];
+    }
+    return "";
   };
 
-  // Convert YYYY-MM-DD string to Date object
+  // Convert YYYY-MM-DD string to YYYY-MM-DD string (keeping it simple)
   const parseDateFromInput = (dateString) => {
-    if (!dateString) return null;
-    return new Date(dateString);
+    if (!dateString) return "";
+    return dateString; // Keep as string for form validation
   };
 
   return (
@@ -43,13 +69,13 @@ export default function FormDatePicker({
         <button
           type="button"
           onClick={() => toggleHelp(id)}
-          className="p-1 rounded-full hover:bg-blue-600 cursor-pointer hover:text-white text-gray-500"
+          className="p-1 text-gray-500 rounded-full cursor-pointer hover:bg-blue-600 hover:text-white"
         >
           <HelpCircle className="w-6 h-6" />
         </button>
       </div>
       {activeHelp === id && (
-        <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+        <div className="p-3 mt-2 bg-blue-100 border border-gray-300 rounded-md">
           {helpTexts}
         </div>
       )}
@@ -77,7 +103,7 @@ export default function FormDatePicker({
           />
         )}
       />
-      {error && <p className="text-red-600 mt-1">{error.message}</p>}
+      {error && <p className="mt-1 text-red-600">{error.message}</p>}
     </div>
   );
 }

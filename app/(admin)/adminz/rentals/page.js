@@ -122,7 +122,7 @@ export default function RentalsDashboard() {
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-8 flex justify-between space-24">
+      <div className="flex justify-between mb-8 space-24">
         <div className="w-full pt-4">
           <h1 className="text-4xl font-bold text-gray-900">
             Rental Rates Management
@@ -150,10 +150,10 @@ export default function RentalsDashboard() {
 
       {/* Loading State */}
       {ratesLoading && (
-        <div className="text-center py-12">
-          <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 shadow rounded-md text-blue-600 bg-white">
+        <div className="py-12 text-center">
+          <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-blue-600 bg-white rounded-md shadow">
             <svg
-              className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600"
+              className="w-5 h-5 mr-3 -ml-1 text-blue-600 animate-spin"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -177,25 +177,58 @@ export default function RentalsDashboard() {
         </div>
       )}
 
+      {/* Province Navigation */}
+      {rates && (
+        <div className="sticky top-0 z-10 flex items-center p-2 mb-8 border border-gray-200 rounded-lg shadow-md bg-white/95 backdrop-blur-sm">
+          <div className="flex flex-wrap gap-2 mx-auto">
+            {provinces.map((province) => (
+              <button
+                key={province.code}
+                onClick={() => {
+                  const element = document.getElementById(
+                    `province-${province.code}`
+                  );
+                  if (element) {
+                    const elementRect = element.getBoundingClientRect();
+                    const offset = 80; // 100px + some extra padding
+                    const targetPosition =
+                      elementRect.top + window.pageYOffset - offset;
+
+                    window.scrollTo({
+                      top: targetPosition,
+                      behavior: "smooth",
+                    });
+                  }
+                }}
+                className="px-3 py-2 text-sm font-medium text-gray-700 transition-colors duration-150 border border-gray-200 rounded-md cursor-pointer bg-gray-50 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
+              >
+                {province.code}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Provincial Rates Grid */}
       {rates && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {provinces.map((province) => (
-            <AdminProvinceCard
-              key={province.code}
-              province={province}
-              rates={rates[province.code]}
-              primeRate={rates.prime}
-              isRental={true}
-            />
+            <div key={province.code} id={`province-${province.code}`}>
+              <AdminProvinceCard
+                province={province}
+                rates={rates[province.code]}
+                primeRate={rates.prime}
+                isRental={true}
+              />
+            </div>
           ))}
         </div>
       )}
 
       {/* No Rates Message */}
       {!ratesLoading && !rates && (
-        <div className="text-center py-12">
-          <div className="rounded-md bg-yellow-50 p-4">
+        <div className="py-12 text-center">
+          <div className="p-4 rounded-md bg-yellow-50">
             <div className="flex">
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-yellow-800">

@@ -148,13 +148,22 @@ export default function PlacesAutocompleteInput({
     }
 
     // Priority: 1. Store value (defaultValue), 2. IP location, 3. Empty
-    const valueToUse = defaultValue || ipLocation?.formatted;
+    let valueToUse, displayValue;
+
+    if (defaultValue) {
+      valueToUse = defaultValue;
+      displayValue = defaultValue;
+    } else if (ipLocation) {
+      // For IP location, use just the city name for the form value, but display with province
+      valueToUse = ipLocation.city;
+      displayValue = ipLocation.formatted;
+    }
 
     if (valueToUse) {
       hasInitializedRef.current = true;
       isSettingDefaultRef.current = true;
 
-      setQuery(valueToUse);
+      setQuery(displayValue);
       setValue(id, valueToUse, { shouldValidate: false });
 
       // If using IP location, also set the province field
@@ -176,7 +185,7 @@ export default function PlacesAutocompleteInput({
 
       // Mark this as a selected value
       setSelectedPlaceId(defaultValue ? "default" : "ip-location");
-      setLastSelectedLabel(valueToUse);
+      setLastSelectedLabel(displayValue);
       suppressFetchRef.current = true;
 
       setTimeout(() => {
@@ -433,8 +442,8 @@ export default function PlacesAutocompleteInput({
           isLoadingLocation
             ? "Getting your location..."
             : !isGoogleMapsReady
-            ? "Loading..."
-            : ""
+              ? "Loading..."
+              : ""
         }
         onChange={(e) => {
           const v = e.target.value;
