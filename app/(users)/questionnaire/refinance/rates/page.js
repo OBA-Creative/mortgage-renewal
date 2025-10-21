@@ -441,7 +441,7 @@ export default function RatesPage() {
             <div className="mt-10">
               <label
                 htmlFor="amortizationPeriod"
-                className="block mb-2 font-semibold"
+                className="block mb-2 font-semibold text-md"
               >
                 Amortization Period:{" "}
                 <span className="font-normal">
@@ -458,7 +458,7 @@ export default function RatesPage() {
                 {...register("amortizationPeriod")}
                 className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
               />
-              <div className="flex justify-between mt-1 text-sm text-gray-700">
+              <div className="flex justify-between mt-1 text-sm text-gray-400">
                 <span>1 yr</span>
                 <span>30 yrs</span>
               </div>
@@ -470,7 +470,6 @@ export default function RatesPage() {
                   border-radius: 50%;
                   background: #3b82f6;
                   cursor: pointer;
-                  border: 2px solid #ffffff;
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
                 }
                 .slider::-moz-range-thumb {
@@ -479,7 +478,6 @@ export default function RatesPage() {
                   border-radius: 50%;
                   background: #3b82f6;
                   cursor: pointer;
-                  border: 2px solid #ffffff;
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
                 }
               `}</style>
