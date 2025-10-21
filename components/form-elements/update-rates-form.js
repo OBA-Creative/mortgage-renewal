@@ -82,7 +82,7 @@ const VariableRateInputField = ({
 const VariableRateFormSection = ({
   title,
   rateType,
-  titleColor = "text-blue-800",
+  titleColor = "text-blue-600",
   formRates,
   handleAdjustmentChange,
   handleLenderChange,
@@ -91,24 +91,21 @@ const VariableRateFormSection = ({
   toggleCategorySelection,
   isRental = false,
 }) => (
-  <div className="mb-6">
-    <div className="flex items-center mb-3">
+  <div className="flex pb-2 mb-2 space-x-3 border-b border-gray-300">
+    <div className="flex items-start pr-3 mr-3 border-r border-gray-300">
       <input
         type="checkbox"
         id={`category-${rateType}`}
         checked={selectedRates[rateType].categorySelected}
         onChange={() => toggleCategorySelection(rateType)}
-        className="mr-3 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+        className="mt-6 mr-2 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
       />
       <label
         htmlFor={`category-${rateType}`}
-        className={`font-semibold text-xl ${titleColor} cursor-pointer`}
+        className={`font-semibold mt-4 ${titleColor} cursor-pointer`}
       >
         {title}
       </label>
-      <span className="ml-2 text-sm text-gray-500">
-        (Select all rates in this category)
-      </span>
     </div>
     <div>
       {/* Regular LTV rates */}
@@ -299,24 +296,21 @@ const FixedRateSection = ({
   toggleCategorySelection,
   isRental = false,
 }) => (
-  <div className="mb-6">
-    <div className="flex items-center mb-3">
+  <div className="flex pb-2 mb-2 space-x-3 border-b border-gray-300">
+    <div className="flex items-start pr-3 mb-3 border-r border-gray-300">
       <input
         type="checkbox"
         id={`category-${rateType}`}
         checked={selectedRates[rateType].categorySelected}
         onChange={() => toggleCategorySelection(rateType)}
-        className="mr-3 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+        className="mt-6 mr-2 text-blue-600 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
       />
       <label
         htmlFor={`category-${rateType}`}
-        className={`font-semibold text-xl ${titleColor} cursor-pointer`}
+        className={`font-semibold  ${titleColor} cursor-pointer mt-4`}
       >
         {title}
       </label>
-      <span className="ml-2 text-sm text-gray-500">
-        (Select all rates in this category)
-      </span>
     </div>
     <div>
       {/* Regular LTV rates */}
@@ -1103,16 +1097,16 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b border-gray-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden bg-black/60 backdrop-blur-md">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
+        <div className="px-6 py-2 bg-blue-600">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-white">
               Update Rates - {province.name}
             </h3>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 rounded-md cursor-pointer hover:text-gray-600 hover:bg-gray-100"
+              className="p-2 text-white rounded-md cursor-pointer hover:text-red-500 hover:bg-white"
             >
               <svg
                 className="w-5 h-5"
@@ -1135,7 +1129,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Fixed Rate Sections */}
             <FixedRateSection
-              title="3-Year Fixed"
+              title="3yr FX"
               rateType="threeYrFixed"
               formRates={formRates}
               handleRateChange={handleRateChange}
@@ -1147,7 +1141,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
             />
 
             <FixedRateSection
-              title="4-Year Fixed"
+              title="4yr FX"
               rateType="fourYrFixed"
               formRates={formRates}
               handleRateChange={handleRateChange}
@@ -1159,7 +1153,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
             />
 
             <FixedRateSection
-              title="5-Year Fixed"
+              title="5yr FX"
               rateType="fiveYrFixed"
               formRates={formRates}
               handleRateChange={handleRateChange}
@@ -1172,7 +1166,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
 
             {/* Variable Rate Sections */}
             <VariableRateFormSection
-              title="3-Year Variable"
+              title="3yr VAR"
               rateType="threeYrVariable"
               formRates={formRates}
               handleAdjustmentChange={handleAdjustmentChange}
@@ -1184,7 +1178,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
             />
 
             <VariableRateFormSection
-              title="5-Year Variable"
+              title="5yr VAR"
               rateType="fiveYrVariable"
               formRates={formRates}
               handleAdjustmentChange={handleAdjustmentChange}
@@ -1196,16 +1190,9 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
             />
 
             {/* Province Selection for Multiple Updates */}
-            <div className="pt-6 border-t border-gray-200">
-              <h4 className="text-xl font-semibold text-blue-600">
-                Update Additional Provinces
-              </h4>
-              <p className="mb-3 text-sm text-gray-600">
-                Select provinces to update and choose which rates to copy from{" "}
-                {province.name}
-              </p>
-
+            <div className="border-gray-200 ">
               {/* Selection Summary */}
+              {/* <div className="p-3 mb-4 rounded-lg bg-blue-50">
               <div className="p-3 mb-4 rounded-lg bg-blue-50">
                 <div className="text-sm">
                   <strong>Selection Summary:</strong>
@@ -1237,10 +1224,10 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Select All Toggle */}
-              <div className="mb-3">
+              <div className="mt-2 mb-3">
                 <label className="flex items-center text-sm font-medium text-gray-700">
                   <input
                     type="checkbox"
@@ -1253,11 +1240,11 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
               </div>
 
               {/* Province Checkboxes Grid */}
-              <div className="grid grid-cols-3 gap-1 overflow-y-auto max-h-32">
+              <div className="grid grid-cols-6 gap-1 overflow-y-auto max-h-32">
                 {selectedProvinces.map((prov) => (
                   <label
                     key={prov.code}
-                    className="flex items-center p-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50"
+                    className="flex items-center text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50"
                   >
                     <input
                       type="checkbox"
