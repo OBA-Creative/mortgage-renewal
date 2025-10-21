@@ -54,6 +54,7 @@ export default function AdminDashboard() {
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState(null);
+  const [lastUpdatedDate, setLastUpdatedDate] = useState(null);
   const [isPrimeUpdating, setIsPrimeUpdating] = useState(false);
 
   // Get lender fetching function from store
@@ -82,8 +83,16 @@ export default function AdminDashboard() {
 
       if (ratesResponse.ok) {
         const ratesData = await ratesResponse.json();
+        console.log("Rates data received:", ratesData); // Debug log
         setRates(ratesData.rates || {});
         setEffectiveDate(new Date(ratesData.effectiveDate));
+        // Set last updated date from the database
+        if (ratesData.updatedAt) {
+          console.log("Setting lastUpdatedDate to:", ratesData.updatedAt); // Debug log
+          setLastUpdatedDate(new Date(ratesData.updatedAt));
+        } else {
+          console.log("No updatedAt field found in response"); // Debug log
+        }
       }
 
       if (primeResponse.ok) {
@@ -381,12 +390,14 @@ export default function AdminDashboard() {
               Rates Management
             </h1>
             <p className="mt-2 text-lg text-gray-600">
-              Rates on{" "}
-              {effectiveDate
-                ? effectiveDate.toLocaleDateString("en-US", {
+              Last updated on{" "}
+              {lastUpdatedDate
+                ? lastUpdatedDate.toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })
                 : "Loading..."}
             </p>

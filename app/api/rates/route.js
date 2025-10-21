@@ -22,6 +22,7 @@ export async function GET(request) {
         rates: latestRates,
         prime: latestRates.prime,
         effectiveDate: latestRates.createdAt,
+        updatedAt: latestRates.updatedAt,
         type: "all rates (including rental)",
       },
       { status: 200 }
