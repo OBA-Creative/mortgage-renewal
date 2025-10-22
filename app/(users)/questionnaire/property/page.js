@@ -39,8 +39,9 @@ export default function PropertyPage() {
 
   const router = useRouter();
 
-  // Watch province
+  // Watch province and usage
   const province = watch("province");
+  const usage = watch("usage");
 
   const onSubmit = (data) => {
     console.log("Form data:", data);
@@ -84,8 +85,8 @@ export default function PropertyPage() {
   const downpaymentOptions = ["20% or more", "Less than 20%"];
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center my-8 max-w-2xl">
+    <div className="max-w-xl p-6 mx-auto">
+      <h1 className="max-w-2xl my-8 text-4xl font-semibold text-center">
         {"Let's learn about your property"}
       </h1>
 
@@ -121,22 +122,24 @@ export default function PropertyPage() {
           error={errors.usage}
         />
 
-        {/* Down Payment Option */}
-        <MapRadio
-          id="downpaymentOption"
-          register={register}
-          requiredText="Select down payment option"
-          label="How much was your downpayment?"
-          options={downpaymentOptions}
-          helpTexts={helpTexts.downpaymentOption}
-          error={errors.downpaymentOption}
-        />
+        {/* Down Payment Option - only show for Primary Residence or Second home */}
+        {(usage === "Primary Residence" || usage === "Second home") && (
+          <MapRadio
+            id="downpaymentOption"
+            register={register}
+            requiredText="Select down payment option"
+            label="How much was your downpayment?"
+            options={downpaymentOptions}
+            helpTexts={helpTexts.downpaymentOption}
+            error={errors.downpaymentOption}
+          />
+        )}
 
         {/* Submit Button */}
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-blue-600 text-white rounded-full hover:bg-blue-500 font-semibold py-3 px-12"
+            className="px-12 py-3 font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-500"
           >
             Continue
           </button>

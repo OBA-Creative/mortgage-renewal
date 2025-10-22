@@ -15,12 +15,6 @@ import { useMortgageStore } from "@/stores/useMortgageStore";
 export default function MortgagePage() {
   const { formData, setFormData } = useMortgageStore();
 
-  // Parse numeric values for calculations
-  const parseNumber = (value) => {
-    if (!value) return 0;
-    return parseFloat(String(value).replace(/,/g, "")) || 0;
-  };
-
   // Initialize state variables from store if they exist
   const [mortgageBalance, setMortgageBalance] = useState(
     formData.mortgageBalance ? formData.mortgageBalance.toLocaleString() : ""
@@ -35,12 +29,6 @@ export default function MortgagePage() {
     formData.borrowAdditionalAmount
       ? formData.borrowAdditionalAmount.toLocaleString()
       : ""
-  );
-
-  const [showBelowOneMillion, setShowBelowOneMillion] = useState(
-    formData.propertyValue &&
-      parseNumber(formData.propertyValue.toString()) < 1000000 &&
-      parseNumber(formData.propertyValue.toString()) > 0
   );
 
   const {
@@ -104,24 +92,11 @@ export default function MortgagePage() {
   const heloc = watch("heloc");
   const borrowSelection = watch("borrowAdditionalFunds");
   const watchedPropertyValue = watch("propertyValue");
-  const watchedHelocBalance = watch("helocBalance");
 
-  // Function to check and update belowOneMillion visibility
-  const checkBelowOneMillionVisibility = (value) => {
-    const numericValue = parseNumber(value);
-    const shouldShow = numericValue >= 1000000;
-    setShowBelowOneMillion(shouldShow);
-  };
-
-  // Helper function to safely parse form values that could be strings or numbers
-  const safeParseNumber = (value) => {
-    if (!value) return null;
-    if (typeof value === "number") return value;
-    if (typeof value === "string") {
-      const cleaned = value.replace(/,/g, "");
-      return parseFloat(cleaned) || null;
-    }
-    return null;
+  // Parse numeric values for calculations
+  const parseNumber = (value) => {
+    if (!value) return 0;
+    return parseFloat(String(value).replace(/,/g, "")) || 0;
   };
 
   const formatNumber = (value) => {
@@ -137,9 +112,7 @@ export default function MortgagePage() {
   const currentMortgageBalance =
     parseNumber(mortgageBalance) || parseNumber(formData.mortgageBalance);
   const currentHelocBalance =
-    parseNumber(watchedHelocBalance) ||
-    parseNumber(helocBalance) ||
-    parseNumber(formData.helocBalance);
+    parseNumber(helocBalance) || parseNumber(formData.helocBalance);
 
   // Calculate max borrow (80% of property value minus mortgage and heloc)
   const maxBorrow = Math.max(
@@ -150,9 +123,7 @@ export default function MortgagePage() {
 
   // Show borrow question only if we have property value and mortgage balance
   const showBorrowQuestion =
-    currentPropertyValue > 0 &&
-    currentMortgageBalance > 0 &&
-    currentMortgageBalance < currentPropertyValue * 0.8;
+    currentPropertyValue > 0 && currentMortgageBalance > 0;
 
   const onSubmit = (data) => {
     // Validate that maturity date is provided
@@ -166,11 +137,22 @@ export default function MortgagePage() {
     const finalLender =
       data.lender === "Other" ? data.otherLender : data.lender;
 
-    // Parse and validate all numeric fields using helper function
-    const parsedPropertyValue = safeParseNumber(data.propertyValue);
-    const parsedHelocBalance = safeParseNumber(data.helocBalance);
-    const parsedBorrowAmount = safeParseNumber(data.borrowAdditionalAmount);
-    const parsedMortgageBalance = safeParseNumber(data.mortgageBalance);
+    // Parse and validate all numeric fields
+    const parsedPropertyValue = data.propertyValue
+      ? parseFloat(data.propertyValue.replace(/,/g, ""))
+      : null;
+
+    const parsedHelocBalance = data.helocBalance
+      ? parseFloat(data.helocBalance.replace(/,/g, ""))
+      : null;
+
+    const parsedBorrowAmount = data.borrowAdditionalAmount
+      ? parseFloat(data.borrowAdditionalAmount.replace(/,/g, ""))
+      : null;
+
+    const parsedMortgageBalance = data.mortgageBalance
+      ? parseFloat(data.mortgageBalance.replace(/,/g, ""))
+      : null;
 
     const parsedAmortizationPeriod = data.amortizationPeriod
       ? parseInt(data.amortizationPeriod)
@@ -225,21 +207,17 @@ export default function MortgagePage() {
         {/* Property Value */}
         <DollarInput
           id="propertyValue"
-          label="Property Value"
+          label="Property value?"
           setValue={setValue}
           valueState={propertyValue}
-          setValueState={(value) => {
-            setPropertyValue(value);
-          }}
-          onBlur={(numericValue) =>
-            checkBelowOneMillionVisibility(numericValue)
-          }
+          setValueState={setPropertyValue}
           register={register}
-          helpTexts={helpTexts.propertyValue}
           requiredText="Property value is required"
+          helpTexts={helpTexts.propertyValue}
           error={errors.propertyValue}
-          placeholder="e.g. 800,000"
-        />{" "}
+          placeholder="e.g. 850,000"
+        />
+
         {/* Current Mortgage Balance */}
         <DollarInput
           id="mortgageBalance"
@@ -253,18 +231,21 @@ export default function MortgagePage() {
           error={errors.mortgageBalance}
           placeholder="e.g. 600,000"
         />
+
         {/* Below One Million Radio - only show if property value is under $1M */}
-        {showBelowOneMillion && (
-          <MapRadio
-            id="belowOneMillion"
-            register={register}
-            requiredText="Select yes or no"
-            label="Was the property value below $1M at purchase?"
-            options={yesNoOptions}
-            helpTexts={helpTexts.belowOneMillion}
-            error={errors.belowOneMillion}
-          />
-        )}
+        {parseNumber(watchedPropertyValue) < 1000000 &&
+          parseNumber(watchedPropertyValue) > 0 && (
+            <MapRadio
+              id="belowOneMillion"
+              register={register}
+              requiredText="Select yes or no"
+              label="Was the property value below $1M at purchase?"
+              options={yesNoOptions}
+              helpTexts={helpTexts.belowOneMillion}
+              error={errors.belowOneMillion}
+            />
+          )}
+
         {/* Lender Select */}
         <div className="flex flex-col space-y-8">
           <Dropdown
@@ -291,6 +272,7 @@ export default function MortgagePage() {
             />
           )}
         </div>
+
         {/* HELOC Questions - only show for Primary Residence or Second home */}
         {helocCondition && (
           <div className="flex flex-col space-y-4">
@@ -320,6 +302,7 @@ export default function MortgagePage() {
             )}
           </div>
         )}
+
         {/* Borrow Additional Funds */}
         <BorrowAdditionalFunds
           register={register}
@@ -339,6 +322,7 @@ export default function MortgagePage() {
           currentHeloc={heloc}
           currentHelocBalance={currentHelocBalance}
         />
+
         {/* Amortization Remaining */}
         <TextInput
           id="amortizationPeriod"
@@ -370,6 +354,7 @@ export default function MortgagePage() {
           onWheel={(e) => e.target.blur()}
           placeholder="e.g. 22"
         />
+
         {/* Maturity Date */}
         <FormDatePicker
           id="maturityDate"
@@ -379,6 +364,7 @@ export default function MortgagePage() {
           error={errors.maturityDate}
           helpTexts={helpTexts.maturityDate}
         />
+
         {/* Submit */}
         <div className="space-y-2">
           {!isValid && Object.keys(errors).length > 0 && (

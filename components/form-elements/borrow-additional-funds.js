@@ -44,7 +44,7 @@ export default function BorrowAdditionalFunds({
   helpTexts,
   // Show condition
   showBorrowQuestion,
-  // Current form values (for dynamic updates)
+  // Current form values for dynamic updates
   currentHeloc,
   currentHelocBalance,
 }) {
@@ -72,7 +72,7 @@ export default function BorrowAdditionalFunds({
           propertyValue={propertyValue}
           mortgageBalance={mortgageBalance}
           heloc={currentHeloc === "yes"}
-          helocBalance={parseFloat(currentHelocBalance || 0)}
+          helocBalance={currentHelocBalance}
         />
       )}
 
@@ -82,14 +82,49 @@ export default function BorrowAdditionalFunds({
           id="borrowAdditionalAmount"
           setValue={setValue}
           label={`Up to ${formattedMaxBorrow}, how much do you want to borrow?`}
-          valueState={
-            parseNumber(borrowInput) < parseNumber(maxBorrow)
-              ? borrowInput
-              : formattedMaxBorrow
-          }
-          setValueState={setBorrowInput}
+          valueState={borrowInput}
+          setValueState={(value) => {
+            const numericValue = parseNumber(value);
+            const maxNumeric = parseNumber(maxBorrow);
+
+            // Always update the input state to allow typing
+            setBorrowInput(value);
+
+            // Set form value and validate
+            if (numericValue <= maxNumeric) {
+              setValue("borrowAdditionalAmount", numericValue, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            } else {
+              // Set to max value but keep the typed value in display for user feedback
+              setValue("borrowAdditionalAmount", numericValue, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            }
+          }}
           register={register}
-          requiredText="Current mortgage balance is required"
+          requiredText="Borrow amount is required"
+          validationRules={{
+            required: "Borrow amount is required",
+            min: {
+              value: 1,
+              message: "Borrow amount must be greater than $0",
+            },
+            max: {
+              value: parseNumber(maxBorrow),
+              message: "You can only borrow up to 80% of your property value.",
+            },
+            validate: (value) => {
+              const numericValue = parseNumber(value);
+              const maxNumeric = parseNumber(maxBorrow);
+              if (numericValue > maxNumeric) {
+                return "You can only borrow up to 80% of your property value.";
+              }
+              return true;
+            },
+          }}
           helpTexts={helpTexts.borrowAdditionalAmount}
           error={errors.borrowAdditionalAmount}
           defaultValue={formData?.borrowAdditionalAmount}
@@ -101,11 +136,7 @@ export default function BorrowAdditionalFunds({
       {borrowSelection === "yes" && (
         <YourTotalMortgageCard
           mortgageBalance={mortgageBalance}
-          borrowAdditionalAmount={
-            parseNumber(borrowInput) < parseNumber(maxBorrow)
-              ? borrowInput
-              : formattedMaxBorrow
-          }
+          borrowAdditionalAmount={borrowInput}
         />
       )}
     </div>

@@ -30,6 +30,8 @@ export default function DollarInput({
   error,
   defaultValue, // Add support for default values
   placeholder = "Enter amount", // Add placeholder support with default
+  onBlur, // Add onBlur callback support
+  validationRules, // Add validation rules support
 }) {
   const [activeHelp, setActiveHelp] = useState(null);
 
@@ -48,7 +50,8 @@ export default function DollarInput({
     []
   );
 
-  const rules = requiredText ? { required: requiredText } : undefined;
+  const rules =
+    validationRules || (requiredText ? { required: requiredText } : undefined);
   return (
     <div className="flex flex-col space-y-2">
       <LabelWithHelper
@@ -57,12 +60,12 @@ export default function DollarInput({
         onHelpClick={() => toggleHelp(id)}
       />
       {activeHelp === id && (
-        <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+        <div className="p-3 mt-2 bg-blue-100 border border-gray-300 rounded-md">
           {helpTexts}
         </div>
       )}
-      <div className="relative border rounded-md border-gray-300 bg-white">
-        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-lg text-gray-400">
+      <div className="relative bg-white border border-gray-300 rounded-md">
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-lg text-gray-400">
           $
         </span>
         <input
@@ -70,7 +73,7 @@ export default function DollarInput({
           type="text"
           value={valueState || ""}
           placeholder={placeholder}
-          {...register(id, rules)}
+          {...(register ? register(id, rules) : {})}
           onChange={(e) => {
             const inputValue = e.target.value;
             // Format the display value (add commas)
@@ -83,10 +86,18 @@ export default function DollarInput({
               shouldDirty: true,
             });
           }}
-          className="w-full rounded-md pl-7 pr-5 py-4 text-lg placeholder-gray-400"
+          onBlur={(e) => {
+            // Call custom onBlur callback if provided
+            if (onBlur) {
+              // Use the current formatted value from state, not the raw input value
+              const numericValue = parseNumber(valueState || e.target.value);
+              onBlur(numericValue);
+            }
+          }}
+          className="w-full py-4 pr-5 text-lg placeholder-gray-400 rounded-md pl-7"
         />
       </div>
-      {error && <p className="text-red-600 mt-1">{error.message}</p>}
+      {error && <p className="mt-1 text-red-600">{error.message}</p>}
     </div>
   );
 }
