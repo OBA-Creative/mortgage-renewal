@@ -38,10 +38,16 @@ export default function PrimeRateCard({
   return (
     <>
       {/* Prime Rate Card */}
-      <div className="relative flex items-end justify-between w-64 h-16 p-2 pb-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+      <div className="flex items-center justify-between p-2 pl-3 bg-white border border-gray-300 rounded-lg shadow-md w-54 ">
+        <div className="flex space-x-1">
+          <h2 className="text-lg">Prime Rate:</h2>
+          <p className="text-lg font-bold text-blue-600">
+            {formatRate(primeRate)}%
+          </p>
+        </div>
         <button
           onClick={openPrimeModal}
-          className="absolute p-1 text-gray-400 rounded cursor-pointer top-1 right-1 hover:text-blue-600 hover:bg-blue-50"
+          className="p-1 text-gray-400 rounded cursor-pointer hover:text-blue-600 hover:bg-blue-50"
         >
           <svg
             className="w-4 h-4"
@@ -57,26 +63,6 @@ export default function PrimeRateCard({
             />
           </svg>
         </button>
-        <div className="flex justify-between w-full space-x-4 items-baseline-last ">
-          <div className="flex space-x-2">
-            <div className="w-8 h-5 overflow-hidden border border-gray-200 rounded-md shadow-md">
-              <Image
-                src={"/images/canadian_flag.svg"}
-                alt={"Canadian flag"}
-                width={48}
-                height={32}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <div className="pl-2 border-l border-gray-200">
-              <p className="text-xs text-gray-500">Canada</p>
-              <h2 className="">Prime Rate</h2>
-            </div>
-          </div>
-          <p className="text-lg font-bold text-blue-600">
-            {formatRate(primeRate)}%
-          </p>
-        </div>
       </div>
 
       {/* Prime Rate Update Modal */}

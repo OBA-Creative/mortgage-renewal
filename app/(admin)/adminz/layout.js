@@ -105,36 +105,38 @@ export default function AdminLayout({ children }) {
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between ">
-            <div className="flex items-center space-x-16">
-              {/* Logo */}
-              <div className="flex items-center w-96">
+            {/* Logo */}
+            <div className="flex items-end space-x-2 w-86">
+              <div>
                 <Image
                   src="/images/logo-blue-600.svg"
                   alt="Logo"
                   width={180}
                   height={45}
-                  className="w-auto h-8"
+                  className="w-auto h-6 pb-1"
                 />
               </div>
-
-              {/* Navigation Menu */}
-              <nav className="items-center hidden space-x-8 md:flex">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isCurrentPage(item.href)
-                        ? "bg-blue-100 text-blue-700 border border-blue-200"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                  >
-                    {item.icon}
-                    <span className="ml-2">{item.name}</span>
-                  </Link>
-                ))}
-              </nav>
+              <p className="font-semibold ">dashboard</p>
             </div>
+
+            {/* Navigation Menu */}
+            <nav className="items-center hidden space-x-8 md:flex">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isCurrentPage(item.href)
+                      ? "bg-blue-100 text-blue-700 border border-blue-200"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  {item.icon}
+                  <span className="ml-2">{item.name}</span>
+                </Link>
+              ))}
+            </nav>
+
             {/* Logout Button */}
             <button
               onClick={handleLogout}

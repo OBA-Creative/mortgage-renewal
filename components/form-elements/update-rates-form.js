@@ -1097,9 +1097,9 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden bg-black/60 backdrop-blur-md">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
-        <div className="px-6 py-2 bg-blue-600">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden bg-black/55 backdrop-blur-md">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto ">
+        <div className="px-6 py-2 bg-blue-600 shadow-md">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-white">
               Update Rates - {province.name}

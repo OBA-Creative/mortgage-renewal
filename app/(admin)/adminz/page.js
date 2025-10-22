@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Save, RotateCcw, Download, Upload } from "lucide-react";
 import Image from "next/image";
 import PrimeRateCard from "../../../components/cards/prime-rate-card";
 import UpdateRatesForm from "../../../components/form-elements/update-rates-form";
@@ -381,15 +380,15 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="px-6 pt-2">
+    <div className="px-6 ">
       {/* Header */}
-      <div className="mb-2">
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-full pt-4">
-            <h1 className="text-4xl font-bold text-gray-900">
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-end w-full pt-4 space-x-2">
+            <h1 className="pr-2 text-4xl font-bold text-gray-900 border-r border-gray-400">
               Rates Management
             </h1>
-            <p className="mt-2 text-lg text-gray-600">
+            <p className="text-gray-600 ">
               Last updated on{" "}
               {lastUpdatedDate
                 ? lastUpdatedDate.toLocaleDateString("en-US", {
@@ -402,7 +401,7 @@ export default function AdminDashboard() {
                 : "Loading..."}
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center mt-3 space-x-3">
             <PrimeRateCard
               primeRate={prime}
               onPrimeUpdate={handlePrimeUpdate}
@@ -416,7 +415,7 @@ export default function AdminDashboard() {
 
       {/* Spreadsheet Table */}
       <div
-        className="overflow-x-auto bg-white border border-gray-200 rounded-lg"
+        className="mt-5 overflow-x-auto bg-white border border-gray-200 rounded-lg"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "#bfdbfe #ffffff",
@@ -438,7 +437,7 @@ export default function AdminDashboard() {
             background: #e5e7eb;
           }
         `}</style>
-        <table className="divide-y divide-gray-200 w-max">
+        <table className="divide-y divide-gray-200 w-fit">
           <thead className="bg-gray-50">
             {/* Main Category Headers */}
             <tr>
@@ -452,7 +451,7 @@ export default function AdminDashboard() {
                   colSpan={
                     ltvCategories.length + refinanceCategories.length + 1
                   }
-                  className="px-1 py-2 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase bg-gray-100 border-r-2 border-gray-300"
+                  className="px-1 py-2 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase bg-gray-100 border-r-2 border-gray-200"
                 >
                   {category.label}
                 </th>
@@ -467,7 +466,7 @@ export default function AdminDashboard() {
                   {ltvCategories.map((ltv) => (
                     <th
                       key={`${category.id}-${ltv.id}`}
-                      className="w-12 px-1 py-1 text-xs font-medium text-center text-blue-600 border-r border-gray-200"
+                      className="px-1 py-1 text-xs font-medium text-center text-blue-600 border-r border-gray-200 max-w-12"
                     >
                       {ltv.label}
                     </th>
@@ -477,7 +476,7 @@ export default function AdminDashboard() {
                   {refinanceCategories.map((refCat) => (
                     <th
                       key={`${category.id}-refinance-${refCat.id}`}
-                      className="w-12 px-1 py-1 text-xs font-medium text-center text-green-600 border-r border-gray-200 bg-green-50"
+                      className="px-1 py-1 text-xs font-medium text-center text-green-600 border-r border-gray-200 max-w-12 bg-green-50"
                     >
                       <div>{refCat.label}</div>
                     </th>
@@ -486,7 +485,7 @@ export default function AdminDashboard() {
                   {/* Rental Category */}
                   <th
                     key={`${category.id}-${rentalCategory.id}`}
-                    className="w-12 px-1 py-1 text-xs font-medium text-center text-purple-600 border-r-2 border-gray-300 bg-purple-50"
+                    className="px-1 py-1 text-xs font-medium text-center text-purple-600 border-r-2 border-gray-200 max-w-12 bg-purple-50"
                   >
                     {rentalCategory.label}
                   </th>
@@ -497,20 +496,21 @@ export default function AdminDashboard() {
           <tbody className="bg-white divide-y divide-gray-200">
             {provinces.map((province) => (
               <tr key={province.code} className="hover:bg-blue-50 group">
-                <td className="sticky left-0 z-10 px-2 py-2 bg-white border-r border-gray-200 group-hover:bg-blue-50">
+                <td className="sticky left-0 z-10 flex items-center justify-center bg-white border-r border-gray-200 group-hover:bg-blue-50">
                   <div
-                    className="flex items-center px-1 py-1 transition-colors rounded cursor-pointer hover:bg-blue-100"
+                    className="flex flex-col items-center px-3 py-1 transition-colors cursor-pointer hover:bg-blue-200"
                     onClick={() => handleProvinceClick(province)}
                     title={`Edit rates for ${province.name}`}
                   >
                     <Image
                       src={`/images/${province.code.toLowerCase()}.jpg`}
                       alt={province.code}
-                      width={16}
-                      height={12}
-                      className="object-cover w-4 h-3 mr-1 rounded-sm"
+                      width={32}
+                      height={24}
+                      className="object-cover w-6 h-4 rounded-sm"
                     />
-                    <div className="text-xs font-medium text-gray-900">
+
+                    <div className="mt-3 mb-2 text-xs font-semibold text-gray-700 leading-0">
                       {province.code}
                     </div>
                   </div>
@@ -522,7 +522,7 @@ export default function AdminDashboard() {
                     {ltvCategories.map((ltv) => (
                       <td
                         key={`${province.code}-${category.id}-${ltv.id}`}
-                        className="px-1 py-1 align-top border-r border-gray-200 group-hover:bg-blue-50"
+                        className="px-1 py-1 align-top border-r border-gray-200 max-w-12 group-hover:bg-blue-50"
                       >
                         <div className="space-y-1">
                           <div className="text-xs font-medium text-center text-gray-900">
@@ -539,7 +539,7 @@ export default function AdminDashboard() {
                               category.type === "fixed" ? "rate" : "adjustment"
                             ) && (category.type === "fixed" ? "%" : "")}
                           </div>
-                          <div className="text-[10px] text-center text-gray-400">
+                          <div className="text-[8px] text-center text-gray-500 truncate">
                             {getValue(
                               province.code,
                               category.id,
@@ -555,7 +555,7 @@ export default function AdminDashboard() {
                     {refinanceCategories.map((refCat) => (
                       <td
                         key={`${province.code}-${category.id}-refinance-${refCat.id}`}
-                        className="px-1 py-1 align-top border-r border-gray-200 bg-green-50 group-hover:bg-blue-50"
+                        className="px-1 py-1 align-top border-r border-gray-200 max-w-12 bg-green-50 group-hover:bg-blue-50"
                       >
                         <div className="space-y-1">
                           <div className="text-xs font-medium text-center text-gray-900">
@@ -572,7 +572,7 @@ export default function AdminDashboard() {
                               category.type === "fixed" ? "rate" : "adjustment"
                             ) && (category.type === "fixed" ? "%" : "")}
                           </div>
-                          <div className="text-[10px] text-center text-gray-400">
+                          <div className="text-[8px] text-center text-gray-500 truncate">
                             {getValue(
                               province.code,
                               category.id,
@@ -587,7 +587,7 @@ export default function AdminDashboard() {
                     {/* Rental Category */}
                     <td
                       key={`${province.code}-${category.id}-${rentalCategory.id}`}
-                      className="px-1 py-1 align-top border-r-2 border-gray-300 bg-purple-50 group-hover:bg-blue-50"
+                      className="px-1 py-1 align-top border-r-2 border-gray-200 max-w-12 bg-purple-50 group-hover:bg-blue-50"
                     >
                       <div className="space-y-1">
                         <div className="text-xs font-medium text-center text-gray-900">
@@ -604,7 +604,7 @@ export default function AdminDashboard() {
                             category.type === "fixed" ? "rate" : "adjustment"
                           ) && (category.type === "fixed" ? "%" : "")}
                         </div>
-                        <div className="text-[10px] text-center text-gray-400">
+                        <div className="text-[8px] text-center text-gray-500 truncate">
                           {getValue(
                             province.code,
                             category.id,
@@ -652,16 +652,12 @@ export default function AdminDashboard() {
 
       {/* Update Rates Modal */}
       {isModalOpen && selectedProvince && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <UpdateRatesForm
-              province={selectedProvince}
-              rates={rates[selectedProvince.code] || {}}
-              onClose={handleModalClose}
-              isRental={false}
-            />
-          </div>
-        </div>
+        <UpdateRatesForm
+          province={selectedProvince}
+          rates={rates[selectedProvince.code] || {}}
+          onClose={handleModalClose}
+          isRental={false}
+        />
       )}
     </div>
   );

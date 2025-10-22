@@ -1,21 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import AdminProvinceCard from "../../../components/cards/admin-province-card";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import PrimeRateCard from "../../../components/cards/prime-rate-card";
+import UpdateRatesForm from "../../../components/form-elements/update-rates-form";
 import { useMortgageStore } from "../../../stores/useMortgageStore";
 
-// Helper function to format rates to always show 2 decimal places
-const formatRate = (rate) => {
-  if (rate == null || rate === undefined) return "";
-  return parseFloat(rate).toFixed(2);
-};
+const provinces = [
+  { code: "AB", name: "Alberta" },
+  { code: "BC", name: "British Columbia" },
+  { code: "MB", name: "Manitoba" },
+  { code: "NB", name: "New Brunswick" },
+  { code: "NL", name: "Newfoundland and Labrador" },
+  { code: "NS", name: "Nova Scotia" },
+  { code: "NT", name: "Northwest Territories" },
+  { code: "NU", name: "Nunavut" },
+  { code: "ON", name: "Ontario" },
+  { code: "PE", name: "Prince Edward Island" },
+  { code: "QC", name: "Quebec" },
+  { code: "SK", name: "Saskatchewan" },
+  { code: "YT", name: "Yukon" },
+];
+
+const rateCategories = [
+  { id: "threeYrFixed", label: "3-Year Fixed", type: "fixed" },
+  { id: "fourYrFixed", label: "4-Year Fixed", type: "fixed" },
+  { id: "fiveYrFixed", label: "5-Year Fixed", type: "fixed" },
+  { id: "threeYrVariable", label: "3-Year Variable", type: "variable" },
+  { id: "fiveYrVariable", label: "5-Year Variable", type: "variable" },
+];
+
+const ltvCategories = [
+  { id: "under65", label: "≤65%" },
+  { id: "under70", label: "≤70%" },
+  { id: "under75", label: "≤75%" },
+  { id: "under80", label: "≤80%" },
+  { id: "over80", label: "Insured" },
+];
+
+const refinanceCategories = [
+  { id: "under25", label: "≤25 yr" },
+  { id: "over25", label: ">25 yr" },
+];
+
+const rentalCategory = { id: "rental", label: "Rental" };
 
 export default function AdminDashboard() {
-  const [rates, setRates] = useState(null);
-  const [ratesLoading, setRatesLoading] = useState(false);
+  const [rates, setRates] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [prime, setPrime] = useState(0);
+  const [selectedProvince, setSelectedProvince] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState(null);
-  const [isPrimeModalOpen, setIsPrimeModalOpen] = useState(false);
-  const [newPrimeRate, setNewPrimeRate] = useState("");
+  const [lastUpdatedDate, setLastUpdatedDate] = useState(null);
   const [isPrimeUpdating, setIsPrimeUpdating] = useState(false);
 
   // Get lender fetching function from store
@@ -31,29 +69,44 @@ export default function AdminDashboard() {
     initializeData();
   }, [fetchLenders]);
 
+  // Fetch rates data
   const fetchRates = async () => {
-    setRatesLoading(true);
     try {
-      const response = await fetch("/api/admin/rates");
-      const data = await response.json();
+      setLoading(true);
 
-      if (data.success) {
-        console.log("Fetched rates data:", data.rates);
-        console.log("Sample province ON:", data.rates.ON);
-        setRates(data.rates);
-        setEffectiveDate(new Date(data.effectiveDate));
-      } else {
-        console.error("Failed to fetch rates:", data.message);
+      // Fetch standard rates and prime
+      const [ratesResponse, primeResponse] = await Promise.all([
+        fetch("/api/rates"),
+        fetch("/api/admin/prime"),
+      ]);
+
+      if (ratesResponse.ok) {
+        const ratesData = await ratesResponse.json();
+        console.log("Rates data received:", ratesData); // Debug log
+        setRates(ratesData.rates || {});
+        setEffectiveDate(new Date(ratesData.effectiveDate));
+        // Set last updated date from the database
+        if (ratesData.updatedAt) {
+          console.log("Setting lastUpdatedDate to:", ratesData.updatedAt); // Debug log
+          setLastUpdatedDate(new Date(ratesData.updatedAt));
+        } else {
+          console.log("No updatedAt field found in response"); // Debug log
+        }
+      }
+
+      if (primeResponse.ok) {
+        const primeData = await primeResponse.json();
+        setPrime(primeData.prime || 0);
       }
     } catch (error) {
       console.error("Error fetching rates:", error);
     } finally {
-      setRatesLoading(false);
+      setLoading(false);
     }
   };
 
-  const handlePrimeUpdate = async (e) => {
-    e.preventDefault();
+  // Update prime rate
+  const handlePrimeUpdate = async (newPrimeRate) => {
     setIsPrimeUpdating(true);
 
     try {
@@ -62,257 +115,549 @@ export default function AdminDashboard() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          prime: parseFloat(newPrimeRate),
-        }),
+        body: JSON.stringify({ prime: newPrimeRate }),
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Update local state
-        setRates((prev) => ({
-          ...prev,
-          prime: data.prime,
-        }));
-        setIsPrimeModalOpen(false);
-        setNewPrimeRate("");
+      if (response.ok) {
+        const data = await response.json();
+        setPrime(data.prime);
         alert("Prime rate updated successfully!");
       } else {
-        alert("Error: " + data.message);
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update prime rate");
       }
     } catch (error) {
+      console.error("Error updating prime rate:", error);
       alert("Error updating prime rate: " + error.message);
     } finally {
       setIsPrimeUpdating(false);
     }
   };
 
-  const openPrimeModal = () => {
-    setNewPrimeRate(rates?.prime?.toString() || "");
-    setIsPrimeModalOpen(true);
+  // Initialize empty rate structure for a province
+  const initializeProvinceRates = () => {
+    const structure = {};
+    rateCategories.forEach((category) => {
+      structure[category.id] = {};
+
+      // Regular LTV rates
+      ltvCategories.forEach((ltv) => {
+        if (category.type === "fixed") {
+          structure[category.id][ltv.id] = { rate: 0, lender: "" };
+        } else {
+          structure[category.id][ltv.id] = { adjustment: 0, lender: "" };
+        }
+      });
+
+      // Refinance rates
+      structure[category.id].refinance = {};
+      refinanceCategories.forEach((refCat) => {
+        if (category.type === "fixed") {
+          structure[category.id].refinance[refCat.id] = { rate: 0, lender: "" };
+        } else {
+          structure[category.id].refinance[refCat.id] = {
+            adjustment: 0,
+            lender: "",
+          };
+        }
+      });
+
+      // Rental rates
+      if (category.type === "fixed") {
+        structure[category.id][rentalCategory.id] = { rate: 0, lender: "" };
+      } else {
+        structure[category.id][rentalCategory.id] = {
+          adjustment: 0,
+          lender: "",
+        };
+      }
+    });
+    return structure;
   };
 
-  const provinces = [
-    { code: "AB", name: "Alberta", flagImage: "/images/ab.jpg" },
-    { code: "BC", name: "British Columbia", flagImage: "/images/bc.jpg" },
-    { code: "MB", name: "Manitoba", flagImage: "/images/mb.jpg" },
-    { code: "NB", name: "New Brunswick", flagImage: "/images/nb.jpg" },
-    {
-      code: "NL",
-      name: "Newfoundland and Labrador",
-      flagImage: "/images/nl.jpg",
-    },
-    { code: "NS", name: "Nova Scotia", flagImage: "/images/ns.jpg" },
-    {
-      code: "NT",
-      name: "Northwest Territories",
-      flagImage: "/images/nt.jpg",
-    },
-    { code: "NU", name: "Nunavut", flagImage: "/images/nu.jpg" },
-    { code: "ON", name: "Ontario", flagImage: "/images/on.jpg" },
-    { code: "PE", name: "Prince Edward Island", flagImage: "/images/pe.jpg" },
-    { code: "QC", name: "Quebec", flagImage: "/images/qc.jpg" },
-    { code: "SK", name: "Saskatchewan", flagImage: "/images/sk.jpg" },
-    { code: "YT", name: "Yukon", flagImage: "/images/yt.jpg" },
-  ];
+  // Get current rates data
+  const getCurrentRates = () => rates;
+  const setCurrentRates = (newRates) => {
+    setRates(newRates);
+  };
+
+  // Handle input changes
+  const handleRateChange = (provinceCode, categoryId, ltv, field, value) => {
+    const currentRates = getCurrentRates();
+    const newRates = { ...currentRates };
+
+    // Initialize province if it doesn't exist
+    if (!newRates[provinceCode]) {
+      newRates[provinceCode] = {};
+    }
+
+    if (!newRates[provinceCode][categoryId]) {
+      newRates[provinceCode][categoryId] = {};
+    }
+
+    if (ltv.includes("refinance-")) {
+      const refType = ltv.replace("refinance-", "");
+      if (!newRates[provinceCode][categoryId].refinance) {
+        newRates[provinceCode][categoryId].refinance = {};
+      }
+      if (!newRates[provinceCode][categoryId].refinance[refType]) {
+        newRates[provinceCode][categoryId].refinance[refType] = {};
+      }
+
+      // Convert value to number for rate/adjustment fields
+      const finalValue =
+        field === "rate" || field === "adjustment"
+          ? parseFloat(value) || 0
+          : value;
+      newRates[provinceCode][categoryId].refinance[refType][field] = finalValue;
+    } else if (ltv === "rental") {
+      // Handle rental category with new flat structure
+      if (!newRates[provinceCode][categoryId].rental) {
+        newRates[provinceCode][categoryId].rental = {};
+      }
+
+      // New flat structure: rental is directly { rate: 4.15, lender: "..." } or { adjustment: -0.26, lender: "..." }
+      const finalValue =
+        field === "rate" || field === "adjustment"
+          ? parseFloat(value) || 0
+          : value;
+      newRates[provinceCode][categoryId].rental[field] = finalValue;
+    } else {
+      if (!newRates[provinceCode][categoryId][ltv]) {
+        newRates[provinceCode][categoryId][ltv] = {};
+      }
+
+      // Convert value to number for rate/adjustment fields
+      const finalValue =
+        field === "rate" || field === "adjustment"
+          ? parseFloat(value) || 0
+          : value;
+      newRates[provinceCode][categoryId][ltv][field] = finalValue;
+    }
+
+    setCurrentRates(newRates);
+  };
+
+  // Get value for input
+  const getValue = (provinceCode, categoryId, ltv, field) => {
+    const currentRates = getCurrentRates();
+    const provinceRates = currentRates[provinceCode];
+
+    if (!provinceRates || !provinceRates[categoryId]) return "";
+
+    if (ltv.includes("refinance-")) {
+      const refType = ltv.replace("refinance-", "");
+      const value = provinceRates[categoryId]?.refinance?.[refType]?.[field];
+      return value !== undefined && value !== null ? value : "";
+    }
+
+    // Handle rental category with new flat structure
+    if (ltv === "rental") {
+      const rentalData = provinceRates[categoryId]?.rental;
+      if (!rentalData) return "";
+
+      // New flat structure: rental is directly { rate: 4.15, lender: "..." } or { adjustment: -0.26, lender: "..." }
+      const value = rentalData[field];
+      return value !== undefined && value !== null ? value : "";
+    }
+
+    const value = provinceRates[categoryId]?.[ltv]?.[field];
+    return value !== undefined && value !== null ? value : "";
+  };
+
+  // Save all rates
+  const handleSaveAll = async () => {
+    setSaving(true);
+    try {
+      const currentRates = getCurrentRates();
+
+      // Transform data to the expected API format
+      const formattedRates = {};
+      rateCategories.forEach((category) => {
+        formattedRates[category.id] = {};
+
+        // Format LTV categories
+        ltvCategories.forEach((ltv) => {
+          formattedRates[category.id][ltv.id] = {};
+          provinces.forEach((province) => {
+            const provinceData = currentRates[province.code];
+            if (
+              provinceData &&
+              provinceData[category.id] &&
+              provinceData[category.id][ltv.id]
+            ) {
+              formattedRates[category.id][ltv.id] =
+                provinceData[category.id][ltv.id];
+            }
+          });
+        });
+
+        // Format refinance categories
+        formattedRates[category.id].refinance = {};
+        refinanceCategories.forEach((refCat) => {
+          formattedRates[category.id].refinance[refCat.id] = {};
+          provinces.forEach((province) => {
+            const provinceData = currentRates[province.code];
+            if (
+              provinceData &&
+              provinceData[category.id] &&
+              provinceData[category.id].refinance &&
+              provinceData[category.id].refinance[refCat.id]
+            ) {
+              formattedRates[category.id].refinance[refCat.id] =
+                provinceData[category.id].refinance[refCat.id];
+            }
+          });
+        });
+
+        // Format rental category
+        formattedRates[category.id][rentalCategory.id] = {};
+        provinces.forEach((province) => {
+          const provinceData = currentRates[province.code];
+          if (
+            provinceData &&
+            provinceData[category.id] &&
+            provinceData[category.id][rentalCategory.id]
+          ) {
+            formattedRates[category.id][rentalCategory.id] =
+              provinceData[category.id][rentalCategory.id];
+          }
+        });
+      });
+
+      const response = await fetch("/api/admin/rates/update-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rates: formattedRates }),
+      });
+
+      if (response.ok) {
+        alert("Rates saved successfully!");
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save rates");
+      }
+    } catch (error) {
+      console.error("Error saving rates:", error);
+      alert("Error saving rates: " + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Reset all changes
+  const handleReset = () => {
+    if (
+      confirm(
+        "Are you sure you want to reset all changes? This will reload the original data."
+      )
+    ) {
+      window.location.reload();
+    }
+  };
+
+  // Handle province click to open modal
+  const handleProvinceClick = (province) => {
+    setSelectedProvince(province);
+    setIsModalOpen(true);
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedProvince(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-6 min-h-96">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="text-gray-600">Loading rates data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8">
+    <div className="px-6 ">
       {/* Header */}
-      <div className="mb-8">
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900">Rates Management</h1>
-          <p className="mt-2 text-lg text-gray-600">
-            Rates on{" "}
-            {effectiveDate
-              ? effectiveDate.toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })
-              : "Loading..."}
-          </p>
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-end w-full pt-4 space-x-2">
+            <h1 className="pr-2 text-4xl font-bold text-gray-900 border-r border-gray-400">
+              Rates Management
+            </h1>
+            <p className="text-gray-600 ">
+              Last updated on{" "}
+              {lastUpdatedDate
+                ? lastUpdatedDate.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Loading..."}
+            </p>
+          </div>
+          <div className="flex items-center mt-3 space-x-3">
+            <PrimeRateCard
+              primeRate={prime}
+              onPrimeUpdate={handlePrimeUpdate}
+              isUpdating={isPrimeUpdating}
+              modalTitle="Update Prime Rate"
+              buttonText="Update Prime Rate"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Loading State */}
-      {ratesLoading && (
-        <div className="text-center py-12">
-          <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 shadow rounded-md text-blue-600 bg-white">
-            <svg
-              className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            Loading rates...
-          </div>
-        </div>
-      )}
-
-      {/* Prime Rate Card */}
-      {rates && (
-        <div className="mb-8">
-          <div className="bg-white border-gray-300 border rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div>
-                  <h2 className="text-2xl font-bold">Prime Rate</h2>
-                  <p>National benchmark rate for variable mortgages</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <button
-                  onClick={openPrimeModal}
-                  className="text-gray-400 cursor-pointer"
+      {/* Spreadsheet Table */}
+      <div
+        className="mt-4 overflow-x-auto bg-white border border-gray-200 rounded-lg "
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "#bfdbfe #ffffff",
+        }}
+      >
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            height: 8px;
+          }
+          div::-webkit-scrollbar-track {
+            background: #ffffff;
+            border-radius: 4px;
+          }
+          div::-webkit-scrollbar-thumb {
+            background: #bfdbfe;
+            border-radius: 4px;
+          }
+          div::-webkit-scrollbar-thumb:hover {
+            background: #e5e7eb;
+          }
+        `}</style>
+        <table className="divide-y divide-gray-200 w-max">
+          <thead className="bg-gray-50">
+            {/* Main Category Headers */}
+            <tr>
+              <th
+                rowSpan={2}
+                className="sticky left-0 z-10 px-1 py-1 text-xs font-medium tracking-wider text-left text-gray-500 uppercase border-r border-gray-200 bg-gray-50"
+              ></th>
+              {rateCategories.map((category) => (
+                <th
+                  key={category.id}
+                  colSpan={
+                    ltvCategories.length + refinanceCategories.length + 1
+                  }
+                  className="px-1 py-2 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase bg-gray-100 border-r-2 border-gray-200"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  {category.label}
+                </th>
+              ))}
+            </tr>
+
+            {/* Sub-category Headers */}
+            <tr>
+              {rateCategories.map((category) => (
+                <React.Fragment key={`header-${category.id}`}>
+                  {/* LTV Categories */}
+                  {ltvCategories.map((ltv) => (
+                    <th
+                      key={`${category.id}-${ltv.id}`}
+                      className="px-1 py-1 text-xs font-medium text-center text-blue-600 border-r border-gray-200 max-w-12"
+                    >
+                      {ltv.label}
+                    </th>
+                  ))}
+
+                  {/* Refinance Categories */}
+                  {refinanceCategories.map((refCat) => (
+                    <th
+                      key={`${category.id}-refinance-${refCat.id}`}
+                      className="px-1 py-1 text-xs font-medium text-center text-green-600 border-r border-gray-200 max-w-12 bg-green-50"
+                    >
+                      <div>{refCat.label}</div>
+                    </th>
+                  ))}
+
+                  {/* Rental Category */}
+                  <th
+                    key={`${category.id}-${rentalCategory.id}`}
+                    className="px-1 py-1 text-xs font-medium text-center text-purple-600 border-r-2 border-gray-200 max-w-12 bg-purple-50"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    {rentalCategory.label}
+                  </th>
+                </React.Fragment>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {provinces.map((province) => (
+              <tr key={province.code} className="hover:bg-blue-50 group">
+                <td className="sticky left-0 z-10 flex items-center justify-center bg-white border-r border-gray-200 group-hover:bg-blue-50">
+                  <div
+                    className="flex flex-col items-center px-3 py-1 transition-colors cursor-pointer hover:bg-blue-200"
+                    onClick={() => handleProvinceClick(province)}
+                    title={`Edit rates for ${province.name}`}
+                  >
+                    <Image
+                      src={`/images/${province.code.toLowerCase()}.jpg`}
+                      alt={province.code}
+                      width={32}
+                      height={24}
+                      className="object-cover w-6 h-4 rounded-sm"
                     />
-                  </svg>
-                </button>
-                <div className="flex items-center justify-end mb-2">
-                  <div className="text-4xl font-bold">
-                    {formatRate(rates.prime)}%
+
+                    <div className="mt-3 mb-2 text-xs font-semibold text-gray-700 leading-0">
+                      {province.code}
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
+                </td>
+
+                {rateCategories.map((category) => (
+                  <React.Fragment key={`body-${category.id}`}>
+                    {/* LTV Categories */}
+                    {ltvCategories.map((ltv) => (
+                      <td
+                        key={`${province.code}-${category.id}-${ltv.id}`}
+                        className="px-1 py-1 align-top border-r border-gray-200 max-w-12 group-hover:bg-blue-50"
+                      >
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium text-center text-gray-900">
+                            {getValue(
+                              province.code,
+                              category.id,
+                              ltv.id,
+                              category.type === "fixed" ? "rate" : "adjustment"
+                            ) || "-"}
+                            {getValue(
+                              province.code,
+                              category.id,
+                              ltv.id,
+                              category.type === "fixed" ? "rate" : "adjustment"
+                            ) && (category.type === "fixed" ? "%" : "")}
+                          </div>
+                          <div className="text-[8px] text-center text-gray-500 truncate">
+                            {getValue(
+                              province.code,
+                              category.id,
+                              ltv.id,
+                              "lender"
+                            ) || "-"}
+                          </div>
+                        </div>
+                      </td>
+                    ))}
+
+                    {/* Refinance Categories */}
+                    {refinanceCategories.map((refCat) => (
+                      <td
+                        key={`${province.code}-${category.id}-refinance-${refCat.id}`}
+                        className="px-1 py-1 align-top border-r border-gray-200 max-w-12 bg-green-50 group-hover:bg-blue-50"
+                      >
+                        <div className="space-y-1">
+                          <div className="text-xs font-medium text-center text-gray-900">
+                            {getValue(
+                              province.code,
+                              category.id,
+                              `refinance-${refCat.id}`,
+                              category.type === "fixed" ? "rate" : "adjustment"
+                            ) || "-"}
+                            {getValue(
+                              province.code,
+                              category.id,
+                              `refinance-${refCat.id}`,
+                              category.type === "fixed" ? "rate" : "adjustment"
+                            ) && (category.type === "fixed" ? "%" : "")}
+                          </div>
+                          <div className="text-[8px] text-center text-gray-500 truncate">
+                            {getValue(
+                              province.code,
+                              category.id,
+                              `refinance-${refCat.id}`,
+                              "lender"
+                            ) || "-"}
+                          </div>
+                        </div>
+                      </td>
+                    ))}
+
+                    {/* Rental Category */}
+                    <td
+                      key={`${province.code}-${category.id}-${rentalCategory.id}`}
+                      className="px-1 py-1 align-top border-r-2 border-gray-200 max-w-12 bg-purple-50 group-hover:bg-blue-50"
+                    >
+                      <div className="space-y-1">
+                        <div className="text-xs font-medium text-center text-gray-900">
+                          {getValue(
+                            province.code,
+                            category.id,
+                            rentalCategory.id,
+                            category.type === "fixed" ? "rate" : "adjustment"
+                          ) || "-"}
+                          {getValue(
+                            province.code,
+                            category.id,
+                            rentalCategory.id,
+                            category.type === "fixed" ? "rate" : "adjustment"
+                          ) && (category.type === "fixed" ? "%" : "")}
+                        </div>
+                        <div className="text-[8px] text-center text-gray-500 truncate">
+                          {getValue(
+                            province.code,
+                            category.id,
+                            rentalCategory.id,
+                            "lender"
+                          ) || "-"}
+                        </div>
+                      </div>
+                    </td>
+                  </React.Fragment>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Legend */}
+      <div className="mt-4 space-y-1 text-xs text-gray-600">
+        <div>
+          <strong>Legend:</strong>
+        </div>
+        <div>• Fixed rates: Enter rate percentage (e.g., 5.25)</div>
+        <div>
+          • Variable rates: Enter adjustment to prime (e.g., -0.8 for Prime -
+          0.8%)
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center">
+            <div className="w-3 h-3 mr-1 bg-blue-100 border border-blue-200 rounded"></div>
+            <span>
+              LTV Categories: ≤65%, ≤70%, ≤75%, ≤80%, Insured (&gt;80%)
+            </span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 mr-1 border border-green-200 rounded bg-green-50"></div>
+            <span>Refinance: ≤25yr, &gt;25yr amortization</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 mr-1 border border-purple-200 rounded bg-purple-50"></div>
+            <span>Rental/Investment properties</span>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Provincial Rates Grid */}
-      {rates && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {provinces.map((province) => (
-            <AdminProvinceCard
-              key={province.code}
-              province={province}
-              rates={rates[province.code]}
-              primeRate={rates.prime}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* No Rates Message */}
-      {!ratesLoading && !rates && (
-        <div className="text-center py-12">
-          <div className="rounded-md bg-yellow-50 p-4">
-            <div className="flex">
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  No rates available
-                </h3>
-                <div className="mt-2 text-sm text-yellow-700">
-                  <p>
-                    No mortgage rates found in the database. Please run the rate
-                    insertion script to populate rates data.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Prime Rate Update Modal */}
-      {isPrimeModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Update Prime Rate
-                </h3>
-                <button
-                  onClick={() => setIsPrimeModalOpen(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md cursor-pointer"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="px-6 py-4">
-              <form onSubmit={handlePrimeUpdate}>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prime Rate (%)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="20"
-                    value={newPrimeRate}
-                    onChange={(e) => setNewPrimeRate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter prime rate"
-                    required
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Enter a value between 0.00% and 20.00%
-                  </p>
-                </div>
-
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsPrimeModalOpen(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isPrimeUpdating}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors duration-200"
-                  >
-                    {isPrimeUpdating ? "Updating..." : "Update Prime Rate"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+      {/* Update Rates Modal */}
+      {isModalOpen && selectedProvince && (
+        <UpdateRatesForm
+          province={selectedProvince}
+          rates={rates[selectedProvince.code] || {}}
+          onClose={handleModalClose}
+          isRental={false}
+        />
       )}
     </div>
   );
