@@ -526,18 +526,22 @@ export default function AdminDashboard() {
                       >
                         <div className="space-y-1">
                           <div className="text-xs font-medium text-center text-gray-900">
-                            {getValue(
-                              province.code,
-                              category.id,
-                              ltv.id,
-                              category.type === "fixed" ? "rate" : "adjustment"
-                            ) || "-"}
-                            {getValue(
-                              province.code,
-                              category.id,
-                              ltv.id,
-                              category.type === "fixed" ? "rate" : "adjustment"
-                            ) && (category.type === "fixed" ? "%" : "")}
+                            {(() => {
+                              const value = getValue(
+                                province.code,
+                                category.id,
+                                ltv.id,
+                                category.type === "fixed"
+                                  ? "rate"
+                                  : "adjustment"
+                              );
+                              if (!value && value !== 0) return "-";
+                              const numValue = parseFloat(value);
+                              return isNaN(numValue)
+                                ? "-"
+                                : numValue.toFixed(2) +
+                                    (category.type === "fixed" ? "%" : "");
+                            })()}
                           </div>
                           <div className="text-[8px] text-center text-gray-500 truncate">
                             {getValue(
@@ -559,18 +563,22 @@ export default function AdminDashboard() {
                       >
                         <div className="space-y-1">
                           <div className="text-xs font-medium text-center text-gray-900">
-                            {getValue(
-                              province.code,
-                              category.id,
-                              `refinance-${refCat.id}`,
-                              category.type === "fixed" ? "rate" : "adjustment"
-                            ) || "-"}
-                            {getValue(
-                              province.code,
-                              category.id,
-                              `refinance-${refCat.id}`,
-                              category.type === "fixed" ? "rate" : "adjustment"
-                            ) && (category.type === "fixed" ? "%" : "")}
+                            {(() => {
+                              const value = getValue(
+                                province.code,
+                                category.id,
+                                `refinance-${refCat.id}`,
+                                category.type === "fixed"
+                                  ? "rate"
+                                  : "adjustment"
+                              );
+                              if (!value && value !== 0) return "-";
+                              const numValue = parseFloat(value);
+                              return isNaN(numValue)
+                                ? "-"
+                                : numValue.toFixed(2) +
+                                    (category.type === "fixed" ? "%" : "");
+                            })()}
                           </div>
                           <div className="text-[8px] text-center text-gray-500 truncate">
                             {getValue(
@@ -591,18 +599,20 @@ export default function AdminDashboard() {
                     >
                       <div className="space-y-1">
                         <div className="text-xs font-medium text-center text-gray-900">
-                          {getValue(
-                            province.code,
-                            category.id,
-                            rentalCategory.id,
-                            category.type === "fixed" ? "rate" : "adjustment"
-                          ) || "-"}
-                          {getValue(
-                            province.code,
-                            category.id,
-                            rentalCategory.id,
-                            category.type === "fixed" ? "rate" : "adjustment"
-                          ) && (category.type === "fixed" ? "%" : "")}
+                          {(() => {
+                            const value = getValue(
+                              province.code,
+                              category.id,
+                              rentalCategory.id,
+                              category.type === "fixed" ? "rate" : "adjustment"
+                            );
+                            if (!value && value !== 0) return "-";
+                            const numValue = parseFloat(value);
+                            return isNaN(numValue)
+                              ? "-"
+                              : numValue.toFixed(2) +
+                                  (category.type === "fixed" ? "%" : "");
+                          })()}
                         </div>
                         <div className="text-[8px] text-center text-gray-500 truncate">
                           {getValue(

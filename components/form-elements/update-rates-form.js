@@ -1240,7 +1240,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
               </div>
 
               {/* Province Checkboxes Grid */}
-              <div className="grid grid-cols-6 gap-1 overflow-y-auto max-h-32">
+              <div className="grid grid-cols-6 gap-1 ">
                 {selectedProvinces.map((prov) => (
                   <label
                     key={prov.code}
