@@ -7,19 +7,19 @@ import UpdateRatesForm from "../../../components/form-elements/update-rates-form
 import { useMortgageStore } from "../../../stores/useMortgageStore";
 
 const provinces = [
-  { code: "AB", name: "Alberta" },
   { code: "BC", name: "British Columbia" },
-  { code: "MB", name: "Manitoba" },
-  { code: "NB", name: "New Brunswick" },
-  { code: "NL", name: "Newfoundland and Labrador" },
+  { code: "AB", name: "Alberta" },
+  { code: "ON", name: "Ontario" },
   { code: "NS", name: "Nova Scotia" },
+  { code: "NB", name: "New Brunswick" },
+  { code: "SK", name: "Saskatchewan" },
+  { code: "MB", name: "Manitoba" },
+  { code: "NL", name: "Newfoundland and Labrador" },
+  { code: "QC", name: "Quebec" },
+  { code: "PE", name: "Prince Edward Island" },
+  { code: "YT", name: "Yukon" },
   { code: "NT", name: "Northwest Territories" },
   { code: "NU", name: "Nunavut" },
-  { code: "ON", name: "Ontario" },
-  { code: "PE", name: "Prince Edward Island" },
-  { code: "QC", name: "Quebec" },
-  { code: "SK", name: "Saskatchewan" },
-  { code: "YT", name: "Yukon" },
 ];
 
 const rateCategories = [
