@@ -31,11 +31,18 @@ const VariableRateInputField = ({
           ? "Insured"
           : `≤${ltv.slice(-2)}%`;
 
+  const displayLtvColor =
+    displayLtv === "Rental"
+      ? "text-purple-600"
+      : displayLtv === "≤25 yrs" || displayLtv === ">25 yrs"
+        ? "text-green-600"
+        : "text-blue-600";
+
   const fieldKey = !ltv ? "" : isRefinance ? `refinance.${refinanceType}` : ltv;
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className={`block text-xs font-medium ${displayLtvColor}`}>
         {displayLtv}
       </label>
       <div className="space-y-1">
@@ -238,11 +245,18 @@ const RateInputField = ({
           ? "Insured"
           : `≤${ltv.slice(-2)}%`;
 
+  const displayLtvColor =
+    displayLtv === "Rental"
+      ? "text-purple-600"
+      : displayLtv === "≤25 yrs" || displayLtv === ">25 yrs"
+        ? "text-green-600"
+        : "text-blue-600";
+
   const fieldKey = !ltv ? "" : isRefinance ? `refinance.${refinanceType}` : ltv;
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className={`block text-xs font-medium ${displayLtvColor}`}>
         {displayLtv}
       </label>
       <div className="space-y-1">

@@ -135,7 +135,18 @@ export default function UpdateRateForm({
               <strong>Term:</strong> {getTermLabel()}
             </div>
             <div>
-              <strong>Type:</strong> {getTypeLabel()}
+              <strong>Type:</strong>{" "}
+              <span
+                className={`font-medium ${
+                  type === "rental"
+                    ? "text-purple-600"
+                    : type?.includes("refinance-")
+                      ? "text-green-600"
+                      : "text-blue-600"
+                }`}
+              >
+                {getTypeLabel()}
+              </span>
             </div>
           </div>
         </div>
