@@ -5,14 +5,14 @@ import NavLink from "./nav-link";
 
 export default function MainHeader() {
   return (
-    <header className="px-32 ">
-      <div className="flex items-center justify-between max-w-6xl py-6 mx-auto text-white">
+    <header className="px-32">
+      <div className="flex items-center justify-between py-6 mx-auto text-black max-w-7xl">
         <Link href="/">
           <Image
             src={logo}
             alt="Mortgage Renewals Logo"
             width={420}
-            height={40}
+            height={24}
           />
         </Link>
         <nav>

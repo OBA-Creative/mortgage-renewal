@@ -103,15 +103,15 @@ export default function UpdateRateForm({
     >
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Update Rate</h2>
+        <div className="border-b border-gray-200">
+          <div className="z-50 flex items-center justify-between py-2 pl-6 pr-4 text-white bg-blue-600 shadow-md">
+            <h2 className="text-lg font-medium ">Update Rate</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              className="p-2 text-white rounded-md cursor-pointer hover:text-red-500 hover:bg-white focus:outline-none"
             >
               <svg
-                className="w-6 h-6"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -127,7 +127,7 @@ export default function UpdateRateForm({
           </div>
 
           {/* Rate Details */}
-          <div className="mt-3 space-y-1 text-sm text-gray-600">
+          <div className="px-6 py-4 space-y-1 text-sm text-gray-700 bg-blue-50">
             <div>
               <strong>Province:</strong> {province?.name} ({province?.code})
             </div>

@@ -68,15 +68,13 @@ export default function PrimeRateCard({
       {/* Prime Rate Update Modal */}
       {isPrimeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 bg-black/60 backdrop-blur-md">
-          <div className="w-full max-w-md bg-white rounded-lg shadow-xl">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="w-full max-w-md overflow-hidden bg-white rounded-lg shadow-xl">
+            <div className="py-2 pl-6 pr-4 text-white bg-blue-600 border-b shadow-md">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {modalTitle}
-                </h3>
+                <h3 className="text-lg font-medium ">{modalTitle}</h3>
                 <button
                   onClick={() => setIsPrimeModalOpen(false)}
-                  className="p-2 text-gray-400 rounded-md cursor-pointer hover:text-gray-600 hover:bg-gray-100"
+                  className="p-2 text-white rounded-md cursor-pointer hover:text-red-500 hover:bg-white"
                 >
                   <svg
                     className="w-5 h-5"
@@ -113,7 +111,7 @@ export default function PrimeRateCard({
                     required
                   />
                   <p className="mt-1 text-xs text-gray-500">
-                    Enter a value between 0.00% and 20.00%
+                    Enter the prime rate percentage.
                   </p>
                 </div>
 
@@ -128,7 +126,7 @@ export default function PrimeRateCard({
                   <button
                     type="submit"
                     disabled={isUpdating}
-                    className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdating ? "Updating..." : buttonText}
                   </button>

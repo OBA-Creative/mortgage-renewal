@@ -1,6 +1,6 @@
 import Script from "next/script";
 import Head from "next/head";
-import MainHeader from "@/components/main-header/main-header";
+import MainHeader from "@/components/layout/main-header/main-header";
 import ChatWidget from "@/components/chat-widget";
 
 export default function UsersLayout({ children }) {

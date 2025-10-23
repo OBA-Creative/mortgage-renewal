@@ -1103,7 +1103,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden bg-black/55 backdrop-blur-md">
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto ">
-        <div className="px-6 py-2 bg-blue-600 shadow-md">
+        <div className="py-2 pl-6 pr-4 bg-blue-600 shadow-md">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-white">
               Update Rates - {province.name}
@@ -1293,14 +1293,14 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-full hover:bg-gray-200"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-full cursor-pointer hover:bg-gray-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting || isUpdatingMultiple}
-                  className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Updating..." : "Update This Province"}
                 </button>
