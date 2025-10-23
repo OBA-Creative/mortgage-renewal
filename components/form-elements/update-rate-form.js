@@ -180,7 +180,9 @@ export default function UpdateRateForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
             >
-              <option value="">Select a lender</option>
+              <option value="" disabled>
+                Select lender
+              </option>
               {availableLenders.map((lenderName, index) => (
                 <option key={index} value={lenderName}>
                   {lenderName}

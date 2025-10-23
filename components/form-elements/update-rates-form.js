@@ -66,7 +66,9 @@ const VariableRateInputField = ({
           }}
           className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700"
         >
-          <option value="">Select Lender</option>
+          <option value="" disabled>
+            Select Lender
+          </option>
           {lenders.map((lender) => (
             <option key={lender} value={lender}>
               {lender}
@@ -271,7 +273,9 @@ const RateInputField = ({
           }}
           className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="">Select Lender</option>
+          <option value="" disabled>
+            Select Lender
+          </option>
           {lenders.map((lender) => (
             <option key={lender} value={lender}>
               {lender}
