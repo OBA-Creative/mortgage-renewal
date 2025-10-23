@@ -216,8 +216,8 @@ export default function MortgagePage() {
       : false;
 
   return (
-    <div className="max-w-xl p-6 mx-auto">
-      <h1 className="max-w-2xl my-8 text-4xl font-semibold text-center">
+    <div className="max-w-2xl mx-auto">
+      <h1 className="my-8 text-4xl font-semibold text-center">
         {"Now let's learn about your mortgage"}
       </h1>
 

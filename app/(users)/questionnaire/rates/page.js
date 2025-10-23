@@ -439,7 +439,7 @@ export default function RatesPage() {
         })}`;
 
   return (
-    <div className="flex flex-col items-center ">
+    <div className="flex flex-col items-center">
       <div className="px-4 py-8 mx-auto space-y-4 text-center ">
         <h1 className="text-4xl font-semibold ">
           Here are the best <span className="text-blue-500 ">renewal</span>{" "}
@@ -447,7 +447,8 @@ export default function RatesPage() {
         </h1>
         <p className="text-xl">
           If we lock in your rate today, you will be protected from future rate
-          increases until {rateLockExpiryDate}
+          increases until{" "}
+          <span className="font-semibold">{rateLockExpiryDate}</span>
         </p>
       </div>
 

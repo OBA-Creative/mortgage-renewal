@@ -390,7 +390,8 @@ export default function RatesPage() {
         </h1>
         <p className="text-xl">
           If we lock in your rate today, you will be protected from future rate
-          increases until {rateLockExpiryDate}
+          increases until{" "}
+          <span className="font-semibold">{rateLockExpiryDate}</span>
         </p>
       </div>
       <div className="flex space-x-20 ">

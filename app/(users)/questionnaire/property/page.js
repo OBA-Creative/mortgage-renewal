@@ -7,6 +7,7 @@ import DollarInput from "@/components/form-elements/dollar-input";
 import PlacesAutocompleteInput from "@/components/form-elements/places-autocomplete-input";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import { useState } from "react";
+import NextButton from "@/components/form-elements/next-button";
 
 export default function PropertyPage() {
   const { formData, setFormData } = useMortgageStore();
@@ -85,8 +86,8 @@ export default function PropertyPage() {
   const downpaymentOptions = ["20% or more", "Less than 20%"];
 
   return (
-    <div className="max-w-xl p-6 mx-auto">
-      <h1 className="max-w-2xl my-8 text-4xl font-semibold text-center">
+    <div className="w-full max-w-2xl mx-auto">
+      <h1 className="my-8 text-4xl font-semibold text-center ">
         {"Let's learn about your property"}
       </h1>
 
@@ -136,14 +137,8 @@ export default function PropertyPage() {
         )}
 
         {/* Submit Button */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="px-12 py-3 font-semibold text-white bg-blue-600 rounded-full cursor-pointer hover:bg-blue-500 "
-          >
-            Continue
-          </button>
-        </div>
+
+        <NextButton label="Continue" />
       </form>
     </div>
   );

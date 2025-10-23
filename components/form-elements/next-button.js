@@ -3,7 +3,7 @@ export default function NextButton({ label }) {
     <div className="flex justify-end">
       <button
         type="submit"
-        className="bg-blue-600 text-white rounded-full hover:bg-blue-500 font-semibold py-3 px-12 cursor-pointer "
+        className="px-12 py-3 font-semibold text-white bg-blue-600 rounded-full cursor-pointer hover:bg-blue-500 hover:scale-110"
       >
         {label}
       </button>
