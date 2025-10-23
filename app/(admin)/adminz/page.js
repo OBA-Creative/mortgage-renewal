@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import PrimeRateCard from "../../../components/cards/prime-rate-card";
 import UpdateRatesForm from "../../../components/form-elements/update-rates-form";
+import UpdateRateForm from "../../../components/form-elements/update-rate-form";
 import { useMortgageStore } from "../../../stores/useMortgageStore";
 
 const provinces = [
@@ -55,6 +56,16 @@ export default function AdminDashboard() {
   const [effectiveDate, setEffectiveDate] = useState(null);
   const [lastUpdatedDate, setLastUpdatedDate] = useState(null);
   const [isPrimeUpdating, setIsPrimeUpdating] = useState(false);
+
+  // Single rate update modal state
+  const [singleRateModal, setSingleRateModal] = useState({
+    isOpen: false,
+    province: null,
+    term: null,
+    type: null,
+    rateValue: null,
+    lender: null,
+  });
 
   // Get lender fetching function from store
   const { fetchLenders } = useMortgageStore();
@@ -368,12 +379,139 @@ export default function AdminDashboard() {
     setSelectedProvince(null);
   };
 
+  // Handle single rate click
+  const handleRateClick = (province, term, type) => {
+    const currentRateValue = getValue(
+      province.code,
+      term,
+      type,
+      term.includes("Fixed") ? "rate" : "adjustment"
+    );
+    const currentLender = getValue(province.code, term, type, "lender");
+
+    setSingleRateModal({
+      isOpen: true,
+      province,
+      term,
+      type,
+      rateValue: currentRateValue,
+      lender: currentLender,
+    });
+  };
+
+  // Handle single rate update
+  const handleSingleRateUpdate = async ({
+    province,
+    term,
+    type,
+    rate,
+    lender,
+  }) => {
+    const field = term.includes("Fixed") ? "rate" : "adjustment";
+
+    // Update local state first
+    handleRateChange(province.code, term, type, field, rate);
+    handleRateChange(province.code, term, type, "lender", lender);
+
+    // Prepare the API payload in the format expected by /api/admin/rates/update
+    try {
+      let updatePayload;
+
+      if (type.includes("refinance-")) {
+        // Handle refinance rates
+        const refType = type.replace("refinance-", "");
+        updatePayload = {
+          provinceCode: province.code,
+          rates: {
+            [term]: {
+              refinance: {
+                [refType]: { [field]: rate, lender },
+              },
+            },
+          },
+        };
+      } else if (type === "rental") {
+        // Handle rental rates
+        updatePayload = {
+          provinceCode: province.code,
+          rates: {
+            [term]: {
+              rental: { [field]: rate, lender },
+            },
+          },
+        };
+      } else {
+        // Handle regular LTV rates
+        updatePayload = {
+          provinceCode: province.code,
+          rates: {
+            [term]: {
+              [type]: { [field]: rate, lender },
+            },
+          },
+        };
+      }
+
+      console.log("Sending update payload:", updatePayload);
+
+      const response = await fetch("/api/admin/rates/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatePayload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save rate");
+      }
+
+      console.log("Rate updated successfully");
+
+      // Refresh the rates data
+      await fetchRates();
+    } catch (error) {
+      console.error("Error saving single rate:", error);
+      throw error; // Re-throw to be handled by the form
+    }
+  };
+
+  // Handle single rate modal close
+  const handleSingleRateModalClose = () => {
+    setSingleRateModal({
+      isOpen: false,
+      province: null,
+      term: null,
+      type: null,
+      rateValue: null,
+      lender: null,
+    });
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-6 min-h-96">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-          <p className="text-gray-600">Loading rates data...</p>
+      <div className="py-12 text-center">
+        <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-blue-600 bg-white rounded-md shadow">
+          <svg
+            className="w-5 h-5 mr-3 -ml-1 text-blue-600 animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          Loading rates data...
         </div>
       </div>
     );
@@ -522,10 +660,14 @@ export default function AdminDashboard() {
                     {ltvCategories.map((ltv) => (
                       <td
                         key={`${province.code}-${category.id}-${ltv.id}`}
-                        className="px-1 py-1 align-top border-r border-gray-200 max-w-12 group-hover:bg-blue-50"
+                        className="px-1 py-1 align-top border-r border-gray-200 cursor-pointer max-w-12 group-hover:bg-blue-50 hover:bg-blue-100"
+                        onClick={() =>
+                          handleRateClick(province, category.id, ltv.id)
+                        }
+                        title="Click to edit rate"
                       >
                         <div className="space-y-1">
-                          <div className="text-xs font-medium text-center text-gray-900">
+                          <div className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded">
                             {(() => {
                               const value = getValue(
                                 province.code,
@@ -543,7 +685,7 @@ export default function AdminDashboard() {
                                     (category.type === "fixed" ? "%" : "");
                             })()}
                           </div>
-                          <div className="text-[8px] text-center text-gray-500 truncate">
+                          <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
                             {getValue(
                               province.code,
                               category.id,
@@ -559,10 +701,18 @@ export default function AdminDashboard() {
                     {refinanceCategories.map((refCat) => (
                       <td
                         key={`${province.code}-${category.id}-refinance-${refCat.id}`}
-                        className="px-1 py-1 align-top border-r border-gray-200 max-w-12 bg-green-50 group-hover:bg-blue-50"
+                        className="px-1 py-1 align-top border-r border-gray-200 cursor-pointer max-w-12 bg-green-50 group-hover:bg-blue-50 hover:bg-blue-100"
+                        onClick={() =>
+                          handleRateClick(
+                            province,
+                            category.id,
+                            `refinance-${refCat.id}`
+                          )
+                        }
+                        title="Click to edit rate"
                       >
                         <div className="space-y-1">
-                          <div className="text-xs font-medium text-center text-gray-900">
+                          <div className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded">
                             {(() => {
                               const value = getValue(
                                 province.code,
@@ -580,7 +730,7 @@ export default function AdminDashboard() {
                                     (category.type === "fixed" ? "%" : "");
                             })()}
                           </div>
-                          <div className="text-[8px] text-center text-gray-500 truncate">
+                          <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
                             {getValue(
                               province.code,
                               category.id,
@@ -595,10 +745,18 @@ export default function AdminDashboard() {
                     {/* Rental Category */}
                     <td
                       key={`${province.code}-${category.id}-${rentalCategory.id}`}
-                      className="px-1 py-1 align-top border-r-2 border-gray-200 max-w-12 bg-purple-50 group-hover:bg-blue-50"
+                      className="px-1 py-1 align-top border-r-2 border-gray-200 cursor-pointer max-w-12 bg-purple-50 group-hover:bg-blue-50 hover:bg-blue-100"
+                      onClick={() =>
+                        handleRateClick(
+                          province,
+                          category.id,
+                          rentalCategory.id
+                        )
+                      }
+                      title="Click to edit rate"
                     >
                       <div className="space-y-1">
-                        <div className="text-xs font-medium text-center text-gray-900">
+                        <div className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded">
                           {(() => {
                             const value = getValue(
                               province.code,
@@ -614,7 +772,7 @@ export default function AdminDashboard() {
                                   (category.type === "fixed" ? "%" : "");
                           })()}
                         </div>
-                        <div className="text-[8px] text-center text-gray-500 truncate">
+                        <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
                           {getValue(
                             province.code,
                             category.id,
@@ -667,6 +825,19 @@ export default function AdminDashboard() {
           rates={rates[selectedProvince.code] || {}}
           onClose={handleModalClose}
           isRental={false}
+        />
+      )}
+
+      {/* Single Rate Update Modal */}
+      {singleRateModal.isOpen && (
+        <UpdateRateForm
+          province={singleRateModal.province}
+          term={singleRateModal.term}
+          type={singleRateModal.type}
+          rateValue={singleRateModal.rateValue}
+          lender={singleRateModal.lender}
+          onClose={handleSingleRateModalClose}
+          onUpdate={handleSingleRateUpdate}
         />
       )}
     </div>

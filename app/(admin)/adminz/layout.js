@@ -125,7 +125,7 @@ export default function AdminLayout({ children }) {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-full transition-colors ${
                     isCurrentPage(item.href)
                       ? "bg-blue-100 text-blue-700 border border-blue-200"
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -140,7 +140,7 @@ export default function AdminLayout({ children }) {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="flex items-center px-4 py-2 text-sm font-medium text-red-600 transition-colors border border-red-200 rounded-lg cursor-pointer hover:bg-red-50"
+              className="flex items-center px-4 py-2 text-sm font-medium text-red-600 transition-colors border border-red-200 rounded-full cursor-pointer hover:bg-red-50"
             >
               <LogOut className="w-4 h-4" />
               <span className="ml-2">Logout</span>

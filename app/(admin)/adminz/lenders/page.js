@@ -178,16 +178,16 @@ export default function LendersPage() {
       {/* Summary Stats */}
       {/*
       {!isLoading && lenders.length > 0 && (
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-3">
+          <div className="overflow-hidden bg-white rounded-lg shadow">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full">
                     <LandmarkIcon className="w-5 h-5 text-blue-600" />
                   </div>
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="flex-1 w-0 ml-5">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
                       Total Lenders
@@ -201,11 +201,11 @@ export default function LendersPage() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="overflow-hidden bg-white rounded-lg shadow">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full">
                     <svg
                       className="w-5 h-5 text-green-600"
                       fill="currentColor"
@@ -219,7 +219,7 @@ export default function LendersPage() {
                     </svg>
                   </div>
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="flex-1 w-0 ml-5">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
                       Active
@@ -233,11 +233,11 @@ export default function LendersPage() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="overflow-hidden bg-white rounded-lg shadow">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                  <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full">
                     <svg
                       className="w-5 h-5 text-red-600"
                       fill="currentColor"
@@ -251,7 +251,7 @@ export default function LendersPage() {
                     </svg>
                   </div>
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="flex-1 w-0 ml-5">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
                       Inactive
@@ -271,7 +271,7 @@ export default function LendersPage() {
       <div className="mb-6">
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-full shadow-sm cursor-pointer hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           <svg
             className="w-4 h-4 mr-2"
@@ -291,16 +291,16 @@ export default function LendersPage() {
       </div>
       {/* Error Message */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+        <div className="relative px-4 py-3 mb-6 text-red-700 border border-red-200 rounded bg-red-50">
           <span className="block sm:inline">{error}</span>
         </div>
       )}
       {/* Loading State */}
       {isLoading && (
-        <div className="text-center py-12">
-          <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 shadow rounded-md text-blue-600 bg-white">
+        <div className="py-12 text-center">
+          <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-blue-600 bg-white rounded-md shadow">
             <svg
-              className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600"
+              className="w-5 h-5 mr-3 -ml-1 text-blue-600 animate-spin"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -325,10 +325,10 @@ export default function LendersPage() {
       )}
       {/* Lenders List */}
       {!isLoading && (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="overflow-hidden bg-white shadow sm:rounded-md">
           {lenders.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="rounded-md bg-yellow-50 p-4">
+            <div className="py-12 text-center">
+              <div className="p-4 rounded-md bg-yellow-50">
                 <div className="flex">
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-yellow-800">
@@ -339,7 +339,7 @@ export default function LendersPage() {
                         No lenders found in the database. Run the setup script
                         to add initial lenders:
                       </p>
-                      <code className="mt-2 block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                      <code className="block px-2 py-1 mt-2 text-xs text-yellow-800 bg-yellow-100 rounded">
                         npm run setup-lenders
                       </code>
                     </div>
@@ -353,9 +353,9 @@ export default function LendersPage() {
                 <li key={lender._id} className="px-6 py-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <LandmarkIcon className="h-6 w-6 text-blue-600" />
+                      <div className="flex-shrink-0 w-10 h-10">
+                        <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
+                          <LandmarkIcon className="w-6 h-6 text-blue-600" />
                         </div>
                       </div>
                       <div className="ml-4">
@@ -407,7 +407,7 @@ export default function LendersPage() {
                           <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                           {togglingLenders.has(lender._id) && (
                             <svg
-                              className="ml-2 w-4 h-4 animate-spin text-gray-500"
+                              className="w-4 h-4 ml-2 text-gray-500 animate-spin"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -436,7 +436,7 @@ export default function LendersPage() {
                           handleDeleteLender(lender._id, lender.lenderName)
                         }
                         disabled={deletingLenders.has(lender._id)}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-red-400 transition-colors duration-200 rounded-full hover:text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Delete lender"
                       >
                         {deletingLenders.has(lender._id) ? (
@@ -484,7 +484,7 @@ export default function LendersPage() {
           )}
 
           {lenders.length > 0 && (
-            <div className="bg-gray-50 px-6 py-3">
+            <div className="px-6 py-3 bg-gray-50">
               <div className="text-sm text-gray-500">
                 Total: {lenders.length} lender
                 {lenders.length !== 1 ? "s" : ""}
@@ -495,8 +495,8 @@ export default function LendersPage() {
       )}
       {/* Add Lender Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 bg-black/60 backdrop-blur-md">
+          <div className="w-full max-w-md bg-white rounded-lg shadow-xl">
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900">
@@ -507,7 +507,7 @@ export default function LendersPage() {
                     setIsAddModalOpen(false);
                     setNewLenderName("");
                   }}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md cursor-pointer"
+                  className="p-2 text-gray-400 rounded-md cursor-pointer hover:text-gray-600 hover:bg-gray-100"
                 >
                   <svg
                     className="w-5 h-5"
@@ -529,7 +529,7 @@ export default function LendersPage() {
             <div className="px-6 py-4">
               <form onSubmit={handleAddLender}>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
                     Lender Name
                   </label>
                   <input
@@ -552,14 +552,14 @@ export default function LendersPage() {
                       setIsAddModalOpen(false);
                       setNewLenderName("");
                     }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200 cursor-pointer"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-full cursor-pointer hover:bg-gray-200"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isAdding || !newLenderName.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors duration-200"
+                    className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isAdding ? "Adding..." : "Add Lender"}
                   </button>
