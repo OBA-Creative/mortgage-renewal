@@ -73,7 +73,7 @@ export default function AdminLogin() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="px-4 py-8 bg-white shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {error && (
               <div className="relative px-4 py-3 text-red-700 border border-red-200 rounded bg-red-50">
                 <span className="block sm:inline">{error}</span>
@@ -98,7 +98,7 @@ export default function AdminLogin() {
                   onChange={(e) =>
                     setCredentials({ ...credentials, email: e.target.value })
                   }
-                  className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full h-12 px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-sm shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="admin@example.com"
                 />
               </div>
@@ -122,7 +122,7 @@ export default function AdminLogin() {
                   onChange={(e) =>
                     setCredentials({ ...credentials, password: e.target.value })
                   }
-                  className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full h-12 px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-sm shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="Enter your password"
                 />
               </div>
@@ -132,7 +132,7 @@ export default function AdminLogin() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex justify-center w-48 px-4 py-2 mx-auto text-sm font-medium text-white bg-blue-600 border border-transparent rounded-full shadow-sm cursor-pointer hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex justify-center w-48 px-4 py-2 mx-auto text-sm font-medium text-white bg-blue-600 border border-transparent rounded-full shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
               >
                 {isLoading ? (
                   <div className="flex items-center">
