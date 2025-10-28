@@ -20,7 +20,7 @@ export default function RateCard({
           onClick={() =>
             onInquire({ term, percentage, monthlyPayment, lender })
           }
-          className="flex items-center justify-center h-10 font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-full cursor-pointer min-w-34 text-l hover:bg-blue-500 hover:scale-110"
+          className="flex items-center justify-center h-10 font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer min-w-34 text-l hover:bg-blue-500 hover:scale-110 hover:shadow-lg"
         >
           inquire
         </button>
