@@ -31,11 +31,18 @@ const VariableRateInputField = ({
           ? "Insured"
           : `≤${ltv.slice(-2)}%`;
 
+  const displayLtvColor =
+    displayLtv === "Rental"
+      ? "text-purple-600"
+      : displayLtv === "≤25 yrs" || displayLtv === ">25 yrs"
+        ? "text-green-600"
+        : "text-blue-600";
+
   const fieldKey = !ltv ? "" : isRefinance ? `refinance.${refinanceType}` : ltv;
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className={`block text-xs font-medium ${displayLtvColor}`}>
         {displayLtv}
       </label>
       <div className="space-y-1">
@@ -66,7 +73,9 @@ const VariableRateInputField = ({
           }}
           className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700"
         >
-          <option value="">Select Lender</option>
+          <option value="" disabled>
+            Select Lender
+          </option>
           {lenders.map((lender) => (
             <option key={lender} value={lender}>
               {lender}
@@ -236,11 +245,18 @@ const RateInputField = ({
           ? "Insured"
           : `≤${ltv.slice(-2)}%`;
 
+  const displayLtvColor =
+    displayLtv === "Rental"
+      ? "text-purple-600"
+      : displayLtv === "≤25 yrs" || displayLtv === ">25 yrs"
+        ? "text-green-600"
+        : "text-blue-600";
+
   const fieldKey = !ltv ? "" : isRefinance ? `refinance.${refinanceType}` : ltv;
 
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className={`block text-xs font-medium ${displayLtvColor}`}>
         {displayLtv}
       </label>
       <div className="space-y-1">
@@ -271,7 +287,9 @@ const RateInputField = ({
           }}
           className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="">Select Lender</option>
+          <option value="" disabled>
+            Select Lender
+          </option>
           {lenders.map((lender) => (
             <option key={lender} value={lender}>
               {lender}
@@ -1097,9 +1115,9 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden bg-black/60 backdrop-blur-md">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
-        <div className="px-6 py-2 bg-blue-600">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden bg-black/55 backdrop-blur-md">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto ">
+        <div className="py-2 pl-6 pr-4 bg-blue-600 shadow-md">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium text-white">
               Update Rates - {province.name}
@@ -1240,7 +1258,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
               </div>
 
               {/* Province Checkboxes Grid */}
-              <div className="grid grid-cols-6 gap-1 overflow-y-auto max-h-32">
+              <div className="grid grid-cols-6 gap-1 ">
                 {selectedProvinces.map((prov) => (
                   <label
                     key={prov.code}
@@ -1276,7 +1294,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
                   selectedProvinces.filter((p) => p.checked).length === 0 ||
                   getSelectedRatesCount() === 0
                 }
-                className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded-md cursor-pointer hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded-full cursor-pointer hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUpdatingMultiple
                   ? "Updating..."
@@ -1289,14 +1307,14 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-md hover:bg-gray-200"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-full cursor-pointer hover:bg-gray-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting || isUpdatingMultiple}
-                  className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Updating..." : "Update This Province"}
                 </button>

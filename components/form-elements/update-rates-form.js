@@ -1,10 +1,37 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useMortgageStore } from "../../stores/useMortgageStore";
+import LenderAutocomplete from "./lender-autocomplete";
 
-// Store-based lender hook
+// Store-based lender hook with reactive subscription
 const useLenders = (isRental = false) => {
-  const { getLenders } = useMortgageStore();
-  return { lenders: getLenders(isRental), loading: false, error: null };
+  const { fetchLenders } = useMortgageStore();
+  const lenderData = useMortgageStore((state) => state.lenders);
+
+  // Ensure lenders are loaded when hook is used
+  React.useEffect(() => {
+    fetchLenders();
+  }, [fetchLenders]);
+
+  const handleLenderAdded = async (newLender) => {
+    console.log("New lender added:", newLender);
+    // Refresh lenders from server to get updated list
+    await fetchLenders();
+  };
+
+  const handleLenderDeleted = async (lenderId, lenderName) => {
+    console.log("Lender deleted:", lenderName);
+    // Refresh lenders from server to get updated list
+    await fetchLenders();
+  };
+
+  return {
+    lenders: isRental ? lenderData.rentalNames : lenderData.allNames,
+    lenderObjects: isRental ? lenderData.rental : lenderData.all,
+    loading: lenderData.loading,
+    error: lenderData.error,
+    onLenderAdded: handleLenderAdded,
+    onLenderDeleted: handleLenderDeleted,
+  };
 };
 
 // Variable rate input component with adjustment field
@@ -18,7 +45,8 @@ const VariableRateInputField = ({
   refinanceType = null,
   isRental = false,
 }) => {
-  const { lenders } = useLenders(isRental);
+  const { lenders, lenderObjects, onLenderAdded, onLenderDeleted } =
+    useLenders(isRental);
   const displayLtv = !ltv
     ? ""
     : ltv === "rental"
@@ -62,26 +90,24 @@ const VariableRateInputField = ({
           className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700"
           placeholder="Adjustment %"
         />
-        <select
+        <LenderAutocomplete
+          lenders={lenders}
+          lenderObjects={lenderObjects}
           value={value?.lender || ""}
-          onChange={(e) => {
+          onSelect={(selectedLender) => {
             if (rateType && fieldKey) {
-              onLenderChange(rateType, fieldKey, e.target.value);
+              onLenderChange(rateType, fieldKey, selectedLender);
             } else {
-              onLenderChange(e.target.value);
+              onLenderChange(selectedLender);
             }
           }}
-          className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700"
-        >
-          <option value="" disabled>
-            Select Lender
-          </option>
-          {lenders.map((lender) => (
-            <option key={lender} value={lender}>
-              {lender}
-            </option>
-          ))}
-        </select>
+          onLenderAdded={onLenderAdded}
+          onLenderDeleted={onLenderDeleted}
+          placeholder="Search lenders..."
+          className="text-xs [&>input]:px-2 [&>input]:py-1 [&>input]:text-xs [&>input]:border-gray-300 [&>input]:rounded [&>input]:focus:ring-2 [&>input]:focus:ring-blue-700 [&>input]:focus:border-blue-700 [&>input]:shadow-none [&>div]:shadow-none [&>div]:border-gray-300"
+          dropdownWidth="w-64"
+          alignDropdown={ltv === "rental" ? "right" : "left"}
+        />
       </div>
     </div>
   );
@@ -232,7 +258,8 @@ const RateInputField = ({
   refinanceType = null,
   isRental = false,
 }) => {
-  const { lenders } = useLenders(isRental);
+  const { lenders, lenderObjects, onLenderAdded, onLenderDeleted } =
+    useLenders(isRental);
   const displayLtv = !ltv
     ? ""
     : ltv === "rental"
@@ -276,26 +303,24 @@ const RateInputField = ({
           className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Rate %"
         />
-        <select
+        <LenderAutocomplete
+          lenders={lenders}
+          lenderObjects={lenderObjects}
           value={value?.lender || ""}
-          onChange={(e) => {
+          onSelect={(selectedLender) => {
             if (rateType && fieldKey) {
-              onLenderChange(rateType, fieldKey, e.target.value);
+              onLenderChange(rateType, fieldKey, selectedLender);
             } else {
-              onLenderChange(e.target.value);
+              onLenderChange(selectedLender);
             }
           }}
-          className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="" disabled>
-            Select Lender
-          </option>
-          {lenders.map((lender) => (
-            <option key={lender} value={lender}>
-              {lender}
-            </option>
-          ))}
-        </select>
+          onLenderAdded={onLenderAdded}
+          onLenderDeleted={onLenderDeleted}
+          placeholder="Search lenders..."
+          className="text-xs [&>input]:px-2 [&>input]:py-1 [&>input]:text-xs [&>input]:border-gray-300 [&>input]:rounded [&>input]:focus:ring-2 [&>input]:focus:ring-blue-500 [&>input]:focus:border-blue-500 [&>input]:shadow-none [&>div]:shadow-none [&>div]:border-gray-300"
+          dropdownWidth="w-64"
+          alignDropdown={ltv === "rental" ? "right" : "left"}
+        />
       </div>
     </div>
   );

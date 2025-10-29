@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useMortgageStore } from "../../stores/useMortgageStore";
+import LenderAutocomplete from "./lender-autocomplete";
 
 export default function UpdateRateForm({
   province,
@@ -17,9 +18,49 @@ export default function UpdateRateForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Get lenders from store using the same method as UpdateRatesForm
-  const { getLenders } = useMortgageStore();
-  const availableLenders = getLenders(type === "rental") || [];
+  // Get lenders from store with reactive subscription
+  const { fetchLenders, clearPersistedLenderData } = useMortgageStore();
+  const lenderData = useMortgageStore((state) => state.lenders);
+  const availableLenders =
+    type === "rental" ? lenderData.rentalNames : lenderData.allNames;
+  const availableLenderObjects =
+    type === "rental" ? lenderData.rental : lenderData.all;
+
+  // Ensure lenders are loaded when component mounts
+  useEffect(() => {
+    // Temporary: Clear persisted lender data to fix stale cache issue
+    clearPersistedLenderData();
+    // Force refresh to bypass any caching issues
+    fetchLenders(true);
+  }, [fetchLenders, clearPersistedLenderData]);
+
+  // Debug lender data changes
+  useEffect(() => {
+    console.log("Lender data updated:", {
+      allNames: lenderData.allNames,
+      rentalNames: lenderData.rentalNames,
+      availableLenders,
+      lastFetched: lenderData.lastFetched,
+    });
+  }, [lenderData, availableLenders]);
+
+  // Handle when a new lender is added
+  const handleLenderAdded = async (newLender) => {
+    console.log("New lender added:", newLender);
+    // Refresh lenders from server to get updated list
+    await fetchLenders();
+  };
+
+  // Handle when a lender is deleted
+  const handleLenderDeleted = async (lenderId, lenderName) => {
+    console.log("Lender deleted:", lenderName);
+    // Refresh lenders from server to get updated list
+    await fetchLenders();
+    // Clear the selected lender if it was the one that got deleted
+    if (selectedLender === lenderName) {
+      setSelectedLender("");
+    }
+  };
 
   // Reset form when props change
   useEffect(() => {
@@ -97,10 +138,7 @@ export default function UpdateRateForm({
   const isFixedTerm = term?.includes("Fixed");
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-md"
-      onClick={handleBackdropClick}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-md">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="border-b border-gray-200">
@@ -181,26 +219,18 @@ export default function UpdateRateForm({
           </div>
 
           {/* Lender Selection */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              Lender
-            </label>
-            <select
-              value={selectedLender}
-              onChange={(e) => setSelectedLender(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            >
-              <option value="" disabled>
-                Select lender
-              </option>
-              {availableLenders.map((lenderName, index) => (
-                <option key={index} value={lenderName}>
-                  {lenderName}
-                </option>
-              ))}
-            </select>
-          </div>
+          <LenderAutocomplete
+            id="lender"
+            label="Lender"
+            lenders={availableLenders}
+            lenderObjects={availableLenderObjects}
+            value={selectedLender}
+            onSelect={setSelectedLender}
+            onLenderAdded={handleLenderAdded}
+            onLenderDeleted={handleLenderDeleted}
+            placeholder="Search for a lender..."
+            required
+          />
 
           {/* Action Buttons */}
           <div className="flex justify-end pt-4 space-x-3">
