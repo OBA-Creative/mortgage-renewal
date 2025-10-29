@@ -184,8 +184,14 @@ const LenderAutocomplete = ({
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
     if (!isOpen) {
-      if (e.key === "ArrowDown" || e.key === "Enter") {
+      // Only allow ArrowDown to open dropdown, not Enter
+      if (e.key === "ArrowDown") {
         setIsOpen(true);
+        return;
+      }
+      // Prevent Enter from doing anything when dropdown is closed
+      if (e.key === "Enter") {
+        e.preventDefault();
         return;
       }
       return;
@@ -210,9 +216,17 @@ const LenderAutocomplete = ({
         break;
       case "Enter":
         e.preventDefault();
+        e.stopPropagation();
+
+        // Ensure we're only processing input-level keyboard events, not from buttons
+        if (e.target !== inputRef.current) {
+          return;
+        }
+
         const hasLenders =
           filteredLenders.length > 0 || filteredLenderObjects.length > 0;
 
+        // Only allow Enter key to select existing lenders, not add new ones or delete
         if (hasLenders) {
           if (highlightedIndex >= 0) {
             // Select the highlighted item - prefer lender objects if available
@@ -231,10 +245,10 @@ const LenderAutocomplete = ({
               handleSelectLender(filteredLenders[0]);
             }
           }
-        } else if (hasAddOption && searchTerm.trim()) {
-          // Add new lender if no results found and there's a search term
-          handleAddNewLender(searchTerm.trim());
         }
+        // Removed: Add new lender functionality with Enter key
+        // Users must click to add new lenders
+        // Note: Delete operations are completely blocked via button handlers
         break;
       case "Escape":
         setIsOpen(false);
@@ -331,7 +345,11 @@ const LenderAutocomplete = ({
                         ? "bg-blue-100 text-blue-900"
                         : "text-gray-900 hover:bg-gray-100"
                     }`}
-                    onClick={() => handleSelectLender(lender.lenderName)}
+                    onClick={(e) => {
+                      // Only select lender if clicking on the main area, not the delete button
+                      if (e.target.closest("button")) return;
+                      handleSelectLender(lender.lenderName);
+                    }}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
                     <span>{lender.lenderName}</span>
@@ -339,9 +357,19 @@ const LenderAutocomplete = ({
                       onClick={(e) =>
                         handleDeleteLender(lender._id, lender.lenderName, e)
                       }
+                      onKeyDown={(e) => {
+                        // Prevent ALL keyboard events from triggering on delete button
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onFocus={(e) => {
+                        // Prevent button from ever receiving focus
+                        e.target.blur();
+                      }}
                       disabled={deletingLenders.has(lender._id)}
                       className="p-1 ml-2 text-gray-300 transition-colors duration-200 rounded cursor-pointer hover:text-red-500 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Delete lender"
+                      tabIndex="-1"
                     >
                       {deletingLenders.has(lender._id) ? (
                         <svg
