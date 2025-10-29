@@ -98,7 +98,7 @@ export default function AdminLogin() {
                   onChange={(e) =>
                     setCredentials({ ...credentials, email: e.target.value })
                   }
-                  className="block w-full h-12 px-3 py-2 text-lg placeholder-gray-400 border border-gray-300 rounded-sm shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 "
+                  className="block w-full h-12 px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-sm shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 "
                   placeholder="Enter your email address"
                 />
               </div>
@@ -122,7 +122,7 @@ export default function AdminLogin() {
                   onChange={(e) =>
                     setCredentials({ ...credentials, password: e.target.value })
                   }
-                  className="block w-full h-12 px-3 py-2 text-lg placeholder-gray-400 border border-gray-300 rounded-sm shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 "
+                  className="block w-full h-12 px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-sm shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 "
                   placeholder="Enter your password"
                 />
               </div>
