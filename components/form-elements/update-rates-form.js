@@ -878,10 +878,6 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       });
 
       if (response.ok) {
-        const successMessage = isRental
-          ? "Rental rates updated successfully!"
-          : "Rates updated successfully!";
-        alert(successMessage);
         onClose();
         window.location.reload();
       } else {
@@ -986,10 +982,6 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
 
       if (response.ok) {
         const data = await response.json();
-        const successMessage = isRental
-          ? `Successfully updated ${checkedProvinces.length} provinces with ${selectedRatesCount} selected rental rate(s) from ${province.name}!`
-          : `Successfully updated ${checkedProvinces.length} provinces with ${selectedRatesCount} selected rate(s) from ${province.name}!`;
-        alert(successMessage);
         onClose();
         window.location.reload();
       } else {

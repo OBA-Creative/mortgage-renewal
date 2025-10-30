@@ -132,7 +132,6 @@ export default function AdminDashboard() {
       if (response.ok) {
         const data = await response.json();
         setPrime(data.prime);
-        alert("Prime rate updated successfully!");
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update prime rate");
