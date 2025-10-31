@@ -12,8 +12,10 @@ export default function UpsellRateCard({ monthlyPayment }) {
           <p className="text-sm">your monthly payment as low as</p>
           <div className="flex items-center justify-center space-x-2 text-lg font-semibold">
             <TrendingDown className="w-6 h-6 mx-auto text-blue-600" />
-            {monthlyPayment}{" "}
-            <span className="text-sm font-medium">/ month</span>
+            <p>
+              {monthlyPayment}{" "}
+              <span className="text-sm font-medium">/ month</span>
+            </p>
           </div>
         </div>
         <Link href="refinance/rates">
