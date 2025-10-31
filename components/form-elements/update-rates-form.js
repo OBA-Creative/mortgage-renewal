@@ -1141,7 +1141,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
             </h3>
             <button
               onClick={onClose}
-              className="p-2 text-white rounded-md cursor-pointer hover:text-red-500 hover:bg-white"
+              className="p-2 text-white transition-colors duration-200 rounded-md cursor-pointer hover:text-red-500 hover:bg-white"
             >
               <svg
                 className="w-5 h-5"
@@ -1311,7 +1311,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
                   selectedProvinces.filter((p) => p.checked).length === 0 ||
                   getSelectedRatesCount() === 0
                 }
-                className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded-full cursor-pointer hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white transition-all duration-200 bg-green-600 rounded-full cursor-pointer hover:scale-110 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 "
               >
                 {isUpdatingMultiple
                   ? "Updating..."
@@ -1324,14 +1324,14 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-full cursor-pointer hover:bg-gray-200"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 bg-gray-100 rounded-full cursor-pointer hover:scale-110 hover:bg-gray-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting || isUpdatingMultiple}
-                  className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer hover:scale-110 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Updating..." : "Update This Province"}
                 </button>
