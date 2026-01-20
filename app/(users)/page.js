@@ -15,7 +15,7 @@ export default function Home() {
         "Mortgage store cleared - switching from",
         formData.path,
         "to",
-        path
+        path,
       );
     } else if (!formData.path) {
       console.log("Setting initial path:", path);
@@ -31,10 +31,12 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-row justify-center min-h-screen bg-blue-1000">
-      <div className="flex flex-col items-center justify-center w-full space-y-8 transition-colors duration-200 bg-blue-100 hover:bg-blue-200">
-        <p className="mb-6 text-5xl font-bold">{"I'm renewing"}</p>
-        <p className="text-2xl font-light">
+    <div className="flex flex-col lg:flex-row justify-center min-h-screen bg-blue-1000">
+      <div className="flex flex-col items-center justify-center w-full min-h-[50vh] py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-100 hover:bg-blue-200">
+        <p className="mb-2 lg:mb-6 text-3xl sm:text-4xl lg:text-5xl font-bold">
+          {"I'm renewing"}
+        </p>
+        <p className="text-lg sm:text-xl lg:text-2xl font-light px-4 text-center">
           Find your personal renewal rates in under 2 minutes.
         </p>
         <button
@@ -44,9 +46,11 @@ export default function Home() {
           Continue
         </button>
       </div>
-      <div className="flex flex-col items-center justify-center w-full space-y-8 transition-colors duration-200 bg-blue-50 hover:bg-blue-200">
-        <p className="mb-6 text-5xl font-bold">{"I'm refinancing"}</p>
-        <p className="text-2xl font-light">
+      <div className="flex flex-col items-center justify-center w-full min-h-[50vh] py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-50 hover:bg-blue-200">
+        <p className="mb-2 lg:mb-6 text-3xl sm:text-4xl lg:text-5xl font-bold">
+          {"I'm refinancing"}
+        </p>
+        <p className="text-lg sm:text-xl lg:text-2xl font-light px-4 text-center">
           Get the best refinance rates in a few easy steps.
         </p>
         <button

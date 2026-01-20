@@ -88,7 +88,7 @@ export default function MortgagePage() {
 
   const toggleHelp = useCallback(
     (key) => setActiveHelp((prev) => (prev === key ? null : key)),
-    []
+    [],
   );
   console.log(formData);
 
@@ -136,7 +136,7 @@ export default function MortgagePage() {
       setValue("borrowAdditionalFunds", formData.borrowAdditionalFunds || "");
       setValue(
         "borrowAdditionalAmount",
-        formData.borrowAdditionalAmount || null
+        formData.borrowAdditionalAmount || null,
       );
       setValue("amortizationPeriod", formData.amortizationPeriod || null);
       setValue("maturityDate", parseStoredDate(formData.maturityDate));
@@ -170,12 +170,12 @@ export default function MortgagePage() {
   const formatedMortgageBalance = formatNumber(mortgageBalance?.toString());
   const formattedMaxBorrow = formatNumber(maxBorrow?.toString());
   const formattedborrowAdditionalAmount = formatNumber(
-    borrowAdditionalAmount?.toString()
+    borrowAdditionalAmount?.toString(),
   );
   const totalMortgageAmount =
     (mortgageBalance || 0) + (borrowAdditionalAmount || 0);
   const formattedTotalMortgageAmount = formatNumber(
-    totalMortgageAmount.toString()
+    totalMortgageAmount.toString(),
   );
 
   const onSubmit = useCallback(
@@ -211,7 +211,7 @@ export default function MortgagePage() {
       console.log("Mortgage data:", payload);
       router.push("/questionnaire/refinance/rates");
     },
-    [formData, router, setFormData]
+    [formData, router, setFormData],
   );
 
   const lenderOptions = [
@@ -226,7 +226,7 @@ export default function MortgagePage() {
   ];
 
   return (
-    <div className="max-w-xl p-6 mx-auto">
+    <div className="max-w-xl p-6 pt-24 mx-auto">
       <h1 className="mb-8 text-4xl font-semibold text-center">
         {"Now let's learn about your mortgage"}
       </h1>

@@ -48,7 +48,7 @@ export default function RatesPage() {
           setRentalRates(rentalRatesData.rates);
         } else {
           console.warn(
-            "Rental rates not available, using standard rates as fallback"
+            "Rental rates not available, using standard rates as fallback",
           );
           setRentalRates(null);
         }
@@ -137,13 +137,13 @@ export default function RatesPage() {
   const defaultValues = useMemo(
     () => ({
       currentMortgageBalance: Number(
-        formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0
+        formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0,
       ),
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
       amortizationPeriod: Number(formData?.amortizationPeriod ?? 25),
       city: formData?.city ?? "",
     }),
-    [formData]
+    [formData],
   );
 
   const {
@@ -165,11 +165,11 @@ export default function RatesPage() {
 
   const watched = useWatch({ control });
   const watchedMortgageBal = sanitizeMoney(
-    watched?.currentMortgageBalance ?? defaultMortgageBalance
+    watched?.currentMortgageBalance ?? defaultMortgageBalance,
   );
 
   const watchedBorrowAmt = sanitizeMoney(
-    watched?.borrowAdditionalAmount ?? defaultBorrowAmount
+    watched?.borrowAdditionalAmount ?? defaultBorrowAmount,
   );
   const helocBalance = sanitizeMoney(formData?.helocBalance) || 0;
   const yearsNum =
@@ -188,7 +188,7 @@ export default function RatesPage() {
   const initialTotalMortgage = useMemo(() => {
     return (
       (sanitizeMoney(
-        formData?.currentMortgageBalance ?? formData?.mortgageBalance
+        formData?.currentMortgageBalance ?? formData?.mortgageBalance,
       ) || 0) +
       (formData.borrowAdditionalFunds === "yes"
         ? sanitizeMoney(formData?.borrowAdditionalAmount) || 0
@@ -258,7 +258,7 @@ export default function RatesPage() {
             {
               minimumFractionDigits: 0,
               maximumFractionDigits: 0,
-            }
+            },
           )})`,
         });
 
@@ -301,7 +301,7 @@ export default function RatesPage() {
     "📊 Using rental rates:",
     useRentalRates ? "Yes" : "No",
     "🏢 Rate collection:",
-    useRentalRates ? "Rental" : "Standard"
+    useRentalRates ? "Rental" : "Standard",
   );
 
   // Show loading or error states
@@ -382,7 +382,7 @@ export default function RatesPage() {
         })}`;
 
   return (
-    <div className="flex flex-col items-center ">
+    <div className="flex flex-col items-center pt-24 ">
       <div className="px-4 py-8 mx-auto space-y-4 text-center ">
         <h1 className="text-4xl font-semibold ">
           Here are the best <span className="text-blue-500 ">refinance</span>{" "}

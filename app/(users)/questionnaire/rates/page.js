@@ -99,12 +99,12 @@ export default function RatesPage() {
   const defaultValues = useMemo(
     () => ({
       currentMortgageBalance: Number(
-        formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0
+        formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0,
       ),
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
       city: formData?.city ?? "",
     }),
-    [formData]
+    [formData],
   );
 
   const {
@@ -127,11 +127,11 @@ export default function RatesPage() {
     watched?.currentMortgageBalance ??
       formData?.currentMortgageBalance ??
       formData?.mortgageBalance ??
-      ""
+      "",
   );
 
   const watchedBorrowAmt = sanitizeMoney(
-    watched?.borrowAdditionalAmount ?? formData?.borrowAdditionalAmount ?? 0
+    watched?.borrowAdditionalAmount ?? formData?.borrowAdditionalAmount ?? 0,
   );
   const helocBalance = sanitizeMoney(formData?.helocBalance) || 0;
 
@@ -139,7 +139,7 @@ export default function RatesPage() {
   const initialTotalMortgage = useMemo(() => {
     return (
       (sanitizeMoney(
-        formData?.currentMortgageBalance ?? formData?.mortgageBalance
+        formData?.currentMortgageBalance ?? formData?.mortgageBalance,
       ) || 0) +
       (formData.borrowAdditionalFunds === "yes"
         ? sanitizeMoney(formData?.borrowAdditionalAmount) || 0
@@ -175,7 +175,7 @@ export default function RatesPage() {
   console.log("Property usage length:", currentPropertyUsage.length);
   console.log(
     "Property usage char codes:",
-    currentPropertyUsage.split("").map((c) => c.charCodeAt(0))
+    currentPropertyUsage.split("").map((c) => c.charCodeAt(0)),
   );
 
   // Determine if we should use rental rates (trim to handle any whitespace issues)
@@ -227,7 +227,7 @@ export default function RatesPage() {
             {
               minimumFractionDigits: 0,
               maximumFractionDigits: 0,
-            }
+            },
           )})`,
         });
 
@@ -267,7 +267,7 @@ export default function RatesPage() {
       "🏠 Property usage:",
       currentPropertyUsage,
       "📊 Using rental rates:",
-      useRentalRates ? "Yes" : "No"
+      useRentalRates ? "Yes" : "No",
     );
 
     return cityRates;
@@ -301,7 +301,7 @@ export default function RatesPage() {
     if (formData?.downpaymentValue === "Less than 20%") {
       rateCategory = "over80";
       console.log(
-        "🔴 Downpayment is less than 20% - using over80 renewal rates"
+        "🔴 Downpayment is less than 20% - using over80 renewal rates",
       );
     } else if (exceedsLTVLimit && !hasUserMadeChanges) {
       // For pre-existing high LTV scenarios, always use over80 rates
@@ -316,7 +316,7 @@ export default function RatesPage() {
       else rateCategory = "over80";
 
       console.log(
-        `📊 Normal LTV calculation: ${ltv.toFixed(1)}% → ${rateCategory} renewal rates`
+        `📊 Normal LTV calculation: ${ltv.toFixed(1)}% → ${rateCategory} renewal rates`,
       );
     }
   }
@@ -329,7 +329,7 @@ export default function RatesPage() {
   console.log(`🔍 Province: ${prov}, LTV: ${ltv.toFixed(1)}%`);
   console.log(
     `🏦 Available rate categories:`,
-    Object.keys(cityBasedRates.threeYrFixed || {})
+    Object.keys(cityBasedRates.threeYrFixed || {}),
   );
 
   // Always use standard renewal rates (no refinance logic)
@@ -378,13 +378,13 @@ export default function RatesPage() {
       cityBasedRates.fiveYrVariable[rateCategory]?.lender || "Default Lender";
 
     console.log(
-      `🏠 Using LTV-based rates for owner-occupied property (${rateCategory})`
+      `🏠 Using LTV-based rates for owner-occupied property (${rateCategory})`,
     );
   }
 
   console.log(`💰 Renewal rates - 3F: ${r3F}%, 4F: ${r4F}%, 5F: ${r5F}%`);
   console.log(
-    `🏪 Lenders - 3F: ${r3FLender}, 4F: ${r4FLender}, 5F: ${r5FLender}`
+    `🏪 Lenders - 3F: ${r3FLender}, 4F: ${r4FLender}, 5F: ${r5FLender}`,
   );
 
   // Debug specific category data if rates are 0
@@ -398,7 +398,7 @@ export default function RatesPage() {
     });
     console.log(
       `🗂️ Full database structure:`,
-      JSON.stringify(cityBasedRates, null, 2)
+      JSON.stringify(cityBasedRates, null, 2),
     );
   }
 
@@ -425,7 +425,7 @@ export default function RatesPage() {
   const upsellPayment = calcMonthlyPayment(
     totalMortgageRequired,
     upsellRate,
-    30
+    30,
   );
 
   // Format for display
@@ -439,7 +439,7 @@ export default function RatesPage() {
         })}`;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center pt-24">
       <div className="px-4 py-8 mx-auto space-y-4 text-center ">
         <h1 className="text-4xl font-semibold ">
           Here are the best <span className="text-blue-500 ">renewal</span>{" "}

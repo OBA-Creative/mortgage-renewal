@@ -24,8 +24,8 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center my-8 max-w-2xl">
+    <div className="max-w-xl p-6 pt-24 mx-auto">
+      <h1 className="max-w-2xl my-8 text-4xl font-semibold text-center">
         {"Share your info so we can send you the best rates"}
       </h1>
 
@@ -39,10 +39,10 @@ export default function ContactPage() {
             id="name"
             type="text"
             {...register("name", { required: "Name is required" })}
-            className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
+            className="w-full px-4 py-4 text-lg bg-white border border-gray-300 rounded-md"
           />
           {errors.name && (
-            <p className="text-red-600 mt-1">{errors.name.message}</p>
+            <p className="mt-1 text-red-600">{errors.name.message}</p>
           )}
         </div>
 
@@ -55,10 +55,10 @@ export default function ContactPage() {
             id="phone"
             type="tel"
             {...register("phone", { required: "Phone number is required" })}
-            className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
+            className="w-full px-4 py-4 text-lg bg-white border border-gray-300 rounded-md"
           />
           {errors.phone && (
-            <p className="text-red-600 mt-1">{errors.phone.message}</p>
+            <p className="mt-1 text-red-600">{errors.phone.message}</p>
           )}
         </div>
 
@@ -71,10 +71,10 @@ export default function ContactPage() {
             id="email"
             type="email"
             {...register("email", { required: "Email is required" })}
-            className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
+            className="w-full px-4 py-4 text-lg bg-white border border-gray-300 rounded-md"
           />
           {errors.email && (
-            <p className="text-red-600 mt-1">{errors.email.message}</p>
+            <p className="mt-1 text-red-600">{errors.email.message}</p>
           )}
         </div>
 
@@ -82,7 +82,7 @@ export default function ContactPage() {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-blue-600 text-white rounded-full hover:bg-blue-500 font-semibold py-3 px-12"
+            className="px-12 py-3 font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-500"
           >
             Submit
           </button>

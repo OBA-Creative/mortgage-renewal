@@ -23,24 +23,24 @@ export default function MortgagePage() {
 
   // Initialize state variables from store if they exist
   const [mortgageBalance, setMortgageBalance] = useState(
-    formData.mortgageBalance ? formData.mortgageBalance.toLocaleString() : ""
+    formData.mortgageBalance ? formData.mortgageBalance.toLocaleString() : "",
   );
   const [propertyValue, setPropertyValue] = useState(
-    formData.propertyValue ? formData.propertyValue.toLocaleString() : ""
+    formData.propertyValue ? formData.propertyValue.toLocaleString() : "",
   );
   const [helocBalance, setHelocBalance] = useState(
-    formData.helocBalance ? formData.helocBalance.toLocaleString() : ""
+    formData.helocBalance ? formData.helocBalance.toLocaleString() : "",
   );
   const [borrowInput, setBorrowInput] = useState(
     formData.borrowAdditionalAmount
       ? formData.borrowAdditionalAmount.toLocaleString()
-      : ""
+      : "",
   );
 
   const [showBelowOneMillion, setShowBelowOneMillion] = useState(
     formData.propertyValue &&
       parseNumber(formData.propertyValue.toString()) < 1000000 &&
-      parseNumber(formData.propertyValue.toString()) > 0
+      parseNumber(formData.propertyValue.toString()) > 0,
   );
 
   const {
@@ -144,7 +144,7 @@ export default function MortgagePage() {
   // Calculate max borrow (80% of property value minus mortgage and heloc)
   const maxBorrow = Math.max(
     0,
-    currentPropertyValue * 0.8 - currentMortgageBalance - currentHelocBalance
+    currentPropertyValue * 0.8 - currentMortgageBalance - currentHelocBalance,
   );
   const formattedMaxBorrow = formatNumber(maxBorrow);
 
@@ -216,7 +216,7 @@ export default function MortgagePage() {
       : false;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl pt-24 mx-auto">
       <h1 className="my-8 text-4xl font-semibold text-center">
         {"Now let's learn about your mortgage"}
       </h1>

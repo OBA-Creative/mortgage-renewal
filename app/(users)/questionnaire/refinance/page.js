@@ -48,7 +48,7 @@ export default function PropertyPage() {
       console.log("Property data:", data);
       router.push("/questionnaire/refinance/mortgage");
     },
-    [formData, router, setFormData]
+    [formData, router, setFormData],
   );
 
   const usageOptions = [
@@ -59,8 +59,8 @@ export default function PropertyPage() {
   ];
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-4xl font-semibold text-center mb-8 max-w-2xl">
+    <div className="max-w-xl p-6 pt-24 mx-auto">
+      <h1 className="max-w-2xl mb-8 text-4xl font-semibold text-center">
         {"Let's learn about your property"}
       </h1>
 
