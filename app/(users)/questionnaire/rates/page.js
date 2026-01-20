@@ -441,21 +441,21 @@ export default function RatesPage() {
   return (
     <div className="flex flex-col items-center pt-24">
       <div className="px-4 py-8 mx-auto space-y-4 text-center ">
-        <h1 className="text-4xl font-semibold ">
+        <h1 className="text-2xl font-semibold sm:text-3xl lg:text-4xl ">
           Here are the best <span className="text-blue-500 ">renewal</span>{" "}
           rates that match your profile
         </h1>
-        <p className="text-xl">
+        <p className="px-4 text-base sm:text-lg lg:text-xl">
           If we lock in your rate today, you will be protected from future rate
           increases until{" "}
           <span className="font-semibold">{rateLockExpiryDate}</span>
         </p>
       </div>
 
-      <div className="flex space-x-20 ">
+      <div className="flex flex-col-reverse w-full px-4 space-y-8 space-y-reverse lg:flex-row lg:space-x-20 lg:space-y-0 max-w-7xl">
         {/* Current Mortgage Balance */}
-        <form>
-          <div className="w-92">
+        <form className="w-full lg:w-auto">
+          <div className="w-full lg:w-92">
             <CurrencyField
               name="currentMortgageBalance"
               label="Current Mortgage Balance"
@@ -501,11 +501,11 @@ export default function RatesPage() {
 
         {/* Rate Cards */}
         {shouldBlockRates ? (
-          <p className="mt-8 text-xl text-center text-gray-500 max-w-72">
+          <p className="w-full mt-8 text-xl text-center text-gray-500 max-w-72 lg:w-auto">
             Lower the total mortgage required to see available rates.
           </p>
         ) : (
-          <div className="p-4 space-y-4 bg-white border border-gray-300 rounded-lg">
+          <div className="w-full p-4 space-y-4 bg-white border border-gray-300 rounded-lg lg:w-auto">
             <UpsellRateCard monthlyPayment={fmtMoney(upsellPayment)} />
             <RateCard
               percentage={fmtRate(r3F)}
