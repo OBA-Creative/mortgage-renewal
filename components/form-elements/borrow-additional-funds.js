@@ -137,6 +137,7 @@ export default function BorrowAdditionalFunds({
         <YourTotalMortgageCard
           mortgageBalance={mortgageBalance}
           borrowAdditionalAmount={borrowInput}
+          helocBalance={currentHelocBalance}
         />
       )}
     </div>

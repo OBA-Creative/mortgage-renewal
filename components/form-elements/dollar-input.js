@@ -47,7 +47,7 @@ export default function DollarInput({
 
   const toggleHelp = useCallback(
     (key) => setActiveHelp((prev) => (prev === key ? null : key)),
-    []
+    [],
   );
 
   const rules =
@@ -65,14 +65,16 @@ export default function DollarInput({
         </div>
       )}
       <div className="relative bg-white border border-gray-300 rounded-md">
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-lg text-gray-400">
+        <span
+          className={`absolute inset-y-0 left-0 flex items-center pl-3 text-lg ${valueState ? "text-black" : "text-gray-400"}`}
+        >
           $
         </span>
         <input
           id={id}
           type="text"
           value={valueState || ""}
-          placeholder={placeholder}
+          placeholder="Enter amount"
           {...(register ? register(id, rules) : {})}
           onChange={(e) => {
             const inputValue = e.target.value;

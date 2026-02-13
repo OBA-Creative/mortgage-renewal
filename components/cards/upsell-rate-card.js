@@ -20,7 +20,7 @@ export default function UpsellRateCard({ monthlyPayment }) {
             </p>
           </div>
         </div>
-        <Link href="refinance/rates">
+        <Link href="renew/refinance" className="w-full">
           <div className="flex items-center justify-center h-10 px-10 mx-auto font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer w-fit text-l hover:bg-blue-500 hover:scale-110 hover:shadow-lg">
             see refinance rates
           </div>

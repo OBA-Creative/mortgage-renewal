@@ -2,8 +2,8 @@ import LinkButton from "@/components/buttons/link-button";
 
 export default function WithinPage() {
   return (
-    <div className="pt-24">
-      <h1 className="max-w-2xl my-8 text-4xl font-semibold text-center">
+    <div className="">
+      <h1 className="max-w-2xl mb-8 text-4xl font-semibold text-center">
         Penalty notice
       </h1>
       <p className="text-xl font-light">

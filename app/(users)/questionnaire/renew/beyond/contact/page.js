@@ -24,8 +24,8 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="max-w-xl p-6 pt-24 mx-auto">
-      <h1 className="max-w-2xl my-8 text-4xl font-semibold text-center">
+    <div className="">
+      <h1 className="max-w-2xl mb-8 text-4xl font-semibold text-center">
         {"Share your info so we can send you the best rates"}
       </h1>
 

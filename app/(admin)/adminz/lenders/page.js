@@ -65,8 +65,8 @@ export default function LendersPage() {
       if (data.success) {
         setLenders((prev) =>
           [...prev, data.lender].sort((a, b) =>
-            a.lenderName.localeCompare(b.lenderName)
-          )
+            a.lenderName.localeCompare(b.lenderName),
+          ),
         );
         setNewLenderName("");
         setIsAddModalOpen(false);
@@ -109,8 +109,8 @@ export default function LendersPage() {
                   isActive: data.lender.isActive,
                   updatedAt: data.lender.updatedAt,
                 }
-              : lender
-          )
+              : lender,
+          ),
         );
         // Clear lender cache so dropdowns get updated data
         clearLenderCache();
@@ -132,7 +132,7 @@ export default function LendersPage() {
   const handleDeleteLender = async (lenderId, lenderName) => {
     if (
       !confirm(
-        `Are you sure you want to delete "${lenderName}"? This action cannot be undone.`
+        `Are you sure you want to delete "${lenderName}"? This action cannot be undone.`,
       )
     ) {
       return;
@@ -353,7 +353,7 @@ export default function LendersPage() {
                 <li key={lender._id} className="px-6 py-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 w-10 h-10">
+                      <div className="flex w-10 h-10 shrink-0">
                         <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
                           <LandmarkIcon className="w-6 h-6 text-blue-600" />
                         </div>
@@ -384,7 +384,7 @@ export default function LendersPage() {
                                 {" "}
                                 • Updated:{" "}
                                 {new Date(
-                                  lender.updatedAt
+                                  lender.updatedAt,
                                 ).toLocaleDateString()}
                               </>
                             )}
@@ -404,7 +404,7 @@ export default function LendersPage() {
                             disabled={togglingLenders.has(lender._id)}
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                           {togglingLenders.has(lender._id) && (
                             <svg
                               className="w-4 h-4 ml-2 text-gray-500 animate-spin"

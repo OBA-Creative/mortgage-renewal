@@ -193,7 +193,7 @@ export default function MortgagePage() {
 
     setFormData(updatedFormData);
     console.log("Mortgage data saved to store:", updatedFormData);
-    router.push("/questionnaire/rates");
+    router.push("/rates/renew");
   };
 
   const yesNoOptions = ["yes", "no"];
@@ -216,8 +216,8 @@ export default function MortgagePage() {
       : false;
 
   return (
-    <div className="max-w-2xl pt-24 mx-auto">
-      <h1 className="my-8 text-4xl font-semibold text-center">
+    <div className="">
+      <h1 className="mb-8 text-4xl font-semibold text-center">
         {"Now let's learn about your mortgage"}
       </h1>
 
@@ -373,8 +373,8 @@ export default function MortgagePage() {
         {/* Maturity Date */}
         <FormDatePicker
           id="maturityDate"
-          label="Maturity date"
-          requiredText="Maturity date is required"
+          label="Renewal date"
+          requiredText="Enter your renewal date"
           control={control}
           error={errors.maturityDate}
           helpTexts={helpTexts.maturityDate}

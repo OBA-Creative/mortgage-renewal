@@ -8,7 +8,7 @@ import { useMortgageStore } from "@/stores/useMortgageStore";
 // Calendly inline scheduler inside our modal
 const InlineWidget = dynamic(
   () => import("react-calendly").then((m) => m.InlineWidget),
-  { ssr: false }
+  { ssr: false },
 );
 
 // Custom Input Component for Booking Modal
@@ -149,7 +149,7 @@ export default function BookingModal({
   calendlyUrl,
   selectedRate,
 }) {
-  const [step, setStep] = useState(1); // 1=collect details, 2=calendly
+  const [step, setStep] = useState(1); // 1=collect details, 2=calendly, 3=success confirmation
 
   const { formData, setFormData, touch } = useMortgageStore();
 
@@ -161,7 +161,8 @@ export default function BookingModal({
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
-      name: formData.name || "",
+      firstName: formData.firstName || "",
+      lastName: formData.lastName || "",
       email: formData.email || "",
       phone: formData.phone || "+1 ",
     },
@@ -185,12 +186,13 @@ export default function BookingModal({
     return u.toString();
   }, [calendlyUrl]);
 
-  // Step 1 submit → persist to Zustand, send email, then show Calendly
+  // Step 1 submit → persist to Zustand, send email, save to DB, then show Calendly
   const onLeadSubmit = async (data) => {
     try {
       // Update store with form data
       const leadData = {
-        name: data.name.trim(),
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
         email: data.email.trim(),
         phone: data.phone.trim(),
       };
@@ -198,27 +200,75 @@ export default function BookingModal({
       setFormData(leadData);
       touch?.();
 
-      // Send automated email with all form data
-      const emailResponse = await fetch("/api/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          // Contact details
-          name: leadData.name,
-          email: leadData.email,
-          phone: leadData.phone,
-          // All mortgage store data
-          mortgageData: formData,
-          // Selected rate information
-          selectedRate: selectedRate,
+      // Get fresh store data — try getState() first, fall back to component-level formData
+      const storeData = useMortgageStore.getState().formData || formData || {};
+
+      // Combine all store data with contact info and selected rate for DB save
+      const cleanedRate = selectedRate
+        ? {
+            term: selectedRate.term || "",
+            percentage:
+              parseFloat(
+                String(selectedRate.percentage).replace(/[^0-9.]/g, ""),
+              ) || null,
+            monthlyPayment:
+              parseFloat(
+                String(selectedRate.monthlyPayment).replace(/[^0-9.]/g, ""),
+              ) || null,
+            lender: selectedRate.lender || "",
+          }
+        : {};
+
+      const userData = {
+        ...storeData,
+        ...leadData,
+        selectedRate: cleanedRate,
+      };
+
+      // Remove legacy 'name' field if present
+      delete userData.name;
+
+      console.log("[BookingModal] Store formData:", storeData);
+      console.log("[BookingModal] Lead data:", leadData);
+      console.log("[BookingModal] Combined userData:", userData);
+
+      // Save user to database and send email in parallel
+      const [userResponse, emailResponse] = await Promise.all([
+        fetch("/api/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData),
         }),
-      });
+        fetch("/api/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            // Contact details
+            firstName: leadData.firstName,
+            lastName: leadData.lastName,
+            email: leadData.email,
+            phone: leadData.phone,
+            // All mortgage store data
+            mortgageData: formData,
+            // Selected rate information
+            selectedRate: selectedRate,
+          }),
+        }),
+      ]);
+
+      const userResult = await userResponse.json();
+      if (!userResponse.ok) {
+        console.error(
+          `Failed to save user to database — Status: ${userResponse.status} — Body: ${JSON.stringify(userResult)} — Sent data: ${JSON.stringify(userData)}`,
+        );
+      } else {
+        console.log("User saved to database successfully:", userResult);
+      }
 
       if (!emailResponse.ok) {
         console.error("Failed to send email notification");
-        // Continue to calendly even if email fails
       } else {
         console.log("Email notification sent successfully");
       }
@@ -245,8 +295,7 @@ export default function BookingModal({
         //   body: JSON.stringify({ lead: formData, calendly: e.data.payload }),
         // });
 
-        onClose(); // close modal
-        setStep(1); // reset to first step for next open
+        setStep(3); // show success confirmation
       }
     };
     window.addEventListener("message", handler);
@@ -257,16 +306,20 @@ export default function BookingModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 backdrop-blur-md p-4">
+    <div className="fixed inset-0 flex items-center justify-center p-4 z-100 bg-black/55 backdrop-blur-md">
       <div className="w-full max-w-3xl overflow-hidden bg-white shadow-xl rounded-xl">
         {/* Header */}
         <div className="flex items-center justify-between py-3 pl-6 pr-4 bg-blue-600 shadow-md">
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center justify-center text-sm font-bold text-blue-600 bg-white rounded-full h-7 w-7">
-              {step}
+              {step === 3 ? 2 : step}
             </span>
             <h2 className="text-lg font-semibold text-white">
-              {step === 1 ? "Your details" : "Pick a time"}
+              {step === 1
+                ? "Your details"
+                : step === 2
+                  ? "Pick a time"
+                  : "Confirmed"}
             </h2>
           </div>
           <button
@@ -297,14 +350,24 @@ export default function BookingModal({
         <div className="p-6">
           {step === 1 && (
             <form className="space-y-4" onSubmit={handleSubmit(onLeadSubmit)}>
-              <BookingInput
-                id="name"
-                label="Full name"
-                register={register}
-                requiredText="Name is required"
-                error={errors.name}
-                placeholder="Enter your full name"
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <BookingInput
+                  id="firstName"
+                  label="First name"
+                  register={register}
+                  requiredText="First name is required"
+                  error={errors.firstName}
+                  placeholder="First name"
+                />
+                <BookingInput
+                  id="lastName"
+                  label="Last name"
+                  register={register}
+                  requiredText="Last name is required"
+                  error={errors.lastName}
+                  placeholder="Last name"
+                />
+              </div>
 
               <BookingInput
                 id="email"
@@ -358,8 +421,8 @@ export default function BookingModal({
           {step === 2 && (
             <div className="space-y-3">
               <p className="text-center text-gray-600 ">
-                We’ll prefill your details in Calendly. After you confirm the
-                time, we’ll record your booking.
+                We'll prefill your details in Calendly. After you confirm the
+                time, we'll record your booking.
               </p>
 
               <InlineWidget
@@ -371,12 +434,9 @@ export default function BookingModal({
                   primaryColor: "000000",
                 }}
                 prefill={{
-                  // Calendly supports these directly:
-                  name: formData.name || "",
+                  name: `${formData.firstName || ""} ${formData.lastName || ""}`.trim(),
                   email: formData.email || "",
                   phone: formData.phone || "",
-                  // For phone: add a custom question to your Calendly event type.
-                  // If it's the FIRST question, pass a1. If second, use a2, etc.
                   customAnswers: { a1: formData.phone || "" },
                 }}
                 utm={{
@@ -394,6 +454,43 @@ export default function BookingModal({
                   Back to details
                 </button>
               </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="flex flex-col items-center py-10 space-y-6 text-center">
+              <div className="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
+                <svg
+                  className="w-8 h-8 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-900">
+                You're all set!
+              </h3>
+              <p className="max-w-md text-gray-600">
+                Your call has been booked successfully. We look forward to
+                speaking with you!
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  setStep(1);
+                }}
+                className="px-10 py-3 font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-500 hover:scale-110 hover:shadow-lg"
+              >
+                Done
+              </button>
             </div>
           )}
         </div>

@@ -59,7 +59,7 @@ export default function PropertyPage() {
   ];
 
   return (
-    <div className="max-w-xl p-6 pt-24 mx-auto">
+    <div className="">
       <h1 className="max-w-2xl mb-8 text-4xl font-semibold text-center">
         {"Let's learn about your property"}
       </h1>

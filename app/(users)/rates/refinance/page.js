@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import RateCard from "@/components/cards/rate-card";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import CurrencyField from "@/components/form-elements/currency-element";
 import BookingModal from "@/components/cards/booking-modal";
-import UpsellRateCard from "@/components/cards/upsell-rate-card";
 
 export default function RatesPage() {
   const { formData } = useMortgageStore();
   const [rates, setRates] = useState(null);
+  const [rentalRates, setRentalRates] = useState(null);
   const [prime, setPrime] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,16 +28,30 @@ export default function RatesPage() {
       try {
         setLoading(true);
 
-        // Fetch standard rates (which now include rental rates)
-        const ratesResponse = await fetch("/api/rates");
+        // Fetch both standard rates and rental rates
+        const [ratesResponse, rentalRatesResponse] = await Promise.all([
+          fetch("/api/rates"),
+          fetch("/api/rates?type=rental"),
+        ]);
 
         if (!ratesResponse.ok) {
-          throw new Error("Failed to fetch rates");
+          throw new Error("Failed to fetch standard rates");
         }
 
         const ratesData = await ratesResponse.json();
         setRates(ratesData.rates);
         setPrime(ratesData.prime);
+
+        // Handle rental rates (may not exist yet)
+        if (rentalRatesResponse.ok) {
+          const rentalRatesData = await rentalRatesResponse.json();
+          setRentalRates(rentalRatesData.rates);
+        } else {
+          console.warn(
+            "Rental rates not available, using standard rates as fallback",
+          );
+          setRentalRates(null);
+        }
       } catch (err) {
         setError(err.message);
         console.error("Error fetching rates:", err);
@@ -61,6 +75,26 @@ export default function RatesPage() {
       day: "numeric",
     });
   }, []);
+
+  // Safe number formatting that handles both strings and numbers
+  const formatNumber = (value) => {
+    if (!value && value !== 0) return "";
+
+    // Convert to string and remove all non-digits
+    const raw = String(value).replace(/\D/g, "");
+    if (!raw) return "";
+
+    // Add commas for thousands separator
+    return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  const parseNumber = (formattedValue) => {
+    // Remove commas and convert to number
+    const raw = String(formattedValue).replace(/,/g, "");
+    const parsed = parseFloat(raw);
+    // Return 0 for invalid numbers instead of empty string, or the parsed number
+    return isNaN(parsed) ? 0 : parsed;
+  };
 
   function sanitizeMoney(str) {
     if (str == null) return NaN;
@@ -96,18 +130,26 @@ export default function RatesPage() {
     return payment;
   }
 
+  const defaultMortgageBalance =
+    formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? "";
+  const defaultBorrowAmount = formData?.borrowAdditionalAmount ?? 0;
+
   const defaultValues = useMemo(
     () => ({
       currentMortgageBalance: Number(
         formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0,
       ),
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
+      helocBalance: Number(formData?.helocBalance ?? 0),
+      amortizationPeriod: Number(formData?.amortizationPeriod ?? 25),
       city: formData?.city ?? "",
     }),
     [formData],
   );
 
   const {
+    register,
+    handleSubmit,
     reset,
     control,
     formState: { errors },
@@ -124,16 +166,25 @@ export default function RatesPage() {
 
   const watched = useWatch({ control });
   const watchedMortgageBal = sanitizeMoney(
-    watched?.currentMortgageBalance ??
-      formData?.currentMortgageBalance ??
-      formData?.mortgageBalance ??
-      "",
+    watched?.currentMortgageBalance ?? defaultMortgageBalance,
   );
 
   const watchedBorrowAmt = sanitizeMoney(
-    watched?.borrowAdditionalAmount ?? formData?.borrowAdditionalAmount ?? 0,
+    watched?.borrowAdditionalAmount ?? defaultBorrowAmount,
   );
-  const helocBalance = sanitizeMoney(formData?.helocBalance) || 0;
+  const helocBalance =
+    sanitizeMoney(watched?.helocBalance ?? formData?.helocBalance) || 0;
+  const yearsNum =
+    Number(watched?.amortizationPeriod ?? formData?.amortizationPeriod ?? 0) ||
+    0;
+
+  // Get property usage from store (entered in previous step)
+  const currentPropertyUsage = formData?.propertyUsage || "";
+
+  // Determine if we should use rental rates based on stored property usage
+  const useRentalRates =
+    currentPropertyUsage === "Rental / Investment " ||
+    currentPropertyUsage === "Second home";
 
   // Calculate initial total mortgage required (from store values)
   const initialTotalMortgage = useMemo(() => {
@@ -167,24 +218,6 @@ export default function RatesPage() {
     initialTotalMortgage,
     formData.borrowAdditionalFunds,
   ]);
-
-  // Determine property usage from store
-  const currentPropertyUsage = formData?.propertyUsage || "";
-
-  console.log("Current property usage:", currentPropertyUsage);
-  console.log("Property usage length:", currentPropertyUsage.length);
-  console.log(
-    "Property usage char codes:",
-    currentPropertyUsage.split("").map((c) => c.charCodeAt(0)),
-  );
-
-  // Determine if we should use rental rates (trim to handle any whitespace issues)
-  const trimmedPropertyUsage = currentPropertyUsage.trim();
-  const useRentalRates =
-    trimmedPropertyUsage === "Owner-occupied and Rental" ||
-    trimmedPropertyUsage === "Rental / Investment";
-
-  console.log("Should use rental rates:", useRentalRates);
 
   const totalMortgageRequired =
     (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
@@ -258,20 +291,20 @@ export default function RatesPage() {
   // Get rates for the user's province/city
   const prov = formData?.province ?? "ON"; // Default to ON if no province
 
-  // Get city-based rates for the user's province
-  const cityBasedRates = useMemo(() => {
-    const cityRates = rates?.[prov];
+  // Get appropriate rates based on property usage (set in previous step)
+  const selectedRatesCollection =
+    useRentalRates && rentalRates ? rentalRates : rates;
+  const cityBasedRates = selectedRatesCollection?.[prov];
 
-    // Log which rates we're using for debugging
-    console.log(
-      "🏠 Property usage:",
-      currentPropertyUsage,
-      "📊 Using rental rates:",
-      useRentalRates ? "Yes" : "No",
-    );
-
-    return cityRates;
-  }, [rates, prov, currentPropertyUsage, useRentalRates]);
+  // Log which rates we're using for debugging
+  console.log(
+    "🏠 Property usage:",
+    currentPropertyUsage,
+    "📊 Using rental rates:",
+    useRentalRates ? "Yes" : "No",
+    "🏢 Rate collection:",
+    useRentalRates ? "Rental" : "Standard",
+  );
 
   // Show loading or error states
   if (loading) return <div className="p-8 text-center">Loading rates...</div>;
@@ -291,125 +324,47 @@ export default function RatesPage() {
     );
   }
 
-  let rateCategory = "over80"; // Default to highest rate
-  let ltv = 0; // Initialize LTV
+  // For refinance page, always use refinance rates based on amortization period
+  // under25 = amortization period under and equal to 25 years (more than 25% equity remaining)
+  // over25 = amortization period over 25 years (less than 25% equity remaining)
+  const refinanceCategory = yearsNum <= 25 ? "under25" : "over25";
 
-  if (propVal > 0) {
-    ltv = (totalMortgageRequired / propVal) * 100;
+  // Get refinance rates for the user's province
+  const r3F =
+    cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.rate || 0;
+  const r3FLender =
+    cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.lender ||
+    "Default Lender";
+  const r4F =
+    cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.rate || 0;
+  const r4FLender =
+    cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.lender ||
+    "Default Lender";
+  const r5F =
+    cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.rate || 0;
+  const r5FLender =
+    cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.lender ||
+    "Default Lender";
 
-    // Check if downpayment is "Less than 20%" - if so, always use over80 rates
-    if (formData?.downpaymentValue === "Less than 20%") {
-      rateCategory = "over80";
-      console.log(
-        "🔴 Downpayment is less than 20% - using over80 renewal rates",
-      );
-    } else if (exceedsLTVLimit && !hasUserMadeChanges) {
-      // For pre-existing high LTV scenarios, always use over80 rates
-      rateCategory = "over80";
-      console.log("🔴 Pre-existing high LTV - using over80 renewal rates");
-    } else {
-      // Normal LTV-based renewal rate calculation
-      if (ltv <= 65) rateCategory = "under65";
-      else if (ltv <= 70) rateCategory = "under70";
-      else if (ltv <= 75) rateCategory = "under75";
-      else if (ltv <= 80) rateCategory = "under80";
-      else rateCategory = "over80";
+  // Get refinance variable rate adjustments
+  const r3VAdjustment =
+    cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]?.adjustment ||
+    0;
+  const r3VLender =
+    cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]?.lender ||
+    "Default Lender";
+  const r5VAdjustment =
+    cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]?.adjustment ||
+    0;
+  const r5VLender =
+    cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]?.lender ||
+    "Default Lender";
 
-      console.log(
-        `📊 Normal LTV calculation: ${ltv.toFixed(1)}% → ${rateCategory} renewal rates`,
-      );
-    }
-  }
-
-  // Get renewal rates for the LTV category
-  let r3F, r4F, r5F, r3VAdjustment, r5VAdjustment;
-  let r3FLender, r4FLender, r5FLender, r3VLender, r5VLender;
-
-  console.log(`� Fetching renewal rates with category: ${rateCategory}`);
-  console.log(`🔍 Province: ${prov}, LTV: ${ltv.toFixed(1)}%`);
-  console.log(
-    `🏦 Available rate categories:`,
-    Object.keys(cityBasedRates.threeYrFixed || {}),
-  );
-
-  // Always use standard renewal rates (no refinance logic)
-  if (useRentalRates) {
-    // Use rental rates for investment properties
-    r3F = cityBasedRates.threeYrFixed.rental?.rate || 0;
-    r3FLender = cityBasedRates.threeYrFixed.rental?.lender || "Default Lender";
-
-    r4F = cityBasedRates.fourYrFixed.rental?.rate || 0;
-    r4FLender = cityBasedRates.fourYrFixed.rental?.lender || "Default Lender";
-
-    r5F = cityBasedRates.fiveYrFixed.rental?.rate || 0;
-    r5FLender = cityBasedRates.fiveYrFixed.rental?.lender || "Default Lender";
-
-    r3VAdjustment = cityBasedRates.threeYrVariable.rental?.adjustment || 0;
-    r3VLender =
-      cityBasedRates.threeYrVariable.rental?.lender || "Default Lender";
-
-    r5VAdjustment = cityBasedRates.fiveYrVariable.rental?.adjustment || 0;
-    r5VLender =
-      cityBasedRates.fiveYrVariable.rental?.lender || "Default Lender";
-
-    console.log("🏢 Using rental rates for investment property");
-  } else {
-    // Use regular LTV-based rates for owner-occupied properties
-    r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
-    r3FLender =
-      cityBasedRates.threeYrFixed[rateCategory]?.lender || "Default Lender";
-
-    r4F = cityBasedRates.fourYrFixed[rateCategory]?.rate || 0;
-    r4FLender =
-      cityBasedRates.fourYrFixed[rateCategory]?.lender || "Default Lender";
-
-    r5F = cityBasedRates.fiveYrFixed[rateCategory]?.rate || 0;
-    r5FLender =
-      cityBasedRates.fiveYrFixed[rateCategory]?.lender || "Default Lender";
-
-    r3VAdjustment =
-      cityBasedRates.threeYrVariable[rateCategory]?.adjustment || 0;
-    r3VLender =
-      cityBasedRates.threeYrVariable[rateCategory]?.lender || "Default Lender";
-
-    r5VAdjustment =
-      cityBasedRates.fiveYrVariable[rateCategory]?.adjustment || 0;
-    r5VLender =
-      cityBasedRates.fiveYrVariable[rateCategory]?.lender || "Default Lender";
-
-    console.log(
-      `🏠 Using LTV-based rates for owner-occupied property (${rateCategory})`,
-    );
-  }
-
-  console.log(`💰 Renewal rates - 3F: ${r3F}%, 4F: ${r4F}%, 5F: ${r5F}%`);
-  console.log(
-    `🏪 Lenders - 3F: ${r3FLender}, 4F: ${r4FLender}, 5F: ${r5FLender}`,
-  );
-
-  // Debug specific category data if rates are 0
-  if (r3F === 0 || r4F === 0 || r5F === 0) {
-    console.log(`🚨 Some rates are 0! Debugging ${rateCategory} data:`, {
-      threeYrFixed: cityBasedRates.threeYrFixed?.[rateCategory],
-      fourYrFixed: cityBasedRates.fourYrFixed?.[rateCategory],
-      fiveYrFixed: cityBasedRates.fiveYrFixed?.[rateCategory],
-      threeYrVariable: cityBasedRates.threeYrVariable?.[rateCategory],
-      fiveYrVariable: cityBasedRates.fiveYrVariable?.[rateCategory],
-    });
-    console.log(
-      `🗂️ Full database structure:`,
-      JSON.stringify(cityBasedRates, null, 2),
-    );
-  }
-
-  // Variable rates: calculate from prime rate with stored adjustments
+  // Variable rates: calculate from prime rate with stored refinance adjustments
   const globalPrimeRate = prime || 0; // Use global prime rate from API
 
   const r3V = Math.max(0, globalPrimeRate + r3VAdjustment);
   const r5V = Math.max(0, globalPrimeRate + r5VAdjustment);
-
-  // Use actual amortization period from form data, fallback to 25 years
-  const yearsNum = formData?.amortizationPeriod || 25;
 
   // Calculate monthly payments
   const pay3F = calcMonthlyPayment(totalMortgageRequired, r3F, yearsNum);
@@ -417,16 +372,6 @@ export default function RatesPage() {
   const pay5F = calcMonthlyPayment(totalMortgageRequired, r5F, yearsNum);
   const pay3V = calcMonthlyPayment(totalMortgageRequired, r3V, yearsNum);
   const pay5V = calcMonthlyPayment(totalMortgageRequired, r5V, yearsNum);
-
-  // Get refinance rate for over25 category (3-yr fixed) for upsell
-
-  const upsellRate =
-    cityBasedRates.threeYrFixed?.refinance?.over25?.rate || 3.4; // fallback to 3.3 if not available
-  const upsellPayment = calcMonthlyPayment(
-    totalMortgageRequired,
-    upsellRate,
-    30,
-  );
 
   // Format for display
   const fmtRate = (r) => (isNaN(r) ? "N/A" : `${Number(r).toFixed(2)}%`);
@@ -439,10 +384,10 @@ export default function RatesPage() {
         })}`;
 
   return (
-    <div className="flex flex-col items-center pt-24">
+    <div className="flex flex-col items-center mx-auto">
       <div className="px-4 py-8 mx-auto space-y-4 text-center ">
         <h1 className="text-2xl font-semibold sm:text-3xl lg:text-4xl ">
-          Here are the best <span className="text-blue-500 ">renewal</span>{" "}
+          Here are the best <span className="text-blue-500 ">refinance</span>{" "}
           rates that match your profile
         </h1>
         <p className="px-4 text-base sm:text-lg lg:text-xl">
@@ -451,17 +396,25 @@ export default function RatesPage() {
           <span className="font-semibold">{rateLockExpiryDate}</span>
         </p>
       </div>
-
       <div className="flex flex-col-reverse w-full px-4 space-y-8 space-y-reverse lg:flex-row lg:space-x-20 lg:space-y-0 max-w-7xl">
         {/* Current Mortgage Balance */}
         <form className="w-full lg:w-auto">
-          <div className="w-full lg:w-92">
+          <div className="w-full lg:w-92 ">
             <CurrencyField
               name="currentMortgageBalance"
               label="Current Mortgage Balance"
               control={control}
               error={errors.currentMortgageBalance}
             />
+            {/* HELOC Balance */}
+            {formData.heloc === "yes" && (
+              <CurrencyField
+                name="helocBalance"
+                label="Your HELOC Balance"
+                control={control}
+                error={errors.helocBalance}
+              />
+            )}
             {/* Additional Borrowing Amount */}
             {formData.borrowAdditionalFunds === "yes" && (
               <CurrencyField
@@ -471,7 +424,6 @@ export default function RatesPage() {
                 error={errors.borrowAdditionalAmount}
               />
             )}
-
             {/* Total Mortgage Required */}
             <div className="flex flex-col mt-8 space-y-2">
               <div className="flex flex-col space-y-2 align-baseline ">
@@ -496,6 +448,52 @@ export default function RatesPage() {
                 {helocBalance > 0 ? " plus HELOC balance" : ""}.
               </p>
             </div>
+
+            {/* Amortization Period */}
+            <div className="mt-10">
+              <label
+                htmlFor="amortizationPeriod"
+                className="block mb-2 font-semibold text-md"
+              >
+                Amortization Period:{" "}
+                <span className="font-normal">
+                  {watched?.amortizationPeriod ||
+                    formData?.amortizationPeriod ||
+                    25}{" "}
+                  years
+                </span>
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="30"
+                {...register("amortizationPeriod")}
+                className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
+              />
+              <div className="flex justify-between mt-1 text-sm text-gray-400">
+                <span>1 yr</span>
+                <span>30 yrs</span>
+              </div>
+              <style jsx>{`
+                .slider::-webkit-slider-thumb {
+                  appearance: none;
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  background: #3b82f6;
+                  cursor: pointer;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
+                .slider::-moz-range-thumb {
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  background: #3b82f6;
+                  cursor: pointer;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
+              `}</style>
+            </div>
           </div>
         </form>
 
@@ -506,7 +504,6 @@ export default function RatesPage() {
           </p>
         ) : (
           <div className="w-full p-4 space-y-4 bg-white border border-gray-300 rounded-lg lg:w-auto">
-            <UpsellRateCard monthlyPayment={fmtMoney(upsellPayment)} />
             <RateCard
               percentage={fmtRate(r3F)}
               monthlyPayment={fmtMoney(pay3F)}

@@ -16,28 +16,40 @@ const parseNumber = (formattedValue) => {
 export default function YourTotalMortgageCard({
   mortgageBalance,
   borrowAdditionalAmount,
+  helocBalance,
 }) {
   const mortgageBalanceNumber = parseNumber(mortgageBalance);
   const borrowAdditionalAmountNumber = parseNumber(borrowAdditionalAmount);
+  const helocBalanceNumber = parseNumber(helocBalance);
+  const hasHeloc = helocBalanceNumber > 0;
   const totalMortgageAmount =
-    mortgageBalanceNumber + borrowAdditionalAmountNumber;
+    mortgageBalanceNumber +
+    borrowAdditionalAmountNumber +
+    (hasHeloc ? helocBalanceNumber : 0);
   return (
-    <div className="border rounded-md border-blue-600 ">
-      <div className="w-full p-4 text-blue-700 font-semibold text-2xl text-center border-b ">
+    <div className="border border-blue-600 rounded-md ">
+      <div className="w-full p-4 text-2xl font-semibold text-center text-blue-700 border-b ">
         <p>Your total mortgage amount</p>
       </div>
-      <div className="py-8 px-12 text-xl font-light text-gray-700 space-y-2">
+      <div className="px-12 py-8 space-y-2 text-xl font-light text-gray-700">
         <div className="flex justify-between">
           <p>Current mortgage balance</p>
           <p>{formatNumber(mortgageBalanceNumber)}</p>
         </div>
+
+        {hasHeloc && (
+          <div className="flex justify-between">
+            <p>+ HELOC balance</p>
+            <p>{formatNumber(helocBalanceNumber)}</p>
+          </div>
+        )}
 
         <div className="flex justify-between">
           <p>+ Additional equity</p>
           <p>{formatNumber(borrowAdditionalAmountNumber)}</p>
         </div>
       </div>
-      <div className="flex justify-between text-xl py-4 px-12 font-semibold border-t border-blue-600 bg-blue-100 rounded-b-md">
+      <div className="flex justify-between px-12 py-4 text-xl font-semibold bg-blue-100 border-t border-blue-600 rounded-b-md">
         <p>Total mortgage required</p>
         <p>{formatNumber(totalMortgageAmount)}</p>
       </div>

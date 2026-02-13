@@ -224,25 +224,34 @@ function generateEmailHTML({
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, email, phone, mortgageData, selectedRate } = body;
+    const {
+      firstName,
+      lastName,
+      name,
+      email,
+      phone,
+      mortgageData,
+      selectedRate,
+    } = body;
 
     // Validate required fields
-    if (!name || !email) {
+    if ((!firstName && !name) || !email) {
       return NextResponse.json(
         { error: "Name and email are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Split name into first and last name for the template
-    const nameParts = name.trim().split(" ");
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
+    // Use firstName/lastName if provided, otherwise split name for backwards compatibility
+    const resolvedFirstName =
+      firstName || (name ? name.trim().split(" ")[0] : "");
+    const resolvedLastName =
+      lastName || (name ? name.trim().split(" ").slice(1).join(" ") : "");
 
     // Generate HTML email content
     const emailHtml = generateEmailHTML({
-      firstName,
-      lastName,
+      firstName: resolvedFirstName,
+      lastName: resolvedLastName,
       email,
       phone,
       mortgageData: mortgageData || {},
@@ -309,7 +318,7 @@ export async function POST(request) {
     console.error("Error sending email:", error);
     return NextResponse.json(
       { error: "Failed to send email" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

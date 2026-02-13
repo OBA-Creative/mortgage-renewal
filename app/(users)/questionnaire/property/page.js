@@ -86,8 +86,8 @@ export default function PropertyPage() {
   const downpaymentOptions = ["20% or more", "Less than 20%"];
 
   return (
-    <div className="w-full max-w-2xl mx-auto pt-36">
-      <h1 className="my-8 text-4xl font-semibold text-center ">
+    <div className="">
+      <h1 className="mb-8 text-4xl font-semibold text-center ">
         {"Let's learn about your property"}
       </h1>
 

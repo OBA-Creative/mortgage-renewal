@@ -6,6 +6,7 @@ import RateCard from "@/components/cards/rate-card";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import CurrencyField from "@/components/form-elements/currency-element";
 import BookingModal from "@/components/cards/booking-modal";
+import RateCardAlt from "@/components/cards/rate-card-alt";
 
 export default function RatesPage() {
   const { formData } = useMortgageStore();
@@ -134,13 +135,15 @@ export default function RatesPage() {
     formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? "";
   const defaultBorrowAmount = formData?.borrowAdditionalAmount ?? 0;
 
+  const userAmortization = Number(formData?.amortizationPeriod ?? 25);
+
   const defaultValues = useMemo(
     () => ({
       currentMortgageBalance: Number(
         formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0,
       ),
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
-      amortizationPeriod: Number(formData?.amortizationPeriod ?? 25),
+      amortizationPeriod: 30,
       city: formData?.city ?? "",
     }),
     [formData],
@@ -382,7 +385,7 @@ export default function RatesPage() {
         })}`;
 
   return (
-    <div className="flex flex-col items-center pt-24 ">
+    <div className="flex flex-col items-center mx-auto">
       <div className="px-4 py-8 mx-auto space-y-4 text-center ">
         <h1 className="text-2xl font-semibold sm:text-3xl lg:text-4xl ">
           Here are the best <span className="text-blue-500 ">refinance</span>{" "}
@@ -446,21 +449,18 @@ export default function RatesPage() {
               >
                 Amortization Period:{" "}
                 <span className="font-normal">
-                  {watched?.amortizationPeriod ||
-                    formData?.amortizationPeriod ||
-                    25}{" "}
-                  years
+                  {watched?.amortizationPeriod || 30} years
                 </span>
               </label>
               <input
                 type="range"
-                min="1"
+                min={userAmortization + 1}
                 max="30"
                 {...register("amortizationPeriod")}
                 className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
               />
               <div className="flex justify-between mt-1 text-sm text-gray-400">
-                <span>1 yr</span>
+                <span>{userAmortization + 1} yrs</span>
                 <span>30 yrs</span>
               </div>
               <style jsx>{`
@@ -493,7 +493,7 @@ export default function RatesPage() {
           </p>
         ) : (
           <div className="w-full p-4 space-y-4 bg-white border border-gray-300 rounded-lg lg:w-auto">
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r3F)}
               monthlyPayment={fmtMoney(pay3F)}
               term="3-yr fixed"
@@ -501,7 +501,7 @@ export default function RatesPage() {
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r4F)}
               monthlyPayment={fmtMoney(pay4F)}
               term="4-yr fixed"
@@ -509,7 +509,7 @@ export default function RatesPage() {
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r5F)}
               monthlyPayment={fmtMoney(pay5F)}
               term="5-yr fixed"
@@ -517,7 +517,7 @@ export default function RatesPage() {
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r3V)}
               monthlyPayment={fmtMoney(pay3V)}
               term="3-yr variable"
@@ -525,7 +525,7 @@ export default function RatesPage() {
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r5V)}
               monthlyPayment={fmtMoney(pay5V)}
               term="5-yr variable"

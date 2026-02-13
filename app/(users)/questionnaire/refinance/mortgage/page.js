@@ -209,7 +209,7 @@ export default function MortgagePage() {
       };
       setFormData({ ...formData, ...payload });
       console.log("Mortgage data:", payload);
-      router.push("/questionnaire/refinance/rates");
+      router.push("/rates/refinance");
     },
     [formData, router, setFormData],
   );
@@ -226,7 +226,7 @@ export default function MortgagePage() {
   ];
 
   return (
-    <div className="max-w-xl p-6 pt-24 mx-auto">
+    <div className="">
       <h1 className="mb-8 text-4xl font-semibold text-center">
         {"Now let's learn about your mortgage"}
       </h1>
@@ -374,8 +374,8 @@ export default function MortgagePage() {
         {/* Maturity Date */}
         <FormDatePicker
           id="maturityDate"
-          label="Maturity date"
-          requiredText="Please enter a maturity date"
+          label="Renewal date"
+          requiredText="Enter your renewal date"
           control={control}
           activeHelp={activeHelp}
           toggleHelp={toggleHelp}

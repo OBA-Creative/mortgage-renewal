@@ -20,7 +20,8 @@ const emptyForm = () => ({
   lender: "",
   otherLender: "",
   maturityDate: "",
-  name: "",
+  firstName: "",
+  lastName: "",
   phone: "",
   email: "",
 });
@@ -90,14 +91,14 @@ export const useMortgageStore = create(
           if (data.success) {
             console.log(
               "Raw API response:",
-              data.lenders.map((l) => l.lenderName)
+              data.lenders.map((l) => l.lenderName),
             );
 
             // Store full lender objects and extract names for backward compatibility
             const allLenders = data.lenders;
             // All lenders are available for both regular and rental properties
             const allLenderNames = data.lenders.map(
-              (lender) => lender.lenderName
+              (lender) => lender.lenderName,
             );
 
             console.log("Processed data before storing:", {
@@ -118,7 +119,7 @@ export const useMortgageStore = create(
             }));
 
             console.log(
-              `Fetched ${allLenderNames.length} lenders (all available for rental properties too)`
+              `Fetched ${allLenderNames.length} lenders (all available for rental properties too)`,
             );
           } else {
             throw new Error(data.message || "Failed to fetch lenders");
@@ -237,6 +238,6 @@ export const useMortgageStore = create(
         }
         return persistedState;
       },
-    }
-  )
+    },
+  ),
 );

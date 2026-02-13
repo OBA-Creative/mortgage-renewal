@@ -359,7 +359,7 @@ export default function AdminDashboard() {
   const handleReset = () => {
     if (
       confirm(
-        "Are you sure you want to reset all changes? This will reload the original data."
+        "Are you sure you want to reset all changes? This will reload the original data.",
       )
     ) {
       window.location.reload();
@@ -384,7 +384,7 @@ export default function AdminDashboard() {
       province.code,
       term,
       type,
-      term.includes("Fixed") ? "rate" : "adjustment"
+      term.includes("Fixed") ? "rate" : "adjustment",
     );
     const currentLender = getValue(province.code, term, type, "lender");
 
@@ -675,7 +675,7 @@ export default function AdminDashboard() {
                                   ltv.id,
                                   category.type === "fixed"
                                     ? "rate"
-                                    : "adjustment"
+                                    : "adjustment",
                                 );
                                 if (!value && value !== 0) return "-";
                                 const numValue = parseFloat(value);
@@ -690,7 +690,7 @@ export default function AdminDashboard() {
                                 province.code,
                                 category.id,
                                 ltv.id,
-                                "lender"
+                                "lender",
                               ) || "-"}
                             </div>
                           </div>
@@ -706,7 +706,7 @@ export default function AdminDashboard() {
                             handleRateClick(
                               province,
                               category.id,
-                              `refinance-${refCat.id}`
+                              `refinance-${refCat.id}`,
                             )
                           }
                           title="Click to edit rate"
@@ -720,7 +720,7 @@ export default function AdminDashboard() {
                                   `refinance-${refCat.id}`,
                                   category.type === "fixed"
                                     ? "rate"
-                                    : "adjustment"
+                                    : "adjustment",
                                 );
                                 if (!value && value !== 0) return "-";
                                 const numValue = parseFloat(value);
@@ -735,7 +735,7 @@ export default function AdminDashboard() {
                                 province.code,
                                 category.id,
                                 `refinance-${refCat.id}`,
-                                "lender"
+                                "lender",
                               ) || "-"}
                             </div>
                           </div>
@@ -750,7 +750,7 @@ export default function AdminDashboard() {
                           handleRateClick(
                             province,
                             category.id,
-                            rentalCategory.id
+                            rentalCategory.id,
                           )
                         }
                         title="Click to edit rate"
@@ -764,7 +764,7 @@ export default function AdminDashboard() {
                                 rentalCategory.id,
                                 category.type === "fixed"
                                   ? "rate"
-                                  : "adjustment"
+                                  : "adjustment",
                               );
                               if (!value && value !== 0) return "-";
                               const numValue = parseFloat(value);
@@ -779,7 +779,7 @@ export default function AdminDashboard() {
                               province.code,
                               category.id,
                               rentalCategory.id,
-                              "lender"
+                              "lender",
                             ) || "-"}
                           </div>
                         </div>

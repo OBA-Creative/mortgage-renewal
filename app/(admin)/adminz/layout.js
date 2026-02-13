@@ -10,6 +10,7 @@ import {
   LandmarkIcon,
   LogOut,
   TableIcon,
+  UsersIcon,
 } from "lucide-react";
 
 export default function AdminLayout({ children }) {
@@ -89,6 +90,11 @@ export default function AdminLayout({ children }) {
       name: "Lenders",
       href: "/adminz/lenders",
       icon: <LandmarkIcon className="w-5 h-5" />,
+    },
+    {
+      name: "Prospects",
+      href: "/adminz/prospects",
+      icon: <UsersIcon className="w-5 h-5" />,
     },
   ];
 
