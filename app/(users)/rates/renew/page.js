@@ -442,7 +442,12 @@ export default function RatesPage() {
     <div className="flex flex-col items-center ">
       <div className="px-4 py-8 mx-auto space-y-4 text-center">
         <h1 className="text-2xl font-semibold sm:text-3xl lg:text-4xl ">
-          Here are the best <span className="text-blue-500 ">renewal</span>{" "}
+          Here are the best{" "}
+          <span className="text-blue-500 ">
+            {formData?.borrowAdditionalFunds === "yes"
+              ? "refinance"
+              : "renewal"}
+          </span>{" "}
           rates that match your profile
         </h1>
         <p className="px-4 text-base sm:text-lg lg:text-xl">

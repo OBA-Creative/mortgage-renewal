@@ -342,7 +342,7 @@ export default function MortgagePage() {
         {/* Amortization Remaining */}
         <TextInput
           id="amortizationPeriod"
-          label="What's the amortization remaining in years?"
+          label="How long should your new mortgage amortization be?"
           type="number"
           min={0}
           max={30}
@@ -374,7 +374,7 @@ export default function MortgagePage() {
         {/* Maturity Date */}
         <FormDatePicker
           id="maturityDate"
-          label="Renewal date"
+          label="Your current renewal date"
           requiredText="Enter your renewal date"
           control={control}
           activeHelp={activeHelp}
