@@ -81,20 +81,19 @@ export default function AdminLayout({ children }) {
 
   const navigation = [
     {
+      name: "Prospects",
+      href: "/adminz/prospects",
+      icon: <UsersIcon className="w-5 h-5" />,
+    },
+    {
       name: "Rates",
       href: "/adminz",
       icon: <ChartAreaIcon className="w-5 h-5" />,
     },
-
     {
       name: "Lenders",
       href: "/adminz/lenders",
       icon: <LandmarkIcon className="w-5 h-5" />,
-    },
-    {
-      name: "Prospects",
-      href: "/adminz/prospects",
-      icon: <UsersIcon className="w-5 h-5" />,
     },
   ];
 

@@ -21,7 +21,7 @@ const rateLenderSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Define a variable rate adjustment schema (stores percentage to add/subtract from prime)
@@ -41,7 +41,7 @@ const variableRateSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Define refinance structure for fixed rates
@@ -50,7 +50,7 @@ const refinanceSchema = new mongoose.Schema(
     under25: rateLenderSchema,
     over25: rateLenderSchema,
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Define refinance structure for variable rates (using adjustments)
@@ -59,14 +59,26 @@ const variableRefinanceSchema = new mongoose.Schema(
     under25: variableRateSchema,
     over25: variableRateSchema,
   },
-  { _id: false }
+  { _id: false },
 );
 
-//Define rental structure for fixed rates
-const rentalSchema = rateLenderSchema;
+// Define rental structure for fixed rates (split by amortization like refinance)
+const rentalSchema = new mongoose.Schema(
+  {
+    under25: rateLenderSchema,
+    over25: rateLenderSchema,
+  },
+  { _id: false },
+);
 
-// Define rental structure for variable rates (using prime adjustments)
-const variableRentalSchema = variableRateSchema;
+// Define rental structure for variable rates (split by amortization like refinance)
+const variableRentalSchema = new mongoose.Schema(
+  {
+    under25: variableRateSchema,
+    over25: variableRateSchema,
+  },
+  { _id: false },
+);
 
 // Define LTV structure for fixed rates
 const ltvRateSchema = new mongoose.Schema(
@@ -79,7 +91,7 @@ const ltvRateSchema = new mongoose.Schema(
     refinance: refinanceSchema,
     rental: rentalSchema,
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Define LTV structure for variable rates (using prime adjustments)
@@ -93,7 +105,7 @@ const variableLtvSchema = new mongoose.Schema(
     refinance: variableRefinanceSchema,
     rental: variableRentalSchema,
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Define province structure
@@ -105,7 +117,7 @@ const provinceSchema = new mongoose.Schema(
     threeYrVariable: variableLtvSchema, // Stores adjustments to prime
     fiveYrVariable: variableLtvSchema, // Stores adjustments to prime
   },
-  { _id: false }
+  { _id: false },
 );
 
 const rateSchema = new mongoose.Schema(
@@ -147,7 +159,7 @@ const rateSchema = new mongoose.Schema(
   {
     collection: "Rates",
     timestamps: true,
-  }
+  },
 );
 
 const Rate = mongoose.models.Rate || mongoose.model("Rate", rateSchema);

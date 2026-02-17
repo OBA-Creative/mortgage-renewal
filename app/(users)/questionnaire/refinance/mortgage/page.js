@@ -43,6 +43,27 @@ export default function MortgagePage() {
   const [balanceInput, setBalanceInput] = useState("");
   const [borrowInput, setBorrowInput] = useState("");
   const [helocBalanceInput, setHelocBalanceInput] = useState("");
+  const [lenderOptions, setLenderOptions] = useState([]);
+
+  // Fetch active lenders from the database
+  useEffect(() => {
+    async function fetchLenders() {
+      try {
+        const res = await fetch("/api/lenders");
+        const data = await res.json();
+        if (data.success && data.lenders.length > 0) {
+          setLenderOptions(data.lenders);
+        } else {
+          // Fallback in case the API returns no lenders
+          setLenderOptions(["Other"]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch lenders:", err);
+        setLenderOptions(["Other"]);
+      }
+    }
+    fetchLenders();
+  }, []);
 
   // Initialize input states with store values when component mounts or formData changes
   useEffect(() => {
@@ -71,19 +92,18 @@ export default function MortgagePage() {
     helocBalance:
       "Enter your current HELOC balance. This is the amount you currently owe on your HELOC.",
     lender:
-      "Select your current mortgage lender from the list. This helps us understand your current mortgage terms and available renewal options.",
-    propertyValue:
-      "Enter the current market value of your property. This can be based on a recent appraisal or your best estimate of current market conditions.",
+      "Select your current mortgage lender from the list. This helps us understand your mortgage terms and available renewal options.",
+    propertyValue: "Enter the estimated current market value of your property.",
     mortgageBalance:
-      "Enter the remaining balance on your current mortgage. You can find this on your most recent mortgage statement or by contacting your lender.",
+      "Enter the remaining balance on your mortgage. You can find this on your most recent statement or by contacting your lender.",
     borrowAdditionalFunds:
       "You may be eligible to borrow additional funds against your home's equity. This can be used for renovations, debt consolidation, or other financial needs.",
     borrowAdditionalAmount:
       "Enter the amount you'd like to borrow. The maximum is calculated based on 80% of your property value minus your current mortgage and HELOC balances.",
     amortizationPeriod:
-      "Enter the number (between 0 and 30) of years left on your current amortization schedule. This affects your payment amount and available rates.",
+      "Enter the number of years remaining on your amortization (between 0 and 30). This affects your payment amount and available rates.",
     maturityDate:
-      "This is the date when your current mortgage term expires and you'll need to renew. You can find this date on your mortgage documents or statement.",
+      "This is the date your current mortgage term expires and you’ll need to renew. You can find it on your mortgage documents or statement.",
   };
 
   const toggleHelp = useCallback(
@@ -214,16 +234,7 @@ export default function MortgagePage() {
     [formData, router, setFormData],
   );
 
-  const lenderOptions = [
-    "Royal Bank of Canada (RBC)",
-    "Toronto-Dominion Bank (TD)",
-    "Scotiabank",
-    "Bank of Montreal (BMO)",
-    "Canadian Imperial Bank of Commerce (CIBC)",
-    "National Bank of Canada",
-    "HSBC Canada",
-    "Other",
-  ];
+
 
   return (
     <div className="">
@@ -245,7 +256,7 @@ export default function MortgagePage() {
             requiredText="Property value is required"
             error={errors.propertyValue}
             defaultValue={formData?.propertyValue}
-            placeholder="e.g. 850,000"
+            placeholder="Enter the estimated current market value"
           />
 
           {/* Mortgage Balance */}
@@ -268,7 +279,7 @@ export default function MortgagePage() {
         <div className="flex flex-col space-y-8">
           <Dropdown
             id="lender"
-            label="Who is the lender?"
+            label="Who is your current lender?"
             options={lenderOptions}
             disabledText="Select your lender"
             register={register}
@@ -368,7 +379,7 @@ export default function MortgagePage() {
           inputMode="numeric"
           realTimeValidation={true}
           onWheel={(e) => e.target.blur()}
-          placeholder="e.g. 22"
+          placeholder="Enter years"
         />
 
         {/* Maturity Date */}

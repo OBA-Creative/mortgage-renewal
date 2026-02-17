@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMortgageStore } from "@/stores/useMortgageStore";
+import PathExplainerCard from "@/components/cards/path-explainer-card";
 
 export default function Home() {
   const router = useRouter();
@@ -31,36 +32,38 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row justify-center min-h-screen bg-blue-1000">
+    <div className="flex flex-col justify-center min-h-screen lg:flex-row bg-blue-1000">
       <div className="flex flex-col items-center justify-center w-full min-h-[50vh] py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-100 hover:bg-blue-200">
-        <p className="mb-2 lg:mb-6 text-3xl sm:text-4xl lg:text-5xl font-bold">
+        <p className="text-3xl font-bold lg:mb-6 sm:text-4xl lg:text-5xl">
           {"I'm renewing"}
         </p>
-        <p className="text-lg sm:text-xl lg:text-2xl font-light px-4 text-center">
-          Find your personal renewal rates in under 2 minutes.
+        <p className="px-4 text-lg font-light text-center sm:text-lg lg:text-xl">
+          (Keeping my existing mortgage, no new borrowing)
         </p>
-        <button
-          onClick={() => handlePathSelection("renew", "/questionnaire/renew")}
-          className="px-10 py-3 font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-500 hover:scale-110 hover:shadow-lg"
-        >
-          Continue
-        </button>
+        <PathExplainerCard
+          title="Explore renewal options if you’re:"
+          item1="Staying with the same balance"
+          item2="Not changing your amortization"
+          item3="Just comparing renewal terms"
+          btnLabel="Explore renewal options"
+          link="/questionnaire/renew"
+        />
       </div>
       <div className="flex flex-col items-center justify-center w-full min-h-[50vh] py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-50 hover:bg-blue-200">
-        <p className="mb-2 lg:mb-6 text-3xl sm:text-4xl lg:text-5xl font-bold">
+        <p className="text-3xl font-bold lg:mb-6 sm:text-4xl lg:text-5xl">
           {"I'm refinancing"}
         </p>
-        <p className="text-lg sm:text-xl lg:text-2xl font-light px-4 text-center">
-          Get the best refinance rates in a few easy steps.
+        <p className="px-4 text-lg font-light text-center sm:text-lg lg:text-xl">
+          (Changing my mortgage to improve cash flow and lower my payments)
         </p>
-        <button
-          onClick={() =>
-            handlePathSelection("refinance", "/questionnaire/refinance")
-          }
-          className="px-10 py-3 font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-500 hover:scale-110 hover:shadow-lg"
-        >
-          Continue
-        </button>
+        <PathExplainerCard
+          title="Explore refinance options if you’re:"
+          item1="Consolidating other debt to lower monthly costs"
+          item2="Facing higher payments at renewal"
+          item3="Wanting to extend amortization"
+          btnLabel="Explore refinance options"
+          link="/questionnaire/refinance"
+        />
       </div>
     </div>
   );

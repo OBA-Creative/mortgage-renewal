@@ -26,7 +26,7 @@ export async function POST(request) {
           message:
             "Source province code, target provinces array, and rates data are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -36,7 +36,7 @@ export async function POST(request) {
           success: false,
           message: "At least one target province must be specified",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -46,7 +46,7 @@ export async function POST(request) {
     if (!existingRates) {
       return NextResponse.json(
         { success: false, message: "No existing rates found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -89,10 +89,10 @@ export async function POST(request) {
               }
               console.log(
                 `Set ${sourceProvinceCode}.${rateType}.${ltvKey}:`,
-                updateObj[`${sourceProvinceCode}.${rateType}.${ltvKey}`]
+                updateObj[`${sourceProvinceCode}.${rateType}.${ltvKey}`],
               );
             }
-          }
+          },
         );
 
         // Handle refinance structure
@@ -121,31 +121,39 @@ export async function POST(request) {
                 `Set ${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}:`,
                 updateObj[
                   `${sourceProvinceCode}.${rateType}.refinance.${refinanceKey}`
-                ]
+                ],
               );
             }
           });
         }
 
-        // Handle rental rates
+        // Handle rental rates (nested under25/over25 structure, like refinance)
         if (sourceData[rateType].rental) {
-          if (rateType.includes("Variable")) {
-            // For variable rates, use adjustment
-            updateObj[`${sourceProvinceCode}.${rateType}.rental`] = {
-              adjustment: sourceData[rateType].rental.adjustment,
-              lender: sourceData[rateType].rental.lender,
-            };
-          } else {
-            // For fixed rates, use rate
-            updateObj[`${sourceProvinceCode}.${rateType}.rental`] = {
-              rate: sourceData[rateType].rental.rate,
-              lender: sourceData[rateType].rental.lender,
-            };
-          }
-          console.log(
-            `Set ${sourceProvinceCode}.${rateType}.rental:`,
-            updateObj[`${sourceProvinceCode}.${rateType}.rental`]
-          );
+          ["under25", "over25"].forEach((rentalKey) => {
+            if (sourceData[rateType].rental[rentalKey]) {
+              if (rateType.includes("Variable")) {
+                updateObj[
+                  `${sourceProvinceCode}.${rateType}.rental.${rentalKey}`
+                ] = {
+                  adjustment: sourceData[rateType].rental[rentalKey].adjustment,
+                  lender: sourceData[rateType].rental[rentalKey].lender,
+                };
+              } else {
+                updateObj[
+                  `${sourceProvinceCode}.${rateType}.rental.${rentalKey}`
+                ] = {
+                  rate: sourceData[rateType].rental[rentalKey].rate,
+                  lender: sourceData[rateType].rental[rentalKey].lender,
+                };
+              }
+              console.log(
+                `Set ${sourceProvinceCode}.${rateType}.rental.${rentalKey}:`,
+                updateObj[
+                  `${sourceProvinceCode}.${rateType}.rental.${rentalKey}`
+                ],
+              );
+            }
+          });
         }
       }
     });
@@ -182,10 +190,10 @@ export async function POST(request) {
                 }
                 console.log(
                   `Set ${targetProvinceCode}.${rateType}.${ltvKey}:`,
-                  updateObj[`${targetProvinceCode}.${rateType}.${ltvKey}`]
+                  updateObj[`${targetProvinceCode}.${rateType}.${ltvKey}`],
                 );
               }
-            }
+            },
           );
 
           // Handle refinance structure
@@ -214,31 +222,40 @@ export async function POST(request) {
                   `Set ${targetProvinceCode}.${rateType}.refinance.${refinanceKey}:`,
                   updateObj[
                     `${targetProvinceCode}.${rateType}.refinance.${refinanceKey}`
-                  ]
+                  ],
                 );
               }
             });
           }
 
-          // Handle rental rates
+          // Handle rental rates (nested under25/over25 structure, like refinance)
           if (sourceData[rateType].rental) {
-            if (rateType.includes("Variable")) {
-              // For variable rates, use adjustment
-              updateObj[`${targetProvinceCode}.${rateType}.rental`] = {
-                adjustment: sourceData[rateType].rental.adjustment,
-                lender: sourceData[rateType].rental.lender,
-              };
-            } else {
-              // For fixed rates, use rate
-              updateObj[`${targetProvinceCode}.${rateType}.rental`] = {
-                rate: sourceData[rateType].rental.rate,
-                lender: sourceData[rateType].rental.lender,
-              };
-            }
-            console.log(
-              `Set ${targetProvinceCode}.${rateType}.rental:`,
-              updateObj[`${targetProvinceCode}.${rateType}.rental`]
-            );
+            ["under25", "over25"].forEach((rentalKey) => {
+              if (sourceData[rateType].rental[rentalKey]) {
+                if (rateType.includes("Variable")) {
+                  updateObj[
+                    `${targetProvinceCode}.${rateType}.rental.${rentalKey}`
+                  ] = {
+                    adjustment:
+                      sourceData[rateType].rental[rentalKey].adjustment,
+                    lender: sourceData[rateType].rental[rentalKey].lender,
+                  };
+                } else {
+                  updateObj[
+                    `${targetProvinceCode}.${rateType}.rental.${rentalKey}`
+                  ] = {
+                    rate: sourceData[rateType].rental[rentalKey].rate,
+                    lender: sourceData[rateType].rental[rentalKey].lender,
+                  };
+                }
+                console.log(
+                  `Set ${targetProvinceCode}.${rateType}.rental.${rentalKey}:`,
+                  updateObj[
+                    `${targetProvinceCode}.${rateType}.rental.${rentalKey}`
+                  ],
+                );
+              }
+            });
           }
         }
       });
@@ -255,13 +272,13 @@ export async function POST(request) {
         sort: { createdAt: -1 },
         runValidators: true,
         lean: false,
-      }
+      },
     );
 
     if (!updatedRates) {
       return NextResponse.json(
         { success: false, message: "Failed to update rates document" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -290,7 +307,7 @@ export async function POST(request) {
         message: "Failed to update multiple provinces",
         error: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

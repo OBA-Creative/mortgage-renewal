@@ -442,16 +442,27 @@ export default function RatesPage() {
             </div>
 
             {/* Amortization Period */}
-            <div className="mt-10">
-              <label
-                htmlFor="amortizationPeriod"
-                className="block mb-2 font-semibold text-md"
-              >
-                Amortization Period:{" "}
-                <span className="font-normal">
-                  {watched?.amortizationPeriod || 30} years
-                </span>
-              </label>
+            <div className="mt-6">
+              <div htmlFor="amortizationPeriod" className="block mb-2 ">
+                <p className="text-2xl font-semibold">Amortization Period</p>
+                <p className="text-sm text-gray-400 ">
+                  Your current term is{" "}
+                  <span className="font-normal">
+                    {userAmortization || 1} years.
+                  </span>
+                </p>
+                <p className="text-sm text-gray-400">
+                  Extend your current amortization for a lower payment.
+                </p>
+              </div>
+              <div htmlFor="amortizationPeriod" className="block mt-2 mb-2">
+                <p className="text-lg font-semibold">
+                  New Term:{" "}
+                  <span className="text-blue-500 ">
+                    {watched?.amortizationPeriod || 30} years
+                  </span>
+                </p>
+              </div>
               <input
                 type="range"
                 min={userAmortization + 1}
@@ -463,6 +474,7 @@ export default function RatesPage() {
                 <span>{userAmortization + 1} yrs</span>
                 <span>30 yrs</span>
               </div>
+
               <style jsx>{`
                 .slider::-webkit-slider-thumb {
                   appearance: none;

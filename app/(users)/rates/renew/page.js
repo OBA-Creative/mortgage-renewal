@@ -335,24 +335,38 @@ export default function RatesPage() {
   // Always use standard renewal rates (no refinance logic)
   if (useRentalRates) {
     // Use rental rates for investment properties
-    r3F = cityBasedRates.threeYrFixed.rental?.rate || 0;
-    r3FLender = cityBasedRates.threeYrFixed.rental?.lender || "Default Lender";
+    // Pick under25 or over25 based on amortization period
+    const amortPeriod = formData?.amortizationPeriod || 25;
+    const rentalKey = amortPeriod <= 25 ? "under25" : "over25";
 
-    r4F = cityBasedRates.fourYrFixed.rental?.rate || 0;
-    r4FLender = cityBasedRates.fourYrFixed.rental?.lender || "Default Lender";
+    r3F = cityBasedRates.threeYrFixed.rental?.[rentalKey]?.rate || 0;
+    r3FLender =
+      cityBasedRates.threeYrFixed.rental?.[rentalKey]?.lender ||
+      "Default Lender";
 
-    r5F = cityBasedRates.fiveYrFixed.rental?.rate || 0;
-    r5FLender = cityBasedRates.fiveYrFixed.rental?.lender || "Default Lender";
+    r4F = cityBasedRates.fourYrFixed.rental?.[rentalKey]?.rate || 0;
+    r4FLender =
+      cityBasedRates.fourYrFixed.rental?.[rentalKey]?.lender ||
+      "Default Lender";
 
-    r3VAdjustment = cityBasedRates.threeYrVariable.rental?.adjustment || 0;
+    r5F = cityBasedRates.fiveYrFixed.rental?.[rentalKey]?.rate || 0;
+    r5FLender =
+      cityBasedRates.fiveYrFixed.rental?.[rentalKey]?.lender ||
+      "Default Lender";
+
+    r3VAdjustment =
+      cityBasedRates.threeYrVariable.rental?.[rentalKey]?.adjustment || 0;
     r3VLender =
-      cityBasedRates.threeYrVariable.rental?.lender || "Default Lender";
+      cityBasedRates.threeYrVariable.rental?.[rentalKey]?.lender ||
+      "Default Lender";
 
-    r5VAdjustment = cityBasedRates.fiveYrVariable.rental?.adjustment || 0;
+    r5VAdjustment =
+      cityBasedRates.fiveYrVariable.rental?.[rentalKey]?.adjustment || 0;
     r5VLender =
-      cityBasedRates.fiveYrVariable.rental?.lender || "Default Lender";
+      cityBasedRates.fiveYrVariable.rental?.[rentalKey]?.lender ||
+      "Default Lender";
 
-    console.log("🏢 Using rental rates for investment property");
+    console.log(`🏢 Using rental rates for investment property (${rentalKey})`);
   } else {
     // Use regular LTV-based rates for owner-occupied properties
     r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;

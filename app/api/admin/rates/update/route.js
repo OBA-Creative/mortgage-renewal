@@ -15,7 +15,7 @@ export async function POST(request) {
     if (!provinceCode || !rates) {
       return NextResponse.json(
         { success: false, message: "Province code and rates are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -30,15 +30,17 @@ export async function POST(request) {
         // Handle fixed rate types (threeYrFixed, fourYrFixed, fiveYrFixed)
         if (rates[rateType]) {
           Object.keys(rates[rateType]).forEach((ltvKey) => {
-            if (ltvKey === "refinance" && rates[rateType][ltvKey]) {
-              // Handle refinance nested structure
-              Object.keys(rates[rateType][ltvKey]).forEach((refinanceKey) => {
-                updateObj[
-                  `${provinceCode}.${rateType}.${ltvKey}.${refinanceKey}`
-                ] = rates[rateType][ltvKey][refinanceKey];
+            if (
+              (ltvKey === "refinance" || ltvKey === "rental") &&
+              rates[rateType][ltvKey]
+            ) {
+              // Handle refinance/rental nested structure (under25/over25)
+              Object.keys(rates[rateType][ltvKey]).forEach((subKey) => {
+                updateObj[`${provinceCode}.${rateType}.${ltvKey}.${subKey}`] =
+                  rates[rateType][ltvKey][subKey];
                 console.log(
-                  `Setting ${provinceCode}.${rateType}.${ltvKey}.${refinanceKey}:`,
-                  rates[rateType][ltvKey][refinanceKey]
+                  `Setting ${provinceCode}.${rateType}.${ltvKey}.${subKey}:`,
+                  rates[rateType][ltvKey][subKey],
                 );
               });
             } else if (rates[rateType][ltvKey]) {
@@ -47,7 +49,7 @@ export async function POST(request) {
                 rates[rateType][ltvKey];
               console.log(
                 `Setting ${provinceCode}.${rateType}.${ltvKey}:`,
-                rates[rateType][ltvKey]
+                rates[rateType][ltvKey],
               );
             }
           });
@@ -66,13 +68,13 @@ export async function POST(request) {
         sort: { createdAt: -1 },
         runValidators: true,
         lean: false,
-      }
+      },
     );
 
     if (!updatedRates) {
       return NextResponse.json(
         { success: false, message: "No existing rates document found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -92,7 +94,7 @@ export async function POST(request) {
         message: "Failed to update rates",
         error: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

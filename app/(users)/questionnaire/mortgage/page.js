@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import MapRadio from "@/components/form-elements/map-radio";
 import DollarInput from "@/components/form-elements/dollar-input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FormDatePicker from "@/components/form-elements/form-date-picker";
 import Dropdown from "@/components/form-elements/dropdown";
 import TextInput from "@/components/form-elements/text-input";
@@ -42,6 +42,26 @@ export default function MortgagePage() {
       parseNumber(formData.propertyValue.toString()) < 1000000 &&
       parseNumber(formData.propertyValue.toString()) > 0,
   );
+  const [lenderOptions, setLenderOptions] = useState([]);
+
+  // Fetch active lenders from the database
+  useEffect(() => {
+    async function fetchLenders() {
+      try {
+        const res = await fetch("/api/lenders");
+        const data = await res.json();
+        if (data.success && data.lenders.length > 0) {
+          setLenderOptions(data.lenders);
+        } else {
+          setLenderOptions(["Other"]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch lenders:", err);
+        setLenderOptions(["Other"]);
+      }
+    }
+    fetchLenders();
+  }, []);
 
   const {
     register,
@@ -76,7 +96,7 @@ export default function MortgagePage() {
   });
 
   const helpTexts = {
-    propertyValue: "Enter the current estimated market value of your property.",
+    propertyValue: "Enter the estimated current market value of your property.",
     heloc:
       "A Home Equity Line of Credit (HELOC) is a revolving credit line secured by your home's equity. Let us know if you currently have one.",
     helocBalance:
@@ -88,15 +108,15 @@ export default function MortgagePage() {
     belowOneMillion:
       "This information helps determine which mortgage stress test rules apply to you. Properties under $1M have different qualification requirements.",
     lender:
-      "Select your current mortgage lender from the list. This helps us understand your current mortgage terms and available renewal options.",
+      "Select your current mortgage lender from the list. This helps us understand your mortgage terms and available renewal options.",
     mortgageBalance:
-      "Enter the remaining balance on your current mortgage. You can find this on your most recent mortgage statement or by contacting your lender.",
+      "Enter the remaining balance on your mortgage. You can find this on your most recent statement or by contacting your lender.",
     otherLender:
       "Enter the name of your mortgage lender if it wasn't listed in the dropdown menu above.",
     amortizationPeriod:
-      "Enter the number (between 0 and 30) of years left on your current amortization schedule. This affects your payment amount and available rates.",
+      "Enter the number of years remaining on your amortization (between 0 and 30). This affects your payment amount and available rates.",
     maturityDate:
-      "This is the date when your current mortgage term expires and you'll need to renew. You can find this date on your mortgage documents or statement.",
+      "This is the date your current mortgage term expires and you’ll need to renew. You can find it on your mortgage documents or statement.",
   };
 
   const router = useRouter();
@@ -198,16 +218,6 @@ export default function MortgagePage() {
 
   const yesNoOptions = ["yes", "no"];
   const helocOptions = ["yes", "no"];
-  const lenderOptions = [
-    "Royal Bank of Canada (RBC)",
-    "Toronto-Dominion Bank (TD)",
-    "Scotiabank",
-    "Bank of Montreal (BMO)",
-    "Canadian Imperial Bank of Commerce (CIBC)",
-    "National Bank of Canada",
-    "HSBC Canada",
-    "Other",
-  ];
 
   const helocCondition =
     formData.downpaymentValue === "20% or more"
@@ -238,8 +248,7 @@ export default function MortgagePage() {
           helpTexts={helpTexts.propertyValue}
           requiredText="Property value is required"
           error={errors.propertyValue}
-          placeholder="e.g. 800,000"
-        />{" "}
+        />
         {/* Current Mortgage Balance */}
         <DollarInput
           id="mortgageBalance"
@@ -251,7 +260,6 @@ export default function MortgagePage() {
           helpTexts={helpTexts.mortgageBalance}
           requiredText="Mortgage balance is required"
           error={errors.mortgageBalance}
-          placeholder="e.g. 600,000"
         />
         {/* Below One Million Radio - only show if property value is under $1M */}
         {showBelowOneMillion && (
@@ -269,7 +277,7 @@ export default function MortgagePage() {
         <div className="flex flex-col space-y-8">
           <Dropdown
             id="lender"
-            label="Who is the lender?"
+            label="Who is your current lender?"
             options={lenderOptions}
             disabledText="Select your lender"
             register={register}
@@ -368,7 +376,7 @@ export default function MortgagePage() {
           inputMode="numeric"
           realTimeValidation={true}
           onWheel={(e) => e.target.blur()}
-          placeholder="e.g. 22"
+          placeholder="Enter years"
         />
         {/* Maturity Date */}
         <FormDatePicker

@@ -359,7 +359,7 @@ export default function AdminDashboard() {
   const handleReset = () => {
     if (
       confirm(
-        "Are you sure you want to reset all changes? This will reload the original data."
+        "Are you sure you want to reset all changes? This will reload the original data.",
       )
     ) {
       window.location.reload();
@@ -384,7 +384,7 @@ export default function AdminDashboard() {
       province.code,
       term,
       type,
-      term.includes("Fixed") ? "rate" : "adjustment"
+      term.includes("Fixed") ? "rate" : "adjustment",
     );
     const currentLender = getValue(province.code, term, type, "lender");
 
@@ -551,179 +551,220 @@ export default function AdminDashboard() {
       </div>
 
       {/* Spreadsheet Table */}
-      <div
-        className="mt-5 overflow-x-auto bg-white border border-gray-200 rounded-lg"
-        style={{
-          scrollbarWidth: "thin",
-          scrollbarColor: "#bfdbfe #ffffff",
-        }}
-      >
-        <style jsx>{`
-          div::-webkit-scrollbar {
-            height: 8px;
-          }
-          div::-webkit-scrollbar-track {
-            background: #ffffff;
-            border-radius: 4px;
-          }
-          div::-webkit-scrollbar-thumb {
-            background: #bfdbfe;
-            border-radius: 4px;
-          }
-          div::-webkit-scrollbar-thumb:hover {
-            background: #e5e7eb;
-          }
-        `}</style>
-        <table className="divide-y divide-gray-200 w-fit">
-          <thead className="bg-gray-50">
-            {/* Main Category Headers */}
-            <tr>
-              <th
-                rowSpan={2}
-                className="sticky left-0 z-10 px-1 py-1 text-xs font-medium tracking-wider text-left text-gray-500 uppercase border-r border-gray-200 bg-gray-50"
-              ></th>
-              {rateCategories.map((category) => (
+      <div className="mt-5 overflow-hidden border border-gray-200 rounded-lg">
+        <div
+          className="overflow-x-auto bg-white "
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "#bfdbfe #ffffff",
+          }}
+        >
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              height: 8px;
+            }
+            div::-webkit-scrollbar-track {
+              background: #ffffff;
+              border-radius: 4px;
+            }
+            div::-webkit-scrollbar-thumb {
+              background: #bfdbfe;
+              border-radius: 4px;
+            }
+            div::-webkit-scrollbar-thumb:hover {
+              background: #e5e7eb;
+            }
+          `}</style>
+          <table className="divide-y divide-gray-200 w-fit">
+            <thead className="bg-gray-50">
+              {/* Main Category Headers */}
+              <tr>
                 <th
-                  key={category.id}
-                  colSpan={
-                    ltvCategories.length + refinanceCategories.length + 1
-                  }
-                  className="px-1 py-2 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase bg-gray-100 border-r-2 border-gray-200"
-                >
-                  {category.label}
-                </th>
-              ))}
-            </tr>
-
-            {/* Sub-category Headers */}
-            <tr>
-              {rateCategories.map((category) => (
-                <React.Fragment key={`header-${category.id}`}>
-                  {/* LTV Categories */}
-                  {ltvCategories.map((ltv) => (
-                    <th
-                      key={`${category.id}-${ltv.id}`}
-                      className="px-1 py-1 text-xs font-medium text-center text-blue-600 border-r border-gray-200 max-w-12"
-                    >
-                      {ltv.label}
-                    </th>
-                  ))}
-
-                  {/* Refinance Categories */}
-                  {refinanceCategories.map((refCat) => (
-                    <th
-                      key={`${category.id}-refinance-${refCat.id}`}
-                      className="px-1 py-1 text-xs font-medium text-center text-green-600 border-r border-gray-200 max-w-12 bg-green-50"
-                    >
-                      <div>{refCat.label}</div>
-                    </th>
-                  ))}
-
-                  {/* Rental Category */}
-                  <th
-                    key={`${category.id}-${rentalCategory.id}`}
-                    className="px-1 py-1 text-xs font-medium text-center text-purple-600 border-r-2 border-gray-200 max-w-12 bg-purple-50"
-                  >
-                    {rentalCategory.label}
-                  </th>
-                </React.Fragment>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {provinces.map((province) => (
-              <tr key={province.code} className="hover:bg-blue-50 group">
-                <td className="sticky left-0 z-10 flex items-center justify-center bg-white border-r border-gray-200 group-hover:bg-blue-50">
-                  <div
-                    className="flex flex-col items-center px-3 py-1 transition-colors cursor-pointer hover:bg-blue-200"
-                    onClick={() => handleProvinceClick(province)}
-                    title={`Edit rates for ${province.name}`}
-                  >
-                    <Image
-                      src={`/images/${province.code.toLowerCase()}.jpg`}
-                      alt={province.code}
-                      width={32}
-                      height={24}
-                      className="object-cover w-6 h-4 rounded-sm"
-                    />
-
-                    <div className="mt-3 mb-2 text-xs font-semibold text-gray-700 leading-0">
-                      {province.code}
-                    </div>
-                  </div>
-                </td>
-
+                  rowSpan={2}
+                  className="sticky left-0 z-10 px-1 py-1 text-xs font-medium tracking-wider text-left text-gray-500 uppercase border-r border-gray-200 bg-gray-50"
+                ></th>
                 {rateCategories.map((category) => (
-                  <React.Fragment key={`body-${category.id}`}>
+                  <th
+                    key={category.id}
+                    colSpan={
+                      ltvCategories.length + refinanceCategories.length + 1
+                    }
+                    className="px-1 py-2 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase bg-gray-100 border-r-2 border-gray-200"
+                  >
+                    {category.label}
+                  </th>
+                ))}
+              </tr>
+
+              {/* Sub-category Headers */}
+              <tr>
+                {rateCategories.map((category) => (
+                  <React.Fragment key={`header-${category.id}`}>
                     {/* LTV Categories */}
                     {ltvCategories.map((ltv) => (
-                      <td
-                        key={`${province.code}-${category.id}-${ltv.id}`}
-                        className="px-1 py-1 align-top border-r border-gray-200 max-w-12 group-hover:bg-blue-50"
+                      <th
+                        key={`${category.id}-${ltv.id}`}
+                        className="px-1 py-1 text-xs font-medium text-center text-blue-600 border-r border-gray-200 max-w-12"
                       >
-                        <div className="space-y-1">
-                          <div
-                            className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded cursor-pointer hover:bg-blue-100"
-                            onClick={() =>
-                              handleRateClick(province, category.id, ltv.id)
-                            }
-                            title="Click to edit rate"
-                          >
-                            {(() => {
-                              const value = getValue(
-                                province.code,
-                                category.id,
-                                ltv.id,
-                                category.type === "fixed"
-                                  ? "rate"
-                                  : "adjustment"
-                              );
-                              if (!value && value !== 0) return "-";
-                              const numValue = parseFloat(value);
-                              return isNaN(numValue)
-                                ? "-"
-                                : numValue.toFixed(2) +
-                                    (category.type === "fixed" ? "%" : "");
-                            })()}
-                          </div>
-                          <div className="text-[8px] text-center text-gray-500 truncate">
-                            {getValue(
-                              province.code,
-                              category.id,
-                              ltv.id,
-                              "lender"
-                            ) || "-"}
-                          </div>
-                        </div>
-                      </td>
+                        {ltv.label}
+                      </th>
                     ))}
 
                     {/* Refinance Categories */}
                     {refinanceCategories.map((refCat) => (
+                      <th
+                        key={`${category.id}-refinance-${refCat.id}`}
+                        className="px-1 py-1 text-xs font-medium text-center text-green-600 border-r border-gray-200 max-w-12 bg-green-50"
+                      >
+                        <div>{refCat.label}</div>
+                      </th>
+                    ))}
+
+                    {/* Rental Category */}
+                    <th
+                      key={`${category.id}-${rentalCategory.id}`}
+                      className="px-1 py-1 text-xs font-medium text-center text-purple-600 border-r-2 border-gray-200 max-w-12 bg-purple-50"
+                    >
+                      {rentalCategory.label}
+                    </th>
+                  </React.Fragment>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {provinces.map((province) => (
+                <tr key={province.code} className="hover:bg-blue-50 group">
+                  <td className="sticky left-0 z-10 flex items-center justify-center bg-white border-r border-gray-200 group-hover:bg-blue-50">
+                    <div
+                      className="flex flex-col items-center px-3 py-1 transition-colors cursor-pointer hover:bg-blue-200"
+                      onClick={() => handleProvinceClick(province)}
+                      title={`Edit rates for ${province.name}`}
+                    >
+                      <Image
+                        src={`/images/${province.code.toLowerCase()}.jpg`}
+                        alt={province.code}
+                        width={32}
+                        height={24}
+                        className="object-cover w-6 h-4 rounded-sm"
+                      />
+
+                      <div className="mt-3 mb-2 text-xs font-semibold text-gray-700 leading-0">
+                        {province.code}
+                      </div>
+                    </div>
+                  </td>
+
+                  {rateCategories.map((category) => (
+                    <React.Fragment key={`body-${category.id}`}>
+                      {/* LTV Categories */}
+                      {ltvCategories.map((ltv) => (
+                        <td
+                          key={`${province.code}-${category.id}-${ltv.id}`}
+                          className="px-1 py-1 align-top border-r border-gray-200 cursor-pointer max-w-12 group-hover:bg-blue-50 hover:bg-blue-100"
+                          onClick={() =>
+                            handleRateClick(province, category.id, ltv.id)
+                          }
+                          title="Click to edit rate"
+                        >
+                          <div className="space-y-1">
+                            <div className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded">
+                              {(() => {
+                                const value = getValue(
+                                  province.code,
+                                  category.id,
+                                  ltv.id,
+                                  category.type === "fixed"
+                                    ? "rate"
+                                    : "adjustment",
+                                );
+                                if (!value && value !== 0) return "-";
+                                const numValue = parseFloat(value);
+                                return isNaN(numValue)
+                                  ? "-"
+                                  : numValue.toFixed(2) +
+                                      (category.type === "fixed" ? "%" : "");
+                              })()}
+                            </div>
+                            <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
+                              {getValue(
+                                province.code,
+                                category.id,
+                                ltv.id,
+                                "lender",
+                              ) || "-"}
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+
+                      {/* Refinance Categories */}
+                      {refinanceCategories.map((refCat) => (
+                        <td
+                          key={`${province.code}-${category.id}-refinance-${refCat.id}`}
+                          className="px-1 py-1 align-top border-r border-gray-200 cursor-pointer max-w-12 bg-green-50 group-hover:bg-blue-50 hover:bg-blue-100"
+                          onClick={() =>
+                            handleRateClick(
+                              province,
+                              category.id,
+                              `refinance-${refCat.id}`,
+                            )
+                          }
+                          title="Click to edit rate"
+                        >
+                          <div className="space-y-1">
+                            <div className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded">
+                              {(() => {
+                                const value = getValue(
+                                  province.code,
+                                  category.id,
+                                  `refinance-${refCat.id}`,
+                                  category.type === "fixed"
+                                    ? "rate"
+                                    : "adjustment",
+                                );
+                                if (!value && value !== 0) return "-";
+                                const numValue = parseFloat(value);
+                                return isNaN(numValue)
+                                  ? "-"
+                                  : numValue.toFixed(2) +
+                                      (category.type === "fixed" ? "%" : "");
+                              })()}
+                            </div>
+                            <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
+                              {getValue(
+                                province.code,
+                                category.id,
+                                `refinance-${refCat.id}`,
+                                "lender",
+                              ) || "-"}
+                            </div>
+                          </div>
+                        </td>
+                      ))}
+
+                      {/* Rental Category */}
                       <td
-                        key={`${province.code}-${category.id}-refinance-${refCat.id}`}
-                        className="px-1 py-1 align-top border-r border-gray-200 max-w-12 bg-green-50 group-hover:bg-blue-50"
+                        key={`${province.code}-${category.id}-${rentalCategory.id}`}
+                        className="px-1 py-1 align-top border-r-2 border-gray-200 cursor-pointer max-w-12 bg-purple-50 group-hover:bg-blue-50 hover:bg-blue-100"
+                        onClick={() =>
+                          handleRateClick(
+                            province,
+                            category.id,
+                            rentalCategory.id,
+                          )
+                        }
+                        title="Click to edit rate"
                       >
                         <div className="space-y-1">
-                          <div
-                            className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded cursor-pointer hover:bg-blue-100"
-                            onClick={() =>
-                              handleRateClick(
-                                province,
-                                category.id,
-                                `refinance-${refCat.id}`
-                              )
-                            }
-                            title="Click to edit rate"
-                          >
+                          <div className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded">
                             {(() => {
                               const value = getValue(
                                 province.code,
                                 category.id,
-                                `refinance-${refCat.id}`,
+                                rentalCategory.id,
                                 category.type === "fixed"
                                   ? "rate"
-                                  : "adjustment"
+                                  : "adjustment",
                               );
                               if (!value && value !== 0) return "-";
                               const numValue = parseFloat(value);
@@ -733,66 +774,23 @@ export default function AdminDashboard() {
                                     (category.type === "fixed" ? "%" : "");
                             })()}
                           </div>
-                          <div className="text-[8px] text-center text-gray-500 truncate">
+                          <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
                             {getValue(
                               province.code,
                               category.id,
-                              `refinance-${refCat.id}`,
-                              "lender"
+                              rentalCategory.id,
+                              "lender",
                             ) || "-"}
                           </div>
                         </div>
                       </td>
-                    ))}
-
-                    {/* Rental Category */}
-                    <td
-                      key={`${province.code}-${category.id}-${rentalCategory.id}`}
-                      className="px-1 py-1 align-top border-r-2 border-gray-200 max-w-12 bg-purple-50 group-hover:bg-blue-50"
-                    >
-                      <div className="space-y-1">
-                        <div
-                          className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded cursor-pointer hover:bg-blue-100"
-                          onClick={() =>
-                            handleRateClick(
-                              province,
-                              category.id,
-                              rentalCategory.id
-                            )
-                          }
-                          title="Click to edit rate"
-                        >
-                          {(() => {
-                            const value = getValue(
-                              province.code,
-                              category.id,
-                              rentalCategory.id,
-                              category.type === "fixed" ? "rate" : "adjustment"
-                            );
-                            if (!value && value !== 0) return "-";
-                            const numValue = parseFloat(value);
-                            return isNaN(numValue)
-                              ? "-"
-                              : numValue.toFixed(2) +
-                                  (category.type === "fixed" ? "%" : "");
-                          })()}
-                        </div>
-                        <div className="text-[8px] text-center text-gray-500 truncate">
-                          {getValue(
-                            province.code,
-                            category.id,
-                            rentalCategory.id,
-                            "lender"
-                          ) || "-"}
-                        </div>
-                      </div>
-                    </td>
-                  </React.Fragment>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    </React.Fragment>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Legend */}

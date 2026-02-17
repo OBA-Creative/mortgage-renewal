@@ -29,7 +29,7 @@ export default function DollarInput({
   helpTexts,
   error,
   defaultValue, // Add support for default values
-  placeholder = "Enter amount", // Add placeholder support with default
+  placeholder, // Add placeholder support with default
   onBlur, // Add onBlur callback support
   validationRules, // Add validation rules support
 }) {

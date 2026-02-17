@@ -44,7 +44,10 @@ const refinanceCategories = [
   { id: "over25", label: ">25 yr" },
 ];
 
-const rentalCategory = { id: "rental", label: "Rental" };
+const rentalCategories = [
+  { id: "under25", label: "R ≤25" },
+  { id: "over25", label: "R >25" },
+];
 
 export default function AdminDashboard() {
   const [rates, setRates] = useState({});
@@ -173,14 +176,17 @@ export default function AdminDashboard() {
       });
 
       // Rental rates
-      if (category.type === "fixed") {
-        structure[category.id][rentalCategory.id] = { rate: 0, lender: "" };
-      } else {
-        structure[category.id][rentalCategory.id] = {
-          adjustment: 0,
-          lender: "",
-        };
-      }
+      structure[category.id].rental = {};
+      rentalCategories.forEach((rentCat) => {
+        if (category.type === "fixed") {
+          structure[category.id].rental[rentCat.id] = { rate: 0, lender: "" };
+        } else {
+          structure[category.id].rental[rentCat.id] = {
+            adjustment: 0,
+            lender: "",
+          };
+        }
+      });
     });
     return structure;
   };
@@ -220,18 +226,20 @@ export default function AdminDashboard() {
           ? parseFloat(value) || 0
           : value;
       newRates[provinceCode][categoryId].refinance[refType][field] = finalValue;
-    } else if (ltv === "rental") {
-      // Handle rental category with new flat structure
+    } else if (ltv.includes("rental-")) {
+      const rentType = ltv.replace("rental-", "");
       if (!newRates[provinceCode][categoryId].rental) {
         newRates[provinceCode][categoryId].rental = {};
       }
+      if (!newRates[provinceCode][categoryId].rental[rentType]) {
+        newRates[provinceCode][categoryId].rental[rentType] = {};
+      }
 
-      // New flat structure: rental is directly { rate: 4.15, lender: "..." } or { adjustment: -0.26, lender: "..." }
       const finalValue =
         field === "rate" || field === "adjustment"
           ? parseFloat(value) || 0
           : value;
-      newRates[provinceCode][categoryId].rental[field] = finalValue;
+      newRates[provinceCode][categoryId].rental[rentType][field] = finalValue;
     } else {
       if (!newRates[provinceCode][categoryId][ltv]) {
         newRates[provinceCode][categoryId][ltv] = {};
@@ -261,13 +269,10 @@ export default function AdminDashboard() {
       return value !== undefined && value !== null ? value : "";
     }
 
-    // Handle rental category with new flat structure
-    if (ltv === "rental") {
-      const rentalData = provinceRates[categoryId]?.rental;
-      if (!rentalData) return "";
-
-      // New flat structure: rental is directly { rate: 4.15, lender: "..." } or { adjustment: -0.26, lender: "..." }
-      const value = rentalData[field];
+    // Handle rental category with nested under25/over25 structure
+    if (ltv.includes("rental-")) {
+      const rentType = ltv.replace("rental-", "");
+      const value = provinceRates[categoryId]?.rental?.[rentType]?.[field];
       return value !== undefined && value !== null ? value : "";
     }
 
@@ -320,18 +325,22 @@ export default function AdminDashboard() {
           });
         });
 
-        // Format rental category
-        formattedRates[category.id][rentalCategory.id] = {};
-        provinces.forEach((province) => {
-          const provinceData = currentRates[province.code];
-          if (
-            provinceData &&
-            provinceData[category.id] &&
-            provinceData[category.id][rentalCategory.id]
-          ) {
-            formattedRates[category.id][rentalCategory.id] =
-              provinceData[category.id][rentalCategory.id];
-          }
+        // Format rental categories
+        formattedRates[category.id].rental = {};
+        rentalCategories.forEach((rentCat) => {
+          formattedRates[category.id].rental[rentCat.id] = {};
+          provinces.forEach((province) => {
+            const provinceData = currentRates[province.code];
+            if (
+              provinceData &&
+              provinceData[category.id] &&
+              provinceData[category.id].rental &&
+              provinceData[category.id].rental[rentCat.id]
+            ) {
+              formattedRates[category.id].rental[rentCat.id] =
+                provinceData[category.id].rental[rentCat.id];
+            }
+          });
         });
       });
 
@@ -429,13 +438,16 @@ export default function AdminDashboard() {
             },
           },
         };
-      } else if (type === "rental") {
-        // Handle rental rates
+      } else if (type.includes("rental-")) {
+        // Handle rental rates (nested under25/over25)
+        const rentType = type.replace("rental-", "");
         updatePayload = {
           provinceCode: province.code,
           rates: {
             [term]: {
-              rental: { [field]: rate, lender },
+              rental: {
+                [rentType]: { [field]: rate, lender },
+              },
             },
           },
         };
@@ -461,7 +473,10 @@ export default function AdminDashboard() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to save rate");
+        console.error("API error details:", errorData);
+        throw new Error(
+          errorData.error || errorData.message || "Failed to save rate",
+        );
       }
 
       console.log("Rate updated successfully");
@@ -587,7 +602,9 @@ export default function AdminDashboard() {
                   <th
                     key={category.id}
                     colSpan={
-                      ltvCategories.length + refinanceCategories.length + 1
+                      ltvCategories.length +
+                      refinanceCategories.length +
+                      rentalCategories.length
                     }
                     className="px-1 py-2 text-xs font-semibold tracking-wider text-center text-gray-700 uppercase bg-gray-100 border-r-2 border-gray-200"
                   >
@@ -620,13 +637,15 @@ export default function AdminDashboard() {
                       </th>
                     ))}
 
-                    {/* Rental Category */}
-                    <th
-                      key={`${category.id}-${rentalCategory.id}`}
-                      className="px-1 py-1 text-xs font-medium text-center text-purple-600 border-r-2 border-gray-200 max-w-12 bg-purple-50"
-                    >
-                      {rentalCategory.label}
-                    </th>
+                    {/* Rental Categories */}
+                    {rentalCategories.map((rentCat, idx) => (
+                      <th
+                        key={`${category.id}-rental-${rentCat.id}`}
+                        className={`px-1 py-1 text-xs font-medium text-center text-purple-600 ${idx === rentalCategories.length - 1 ? "border-r-2" : "border-r"} border-gray-200 max-w-12 bg-purple-50`}
+                      >
+                        {rentCat.label}
+                      </th>
+                    ))}
                   </React.Fragment>
                 ))}
               </tr>
@@ -742,48 +761,50 @@ export default function AdminDashboard() {
                         </td>
                       ))}
 
-                      {/* Rental Category */}
-                      <td
-                        key={`${province.code}-${category.id}-${rentalCategory.id}`}
-                        className="px-1 py-1 align-top border-r-2 border-gray-200 cursor-pointer max-w-12 bg-purple-50 group-hover:bg-blue-50 hover:bg-blue-100"
-                        onClick={() =>
-                          handleRateClick(
-                            province,
-                            category.id,
-                            rentalCategory.id,
-                          )
-                        }
-                        title="Click to edit rate"
-                      >
-                        <div className="space-y-1">
-                          <div className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded">
-                            {(() => {
-                              const value = getValue(
+                      {/* Rental Categories */}
+                      {rentalCategories.map((rentCat, idx) => (
+                        <td
+                          key={`${province.code}-${category.id}-rental-${rentCat.id}`}
+                          className={`px-1 py-1 align-top ${idx === rentalCategories.length - 1 ? "border-r-2" : "border-r"} border-gray-200 cursor-pointer max-w-12 bg-purple-50 group-hover:bg-blue-50 hover:bg-blue-100`}
+                          onClick={() =>
+                            handleRateClick(
+                              province,
+                              category.id,
+                              `rental-${rentCat.id}`,
+                            )
+                          }
+                          title="Click to edit rate"
+                        >
+                          <div className="space-y-1">
+                            <div className="px-1 py-1 text-xs font-medium text-center text-gray-900 rounded">
+                              {(() => {
+                                const value = getValue(
+                                  province.code,
+                                  category.id,
+                                  `rental-${rentCat.id}`,
+                                  category.type === "fixed"
+                                    ? "rate"
+                                    : "adjustment",
+                                );
+                                if (!value && value !== 0) return "-";
+                                const numValue = parseFloat(value);
+                                return isNaN(numValue)
+                                  ? "-"
+                                  : numValue.toFixed(2) +
+                                      (category.type === "fixed" ? "%" : "");
+                              })()}
+                            </div>
+                            <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
+                              {getValue(
                                 province.code,
                                 category.id,
-                                rentalCategory.id,
-                                category.type === "fixed"
-                                  ? "rate"
-                                  : "adjustment",
-                              );
-                              if (!value && value !== 0) return "-";
-                              const numValue = parseFloat(value);
-                              return isNaN(numValue)
-                                ? "-"
-                                : numValue.toFixed(2) +
-                                    (category.type === "fixed" ? "%" : "");
-                            })()}
+                                `rental-${rentCat.id}`,
+                                "lender",
+                              ) || "-"}
+                            </div>
                           </div>
-                          <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
-                            {getValue(
-                              province.code,
-                              category.id,
-                              rentalCategory.id,
-                              "lender",
-                            ) || "-"}
-                          </div>
-                        </div>
-                      </td>
+                        </td>
+                      ))}
                     </React.Fragment>
                   ))}
                 </tr>
@@ -816,7 +837,7 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center">
             <div className="w-3 h-3 mr-1 border border-purple-200 rounded bg-purple-50"></div>
-            <span>Rental/Investment properties</span>
+            <span>Rental/Investment: ≤25yr, &gt;25yr amortization</span>
           </div>
         </div>
       </div>

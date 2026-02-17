@@ -9,12 +9,12 @@ export default function UpsellRateCard({ monthlyPayment }) {
           <p className="text-xl font-semibold text-center ">
             Lower Your Payments Further
           </p>
-          <p className="text-sm">your monthly payment as low as</p>
+          <p className="text-sm">extend amortization to get payment down to</p>
           <div className="flex items-center justify-center space-x-2">
             <div>
               <TrendingDown className="w-6 h-6 text-blue-600" />
             </div>
-            <p className="text-lg font-semibold">
+            <p className="text-xl font-semibold">
               {monthlyPayment}{" "}
               <span className="text-sm font-medium">/ month</span>
             </p>

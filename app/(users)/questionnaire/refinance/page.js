@@ -54,7 +54,7 @@ export default function PropertyPage() {
   const usageOptions = [
     "Primary Residence",
     "Second Home",
-    "Primary Residence With Suite",
+    "Primary Residence + Rental Suite",
     "Rental / Investment",
   ];
 

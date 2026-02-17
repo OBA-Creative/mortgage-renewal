@@ -4,7 +4,7 @@ import Rate from "../models/ratesModel.js";
 // Use the same MongoDB connection as the app
 const MONGODB_URI = `mongodb+srv://${process.env.MONGODB_USERNAME || "obradovicu_db_user"}:${process.env.MONGODB_PASSWORD || "ft1nUcqDK9X4fuNg"}@cluster0.newjce6.mongodb.net/MortgageRenewals?retryWrites=true&w=majority&appName=Cluster0`;
 
-// Sample rate data with correct flat rental structure
+// Sample rate data with nested rental structure (under25/over25)
 const sampleRatesData = {
   // Prime rate (reference rate for variable calculations)
   prime: 6.45,
@@ -21,7 +21,10 @@ const sampleRatesData = {
         under25: { rate: 2.5, lender: "First National" },
         over25: { rate: 3.0, lender: "BMO" },
       },
-      rental: { rate: 4.15, lender: "Alternative Lender" },
+      rental: {
+        under25: { rate: 4.15, lender: "Alternative Lender" },
+        over25: { rate: 4.35, lender: "Alternative Lender" },
+      },
     },
     fourYrFixed: {
       under65: { rate: 5.12, lender: "Alternative Lender" },
@@ -33,7 +36,10 @@ const sampleRatesData = {
         under25: { rate: 5.27, lender: "National Bank" },
         over25: { rate: 5.37, lender: "National Bank" },
       },
-      rental: { rate: 5.82, lender: "TD Bank" },
+      rental: {
+        under25: { rate: 5.82, lender: "TD Bank" },
+        over25: { rate: 6.02, lender: "TD Bank" },
+      },
     },
     fiveYrFixed: {
       under65: { rate: 4.93, lender: "TD Bank" },
@@ -45,7 +51,10 @@ const sampleRatesData = {
         under25: { rate: 5.08, lender: "Dominion Lending" },
         over25: { rate: 5.18, lender: "First National" },
       },
-      rental: { rate: 5.63, lender: "Credit Union" },
+      rental: {
+        under25: { rate: 5.63, lender: "Credit Union" },
+        over25: { rate: 5.83, lender: "Credit Union" },
+      },
     },
     threeYrVariable: {
       under65: { adjustment: -0.76, lender: "MCAP" },
@@ -57,7 +66,10 @@ const sampleRatesData = {
         under25: { adjustment: -0.81, lender: "CIBC" },
         over25: { adjustment: -0.86, lender: "National Bank" },
       },
-      rental: { adjustment: -0.26, lender: "RBC" },
+      rental: {
+        under25: { adjustment: -0.26, lender: "RBC" },
+        over25: { adjustment: -0.16, lender: "RBC" },
+      },
     },
     fiveYrVariable: {
       under65: { adjustment: -0.84, lender: "Credit Union" },
@@ -69,7 +81,10 @@ const sampleRatesData = {
         under25: { adjustment: -0.89, lender: "MCAP" },
         over25: { adjustment: -0.94, lender: "Scotiabank" },
       },
-      rental: { adjustment: -0.34, lender: "MCAP" },
+      rental: {
+        under25: { adjustment: -0.34, lender: "MCAP" },
+        over25: { adjustment: -0.24, lender: "MCAP" },
+      },
     },
   },
 };
@@ -115,8 +130,14 @@ const createProvinceRates = (baseRates, provinceName) => {
         },
       },
       rental: {
-        rate: adjustRate(baseRates.threeYrFixed.rental.rate),
-        lender: baseRates.threeYrFixed.rental.lender,
+        under25: {
+          rate: adjustRate(baseRates.threeYrFixed.rental.under25.rate),
+          lender: baseRates.threeYrFixed.rental.under25.lender,
+        },
+        over25: {
+          rate: adjustRate(baseRates.threeYrFixed.rental.over25.rate),
+          lender: baseRates.threeYrFixed.rental.over25.lender,
+        },
       },
     },
     fourYrFixed: {
@@ -151,8 +172,14 @@ const createProvinceRates = (baseRates, provinceName) => {
         },
       },
       rental: {
-        rate: adjustRate(baseRates.fourYrFixed.rental.rate),
-        lender: baseRates.fourYrFixed.rental.lender,
+        under25: {
+          rate: adjustRate(baseRates.fourYrFixed.rental.under25.rate),
+          lender: baseRates.fourYrFixed.rental.under25.lender,
+        },
+        over25: {
+          rate: adjustRate(baseRates.fourYrFixed.rental.over25.rate),
+          lender: baseRates.fourYrFixed.rental.over25.lender,
+        },
       },
     },
     fiveYrFixed: {
@@ -187,112 +214,134 @@ const createProvinceRates = (baseRates, provinceName) => {
         },
       },
       rental: {
-        rate: adjustRate(baseRates.fiveYrFixed.rental.rate),
-        lender: baseRates.fiveYrFixed.rental.lender,
+        under25: {
+          rate: adjustRate(baseRates.fiveYrFixed.rental.under25.rate),
+          lender: baseRates.fiveYrFixed.rental.under25.lender,
+        },
+        over25: {
+          rate: adjustRate(baseRates.fiveYrFixed.rental.over25.rate),
+          lender: baseRates.fiveYrFixed.rental.over25.lender,
+        },
       },
     },
     threeYrVariable: {
       under65: {
         adjustment: adjustAdjustment(
-          baseRates.threeYrVariable.under65.adjustment
+          baseRates.threeYrVariable.under65.adjustment,
         ),
         lender: baseRates.threeYrVariable.under65.lender,
       },
       under70: {
         adjustment: adjustAdjustment(
-          baseRates.threeYrVariable.under70.adjustment
+          baseRates.threeYrVariable.under70.adjustment,
         ),
         lender: baseRates.threeYrVariable.under70.lender,
       },
       under75: {
         adjustment: adjustAdjustment(
-          baseRates.threeYrVariable.under75.adjustment
+          baseRates.threeYrVariable.under75.adjustment,
         ),
         lender: baseRates.threeYrVariable.under75.lender,
       },
       under80: {
         adjustment: adjustAdjustment(
-          baseRates.threeYrVariable.under80.adjustment
+          baseRates.threeYrVariable.under80.adjustment,
         ),
         lender: baseRates.threeYrVariable.under80.lender,
       },
       over80: {
         adjustment: adjustAdjustment(
-          baseRates.threeYrVariable.over80.adjustment
+          baseRates.threeYrVariable.over80.adjustment,
         ),
         lender: baseRates.threeYrVariable.over80.lender,
       },
       refinance: {
         under25: {
           adjustment: adjustAdjustment(
-            baseRates.threeYrVariable.refinance.under25.adjustment
+            baseRates.threeYrVariable.refinance.under25.adjustment,
           ),
           lender: baseRates.threeYrVariable.refinance.under25.lender,
         },
         over25: {
           adjustment: adjustAdjustment(
-            baseRates.threeYrVariable.refinance.over25.adjustment
+            baseRates.threeYrVariable.refinance.over25.adjustment,
           ),
           lender: baseRates.threeYrVariable.refinance.over25.lender,
         },
       },
       rental: {
-        adjustment: adjustAdjustment(
-          baseRates.threeYrVariable.rental.adjustment
-        ),
-        lender: baseRates.threeYrVariable.rental.lender,
+        under25: {
+          adjustment: adjustAdjustment(
+            baseRates.threeYrVariable.rental.under25.adjustment,
+          ),
+          lender: baseRates.threeYrVariable.rental.under25.lender,
+        },
+        over25: {
+          adjustment: adjustAdjustment(
+            baseRates.threeYrVariable.rental.over25.adjustment,
+          ),
+          lender: baseRates.threeYrVariable.rental.over25.lender,
+        },
       },
     },
     fiveYrVariable: {
       under65: {
         adjustment: adjustAdjustment(
-          baseRates.fiveYrVariable.under65.adjustment
+          baseRates.fiveYrVariable.under65.adjustment,
         ),
         lender: baseRates.fiveYrVariable.under65.lender,
       },
       under70: {
         adjustment: adjustAdjustment(
-          baseRates.fiveYrVariable.under70.adjustment
+          baseRates.fiveYrVariable.under70.adjustment,
         ),
         lender: baseRates.fiveYrVariable.under70.lender,
       },
       under75: {
         adjustment: adjustAdjustment(
-          baseRates.fiveYrVariable.under75.adjustment
+          baseRates.fiveYrVariable.under75.adjustment,
         ),
         lender: baseRates.fiveYrVariable.under75.lender,
       },
       under80: {
         adjustment: adjustAdjustment(
-          baseRates.fiveYrVariable.under80.adjustment
+          baseRates.fiveYrVariable.under80.adjustment,
         ),
         lender: baseRates.fiveYrVariable.under80.lender,
       },
       over80: {
         adjustment: adjustAdjustment(
-          baseRates.fiveYrVariable.over80.adjustment
+          baseRates.fiveYrVariable.over80.adjustment,
         ),
         lender: baseRates.fiveYrVariable.over80.lender,
       },
       refinance: {
         under25: {
           adjustment: adjustAdjustment(
-            baseRates.fiveYrVariable.refinance.under25.adjustment
+            baseRates.fiveYrVariable.refinance.under25.adjustment,
           ),
           lender: baseRates.fiveYrVariable.refinance.under25.lender,
         },
         over25: {
           adjustment: adjustAdjustment(
-            baseRates.fiveYrVariable.refinance.over25.adjustment
+            baseRates.fiveYrVariable.refinance.over25.adjustment,
           ),
           lender: baseRates.fiveYrVariable.refinance.over25.lender,
         },
       },
       rental: {
-        adjustment: adjustAdjustment(
-          baseRates.fiveYrVariable.rental.adjustment
-        ),
-        lender: baseRates.fiveYrVariable.rental.lender,
+        under25: {
+          adjustment: adjustAdjustment(
+            baseRates.fiveYrVariable.rental.under25.adjustment,
+          ),
+          lender: baseRates.fiveYrVariable.rental.under25.lender,
+        },
+        over25: {
+          adjustment: adjustAdjustment(
+            baseRates.fiveYrVariable.rental.over25.adjustment,
+          ),
+          lender: baseRates.fiveYrVariable.rental.over25.lender,
+        },
       },
     },
   };
@@ -340,7 +389,7 @@ async function populateRates() {
         // Create variations for other provinces
         completeRatesData[province] = createProvinceRates(
           sampleRatesData.AB,
-          province
+          province,
         );
       }
       console.log(`✅ Generated rates for ${province}`);
@@ -358,21 +407,24 @@ async function populateRates() {
     console.log("\n📊 Verification - Sample rental rates:");
     console.log("AB Fixed Rental Rates:");
     console.log(
-      `  3-Year: ${savedRates.AB.threeYrFixed.rental.rate}% (${savedRates.AB.threeYrFixed.rental.lender})`
+      `  3-Year ≤25yr: ${savedRates.AB.threeYrFixed.rental.under25.rate}% (${savedRates.AB.threeYrFixed.rental.under25.lender})`,
     );
     console.log(
-      `  4-Year: ${savedRates.AB.fourYrFixed.rental.rate}% (${savedRates.AB.fourYrFixed.rental.lender})`
+      `  3-Year >25yr: ${savedRates.AB.threeYrFixed.rental.over25.rate}% (${savedRates.AB.threeYrFixed.rental.over25.lender})`,
     );
     console.log(
-      `  5-Year: ${savedRates.AB.fiveYrFixed.rental.rate}% (${savedRates.AB.fiveYrFixed.rental.lender})`
+      `  4-Year ≤25yr: ${savedRates.AB.fourYrFixed.rental.under25.rate}% (${savedRates.AB.fourYrFixed.rental.under25.lender})`,
+    );
+    console.log(
+      `  5-Year ≤25yr: ${savedRates.AB.fiveYrFixed.rental.under25.rate}% (${savedRates.AB.fiveYrFixed.rental.under25.lender})`,
     );
 
     console.log("AB Variable Rental Rates:");
     console.log(
-      `  3-Year: Prime ${savedRates.AB.threeYrVariable.rental.adjustment >= 0 ? "+" : ""}${savedRates.AB.threeYrVariable.rental.adjustment}% (${savedRates.AB.threeYrVariable.rental.lender})`
+      `  3-Year ≤25yr: Prime ${savedRates.AB.threeYrVariable.rental.under25.adjustment >= 0 ? "+" : ""}${savedRates.AB.threeYrVariable.rental.under25.adjustment}% (${savedRates.AB.threeYrVariable.rental.under25.lender})`,
     );
     console.log(
-      `  5-Year: Prime ${savedRates.AB.fiveYrVariable.rental.adjustment >= 0 ? "+" : ""}${savedRates.AB.fiveYrVariable.rental.adjustment}% (${savedRates.AB.fiveYrVariable.rental.lender})`
+      `  5-Year ≤25yr: Prime ${savedRates.AB.fiveYrVariable.rental.under25.adjustment >= 0 ? "+" : ""}${savedRates.AB.fiveYrVariable.rental.under25.adjustment}% (${savedRates.AB.fiveYrVariable.rental.under25.lender})`,
     );
 
     console.log(`\n✨ All ${provinces.length} provinces populated with rates!`);

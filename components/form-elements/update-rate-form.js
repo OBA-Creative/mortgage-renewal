@@ -21,10 +21,13 @@ export default function UpdateRateForm({
   // Get lenders from store with reactive subscription
   const { fetchLenders, clearPersistedLenderData } = useMortgageStore();
   const lenderData = useMortgageStore((state) => state.lenders);
-  const availableLenders =
-    type === "rental" ? lenderData.rentalNames : lenderData.allNames;
-  const availableLenderObjects =
-    type === "rental" ? lenderData.rental : lenderData.all;
+  const isRentalType = type === "rental" || type?.includes("rental-");
+  const availableLenders = isRentalType
+    ? lenderData.rentalNames
+    : lenderData.allNames;
+  const availableLenderObjects = isRentalType
+    ? lenderData.rental
+    : lenderData.all;
 
   // Ensure lenders are loaded when component mounts
   useEffect(() => {
@@ -111,6 +114,10 @@ export default function UpdateRateForm({
       const refType = type.replace("refinance-", "");
       return refType === "under25" ? "Refinance ≤25yr" : "Refinance >25yr";
     }
+    if (type?.includes("rental-")) {
+      const rentType = type.replace("rental-", "");
+      return rentType === "under25" ? "Rental ≤25yr" : "Rental >25yr";
+    }
     if (type === "rental") return "Rental";
 
     // LTV types
@@ -176,7 +183,7 @@ export default function UpdateRateForm({
               <strong>Type:</strong>{" "}
               <span
                 className={`font-medium ${
-                  type === "rental"
+                  type === "rental" || type?.includes("rental-")
                     ? "text-purple-600"
                     : type?.includes("refinance-")
                       ? "text-green-600"

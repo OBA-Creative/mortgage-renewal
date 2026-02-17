@@ -16,7 +16,7 @@ export default function PropertyPage() {
   const helpTexts = {
     city: "Enter the city where your property is located.",
     usage:
-      "Select how you currently use your property. This affects the mortgage rates and terms available to you. Primary residence typically offers the best rates.",
+      "Select how you currently use your property. This affects the mortgage rates and terms available to you.",
     downpaymentOption:
       "Tell us about your original downpayment. This helps us understand your current loan-to-value ratio and determines available refinancing options.",
   };
@@ -78,8 +78,8 @@ export default function PropertyPage() {
 
   const usageOptions = [
     "Primary Residence",
-    "Second home",
-    "Owner-occupied and Rental",
+    "Second Home",
+    "Primary Residence + Rental Suite",
     "Rental / Investment ",
   ];
 
@@ -95,7 +95,7 @@ export default function PropertyPage() {
         {/* City Question */}
         <PlacesAutocompleteInput
           id="city"
-          label="What city is your property located in?"
+          label="Which city is your property located in?"
           register={register}
           requiredText="City is required"
           setValue={setValue}
