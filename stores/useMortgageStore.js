@@ -63,20 +63,11 @@ export const useMortgageStore = create(
             currentState.lenders.lastFetched > fiveMinutesAgo;
           const hasExistingData = currentState.lenders.all.length > 0;
 
-          console.log("Cache check:", {
-            lastFetched: currentState.lenders.lastFetched,
-            hasRecentData,
-            hasExistingData,
-            currentDataLength: currentState.lenders.all.length,
-            currentLenders: currentState.lenders.allNames.slice(0, 5),
-          });
-
           if (hasRecentData && hasExistingData) {
-            console.log("Using cached lender data");
             return;
           }
         } else {
-          console.log("Force refresh requested, bypassing cache");
+          // Force refresh requested, bypassing cache
         }
 
         set((state) => ({
@@ -89,22 +80,12 @@ export const useMortgageStore = create(
           const data = await response.json();
 
           if (data.success) {
-            console.log(
-              "Raw API response:",
-              data.lenders.map((l) => l.lenderName),
-            );
-
             // Store full lender objects and extract names for backward compatibility
             const allLenders = data.lenders;
             // All lenders are available for both regular and rental properties
             const allLenderNames = data.lenders.map(
               (lender) => lender.lenderName,
             );
-
-            console.log("Processed data before storing:", {
-              allLendersCount: allLenders.length,
-              allLenderNames: allLenderNames,
-            });
 
             set((state) => ({
               lenders: {
@@ -117,16 +98,10 @@ export const useMortgageStore = create(
                 lastFetched: Date.now(),
               },
             }));
-
-            console.log(
-              `Fetched ${allLenderNames.length} lenders (all available for rental properties too)`,
-            );
           } else {
             throw new Error(data.message || "Failed to fetch lenders");
           }
         } catch (error) {
-          console.error("Error fetching lenders:", error);
-
           // Fallback to hardcoded lenders
           const fallbackLenderNames = [
             "TD Bank",
@@ -174,7 +149,6 @@ export const useMortgageStore = create(
 
       // Clear lender cache (useful for admin updates)
       clearLenderCache: () => {
-        console.log("Clearing lender cache completely...");
         set((state) => ({
           lenders: {
             ...state.lenders,
@@ -187,9 +161,8 @@ export const useMortgageStore = create(
         }));
       },
 
-      // Force clear localStorage lender data (for debugging)
+      // Force clear localStorage lender data
       clearPersistedLenderData: () => {
-        console.log("Clearing persisted lender data from localStorage...");
         const stored = localStorage.getItem("mortgage-form-v3");
         if (stored) {
           try {
@@ -197,10 +170,9 @@ export const useMortgageStore = create(
             if (data.state && data.state.lenders) {
               delete data.state.lenders;
               localStorage.setItem("mortgage-form-v3", JSON.stringify(data));
-              console.log("Persisted lender data cleared from localStorage");
             }
           } catch (e) {
-            console.error("Error clearing persisted lender data:", e);
+            // Silently handle error
           }
         }
       },

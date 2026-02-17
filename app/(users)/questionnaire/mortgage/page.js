@@ -56,7 +56,6 @@ export default function MortgagePage() {
           setLenderOptions(["Other"]);
         }
       } catch (err) {
-        console.error("Failed to fetch lenders:", err);
         setLenderOptions(["Other"]);
       }
     }
@@ -177,7 +176,6 @@ export default function MortgagePage() {
   const onSubmit = (data) => {
     // Validate that maturity date is provided
     if (!data.maturityDate || data.maturityDate.trim() === "") {
-      console.error("Maturity date is required but not provided");
       // Don't proceed with form submission if maturity date is missing
       return;
     }
@@ -212,7 +210,6 @@ export default function MortgagePage() {
     };
 
     setFormData(updatedFormData);
-    console.log("Mortgage data saved to store:", updatedFormData);
     router.push("/rates/renew");
   };
 

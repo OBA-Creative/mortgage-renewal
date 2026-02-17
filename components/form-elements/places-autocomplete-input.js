@@ -39,7 +39,7 @@ const getLocationFromIP = async () => {
       };
     }
   } catch (error) {
-    console.warn("Failed to get location from IP:", error);
+    // Silently handle — IP geolocation is best-effort
   }
   return null;
 };
@@ -261,7 +261,7 @@ export default function PlacesAutocompleteInput({
             setOpen(false);
             setActiveIndex(-1);
           }
-        }
+        },
       );
     }, 150);
 
@@ -277,7 +277,7 @@ export default function PlacesAutocompleteInput({
     new Promise((resolve) => {
       if (!window?.google?.maps?.places?.PlacesService) return resolve(null);
       const svc = new window.google.maps.places.PlacesService(
-        document.createElement("div")
+        document.createElement("div"),
       );
       const fields = [
         "address_components",
@@ -293,7 +293,7 @@ export default function PlacesAutocompleteInput({
           if (status === window.google?.maps?.places?.PlacesServiceStatus?.OK)
             resolve(details);
           else resolve(null);
-        }
+        },
       );
     });
 
@@ -310,7 +310,7 @@ export default function PlacesAutocompleteInput({
     const province = getComp(
       details.address_components,
       "administrative_area_level_1",
-      "short_name" // BC, ON...
+      "short_name", // BC, ON...
     );
 
     const lat = details.geometry?.location?.lat?.();
@@ -514,7 +514,7 @@ export default function PlacesAutocompleteInput({
                     {p.structured_formatting?.secondary_text
                       ? `, ${p.structured_formatting.secondary_text.replace(
                           /,\s*Canada$/,
-                          ""
+                          "",
                         )}`
                       : ""}
                   </span>

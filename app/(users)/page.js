@@ -1,35 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import PathExplainerCard from "@/components/cards/path-explainer-card";
 
 export default function Home() {
-  const router = useRouter();
-  const { formData, resetForm, setFormData } = useMortgageStore();
+  const { fetchLenders } = useMortgageStore();
 
-  const handlePathSelection = (path, url) => {
-    // Only reset if user is switching to a different path
-    if (formData.path && formData.path !== path) {
-      resetForm();
-      console.log(
-        "Mortgage store cleared - switching from",
-        formData.path,
-        "to",
-        path,
-      );
-    } else if (!formData.path) {
-      console.log("Setting initial path:", path);
-    } else {
-      console.log("Continuing with same path:", path);
-    }
-
-    // Set the current path
-    setFormData({ path });
-
-    // Navigate to the selected path
-    router.push(url);
-  };
+  // Pre-load lenders so the dropdown is ready when users reach that step
+  useEffect(() => {
+    fetchLenders();
+  }, [fetchLenders]);
 
   return (
     <div className="flex flex-col justify-center min-h-screen lg:flex-row bg-blue-1000">

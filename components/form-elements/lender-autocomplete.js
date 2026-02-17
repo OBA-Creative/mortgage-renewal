@@ -46,13 +46,13 @@ const LenderAutocomplete = ({
 
       // Filter string lenders (legacy support)
       const filtered = lenders.filter((lender) =>
-        lender.toLowerCase().includes(searchLower)
+        lender.toLowerCase().includes(searchLower),
       );
       setFilteredLenders(filtered);
 
       // Filter lender objects
       const filteredObjects = lenderObjects.filter((lender) =>
-        lender.lenderName.toLowerCase().includes(searchLower)
+        lender.lenderName.toLowerCase().includes(searchLower),
       );
       setFilteredLenderObjects(filteredObjects);
     }
@@ -107,18 +107,13 @@ const LenderAutocomplete = ({
       const data = await response.json();
 
       if (data.success) {
-        console.log("Lender added successfully to DB:", data.lender);
-
         // Force clear cache and fetch fresh data from DB
-        console.log("Before cache clear - forcing fresh fetch...");
         clearLenderCache();
 
         // Add a small delay to ensure cache is cleared
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        console.log("Cache cleared, fetching fresh data...");
         await fetchLenders();
-        console.log("Fresh data fetched after add");
 
         // Select the newly added lender
         handleSelectLender(lenderName.trim());
@@ -127,14 +122,10 @@ const LenderAutocomplete = ({
         if (onLenderAdded) {
           onLenderAdded(data.lender);
         }
-
-        console.log("Successfully added new lender:", lenderName);
       } else {
-        console.error("Error adding lender:", data.message);
         alert("Error adding lender: " + data.message);
       }
     } catch (error) {
-      console.error("Network error adding lender:", error);
       alert("Network error. Please try again.");
     } finally {
       setIsAddingLender(false);
@@ -163,14 +154,10 @@ const LenderAutocomplete = ({
         if (onLenderDeleted) {
           onLenderDeleted(lenderId, lenderName);
         }
-
-        console.log("Successfully deleted lender:", lenderName);
       } else {
-        console.error("Error deleting lender:", data.message);
         alert("Error deleting lender: " + data.message);
       }
     } catch (error) {
-      console.error("Network error deleting lender:", error);
       alert("Network error. Please try again.");
     } finally {
       setDeletingLenders((prev) => {
@@ -232,7 +219,7 @@ const LenderAutocomplete = ({
             // Select the highlighted item - prefer lender objects if available
             if (filteredLenderObjects[highlightedIndex]) {
               handleSelectLender(
-                filteredLenderObjects[highlightedIndex].lenderName
+                filteredLenderObjects[highlightedIndex].lenderName,
               );
             } else if (filteredLenders[highlightedIndex]) {
               handleSelectLender(filteredLenders[highlightedIndex]);

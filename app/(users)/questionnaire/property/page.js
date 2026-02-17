@@ -6,13 +6,10 @@ import MapRadio from "@/components/form-elements/map-radio";
 import DollarInput from "@/components/form-elements/dollar-input";
 import PlacesAutocompleteInput from "@/components/form-elements/places-autocomplete-input";
 import { useMortgageStore } from "@/stores/useMortgageStore";
-import { useState } from "react";
 import NextButton from "@/components/form-elements/next-button";
 
 export default function PropertyPage() {
   const { formData, setFormData } = useMortgageStore();
-  const [activeHelp, setActiveHelp] = useState(null);
-
   const helpTexts = {
     city: "Enter the city where your property is located.",
     usage:
@@ -45,8 +42,6 @@ export default function PropertyPage() {
   const usage = watch("usage");
 
   const onSubmit = (data) => {
-    console.log("Form data:", data);
-
     // Validate that we have both city and province
     if (!data.city || !data.province) {
       if (!data.city) {
@@ -106,9 +101,7 @@ export default function PropertyPage() {
           provinceFieldId="province"
           defaultValue={formData.city}
           onCityProvince={(data) => {
-            // This callback is triggered when a city is selected
-            // The province is automatically set by the component
-            console.log("Selected city/province:", data);
+            // Province is automatically set by the component
           }}
         />
 

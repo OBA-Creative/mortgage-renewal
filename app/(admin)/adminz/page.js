@@ -96,15 +96,11 @@ export default function AdminDashboard() {
 
       if (ratesResponse.ok) {
         const ratesData = await ratesResponse.json();
-        console.log("Rates data received:", ratesData); // Debug log
         setRates(ratesData.rates || {});
         setEffectiveDate(new Date(ratesData.effectiveDate));
         // Set last updated date from the database
         if (ratesData.updatedAt) {
-          console.log("Setting lastUpdatedDate to:", ratesData.updatedAt); // Debug log
           setLastUpdatedDate(new Date(ratesData.updatedAt));
-        } else {
-          console.log("No updatedAt field found in response"); // Debug log
         }
       }
 
@@ -113,7 +109,7 @@ export default function AdminDashboard() {
         setPrime(primeData.prime || 0);
       }
     } catch (error) {
-      console.error("Error fetching rates:", error);
+      // Silently handle fetch errors
     } finally {
       setLoading(false);
     }
@@ -140,7 +136,6 @@ export default function AdminDashboard() {
         throw new Error(errorData.message || "Failed to update prime rate");
       }
     } catch (error) {
-      console.error("Error updating prime rate:", error);
       alert("Error updating prime rate: " + error.message);
     } finally {
       setIsPrimeUpdating(false);
@@ -357,7 +352,6 @@ export default function AdminDashboard() {
         throw new Error(errorData.message || "Failed to save rates");
       }
     } catch (error) {
-      console.error("Error saving rates:", error);
       alert("Error saving rates: " + error.message);
     } finally {
       setSaving(false);
@@ -463,8 +457,6 @@ export default function AdminDashboard() {
         };
       }
 
-      console.log("Sending update payload:", updatePayload);
-
       const response = await fetch("/api/admin/rates/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -473,18 +465,14 @@ export default function AdminDashboard() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("API error details:", errorData);
         throw new Error(
           errorData.error || errorData.message || "Failed to save rate",
         );
       }
 
-      console.log("Rate updated successfully");
-
       // Refresh the rates data
       await fetchRates();
     } catch (error) {
-      console.error("Error saving single rate:", error);
       throw error; // Re-throw to be handled by the form
     }
   };

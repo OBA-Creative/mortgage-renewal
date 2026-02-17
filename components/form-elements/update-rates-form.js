@@ -13,13 +13,11 @@ const useLenders = (isRental = false) => {
   }, [fetchLenders]);
 
   const handleLenderAdded = async (newLender) => {
-    console.log("New lender added:", newLender);
     // Refresh lenders from server to get updated list
     await fetchLenders();
   };
 
   const handleLenderDeleted = async (lenderId, lenderName) => {
-    console.log("Lender deleted:", lenderName);
     // Refresh lenders from server to get updated list
     await fetchLenders();
   };
@@ -529,12 +527,6 @@ const FixedRateSection = ({
 );
 
 const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
-  // Debug log to see what rates structure we're receiving
-  console.log(
-    "UpdateRatesForm received rates:",
-    JSON.stringify(rates, null, 2),
-  );
-
   // Helper function to normalize rental data to nested under25/over25 structure
   const normalizeRental = (rentalData, isFixed = true) => {
     const defaultValue = isFixed

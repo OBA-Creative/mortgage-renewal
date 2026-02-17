@@ -58,7 +58,6 @@ export default function MortgagePage() {
           setLenderOptions(["Other"]);
         }
       } catch (err) {
-        console.error("Failed to fetch lenders:", err);
         setLenderOptions(["Other"]);
       }
     }
@@ -110,7 +109,6 @@ export default function MortgagePage() {
     (key) => setActiveHelp((prev) => (prev === key ? null : key)),
     [],
   );
-  console.log(formData);
 
   // Helper function to convert string date to Date object
   const parseStoredDate = (dateString) => {
@@ -228,13 +226,10 @@ export default function MortgagePage() {
         helocBalance: parseNumber(data.helocBalance),
       };
       setFormData({ ...formData, ...payload });
-      console.log("Mortgage data:", payload);
       router.push("/rates/refinance");
     },
     [formData, router, setFormData],
   );
-
-
 
   return (
     <div className="">

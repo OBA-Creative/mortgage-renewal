@@ -19,7 +19,6 @@ export default function ContactPage() {
   const router = useRouter();
 
   const onSubmit = (data) => {
-    console.log("Contact info:", data);
     router.push("/questionnaire/rates");
   };
 

@@ -1,5 +1,7 @@
 import { Dot } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMortgageStore } from "../../stores/useMortgageStore";
 
 export default function PathExplainerCard({
   link,
@@ -9,6 +11,29 @@ export default function PathExplainerCard({
   item2,
   item3,
 }) {
+  const router = useRouter();
+  const { formData, resetForm, setPath } = useMortgageStore();
+
+  // Derive the target path from the link ("renew" or "refinance")
+  const getTargetPath = (href) => {
+    if (href.includes("refinance")) return "refinance";
+    if (href.includes("renew")) return "renew";
+    return "";
+  };
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    const targetPath = getTargetPath(link);
+
+    if (formData.path && formData.path !== targetPath) {
+      // Switching paths — reset the store first
+      resetForm();
+    }
+
+    setPath(targetPath);
+    router.push(link);
+  };
+
   return (
     <div className="max-w-md px-10 py-4 mx-auto text-center text-gray-700 bg-white border border-blue-200 rounded-lg shadow-xl">
       <div className="flex flex-col items-start space-y-2 text-left">
@@ -43,6 +68,7 @@ export default function PathExplainerCard({
 
       <Link
         href={link}
+        onClick={handleClick}
         className="inline-block px-10 py-3 mt-6 font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-500 hover:scale-110 hover:shadow-lg"
       >
         {btnLabel}

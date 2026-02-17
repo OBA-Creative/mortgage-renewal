@@ -40,7 +40,6 @@ export default function RatesPage() {
         setPrime(ratesData.prime);
       } catch (err) {
         setError(err.message);
-        console.error("Error fetching rates:", err);
       } finally {
         setLoading(false);
       }
@@ -171,20 +170,11 @@ export default function RatesPage() {
   // Determine property usage from store
   const currentPropertyUsage = formData?.propertyUsage || "";
 
-  console.log("Current property usage:", currentPropertyUsage);
-  console.log("Property usage length:", currentPropertyUsage.length);
-  console.log(
-    "Property usage char codes:",
-    currentPropertyUsage.split("").map((c) => c.charCodeAt(0)),
-  );
-
   // Determine if we should use rental rates (trim to handle any whitespace issues)
   const trimmedPropertyUsage = currentPropertyUsage.trim();
   const useRentalRates =
     trimmedPropertyUsage === "Owner-occupied and Rental" ||
     trimmedPropertyUsage === "Rental / Investment";
-
-  console.log("Should use rental rates:", useRentalRates);
 
   const totalMortgageRequired =
     (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
@@ -261,20 +251,38 @@ export default function RatesPage() {
   // Get city-based rates for the user's province
   const cityBasedRates = useMemo(() => {
     const cityRates = rates?.[prov];
-
-    // Log which rates we're using for debugging
-    console.log(
-      "🏠 Property usage:",
-      currentPropertyUsage,
-      "📊 Using rental rates:",
-      useRentalRates ? "Yes" : "No",
-    );
-
     return cityRates;
-  }, [rates, prov, currentPropertyUsage, useRentalRates]);
+  }, [rates, prov]);
 
   // Show loading or error states
-  if (loading) return <div className="p-8 text-center">Loading rates...</div>;
+  if (loading)
+    return (
+      <div className="py-12 text-center">
+        <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-blue-600 bg-white rounded-md shadow">
+          <svg
+            className="w-5 h-5 mr-3 -ml-1 text-blue-600 animate-spin"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          Loading rates...
+        </div>
+      </div>
+    );
   if (error)
     return (
       <div className="p-8 text-center text-red-600">
@@ -300,13 +308,9 @@ export default function RatesPage() {
     // Check if downpayment is "Less than 20%" - if so, always use over80 rates
     if (formData?.downpaymentValue === "Less than 20%") {
       rateCategory = "over80";
-      console.log(
-        "🔴 Downpayment is less than 20% - using over80 renewal rates",
-      );
     } else if (exceedsLTVLimit && !hasUserMadeChanges) {
       // For pre-existing high LTV scenarios, always use over80 rates
       rateCategory = "over80";
-      console.log("🔴 Pre-existing high LTV - using over80 renewal rates");
     } else {
       // Normal LTV-based renewal rate calculation
       if (ltv <= 65) rateCategory = "under65";
@@ -314,23 +318,12 @@ export default function RatesPage() {
       else if (ltv <= 75) rateCategory = "under75";
       else if (ltv <= 80) rateCategory = "under80";
       else rateCategory = "over80";
-
-      console.log(
-        `📊 Normal LTV calculation: ${ltv.toFixed(1)}% → ${rateCategory} renewal rates`,
-      );
     }
   }
 
   // Get renewal rates for the LTV category
   let r3F, r4F, r5F, r3VAdjustment, r5VAdjustment;
   let r3FLender, r4FLender, r5FLender, r3VLender, r5VLender;
-
-  console.log(`� Fetching renewal rates with category: ${rateCategory}`);
-  console.log(`🔍 Province: ${prov}, LTV: ${ltv.toFixed(1)}%`);
-  console.log(
-    `🏦 Available rate categories:`,
-    Object.keys(cityBasedRates.threeYrFixed || {}),
-  );
 
   // Always use standard renewal rates (no refinance logic)
   if (useRentalRates) {
@@ -365,8 +358,6 @@ export default function RatesPage() {
     r5VLender =
       cityBasedRates.fiveYrVariable.rental?.[rentalKey]?.lender ||
       "Default Lender";
-
-    console.log(`🏢 Using rental rates for investment property (${rentalKey})`);
   } else {
     // Use regular LTV-based rates for owner-occupied properties
     r3F = cityBasedRates.threeYrFixed[rateCategory]?.rate || 0;
@@ -390,30 +381,6 @@ export default function RatesPage() {
       cityBasedRates.fiveYrVariable[rateCategory]?.adjustment || 0;
     r5VLender =
       cityBasedRates.fiveYrVariable[rateCategory]?.lender || "Default Lender";
-
-    console.log(
-      `🏠 Using LTV-based rates for owner-occupied property (${rateCategory})`,
-    );
-  }
-
-  console.log(`💰 Renewal rates - 3F: ${r3F}%, 4F: ${r4F}%, 5F: ${r5F}%`);
-  console.log(
-    `🏪 Lenders - 3F: ${r3FLender}, 4F: ${r4FLender}, 5F: ${r5FLender}`,
-  );
-
-  // Debug specific category data if rates are 0
-  if (r3F === 0 || r4F === 0 || r5F === 0) {
-    console.log(`🚨 Some rates are 0! Debugging ${rateCategory} data:`, {
-      threeYrFixed: cityBasedRates.threeYrFixed?.[rateCategory],
-      fourYrFixed: cityBasedRates.fourYrFixed?.[rateCategory],
-      fiveYrFixed: cityBasedRates.fiveYrFixed?.[rateCategory],
-      threeYrVariable: cityBasedRates.threeYrVariable?.[rateCategory],
-      fiveYrVariable: cityBasedRates.fiveYrVariable?.[rateCategory],
-    });
-    console.log(
-      `🗂️ Full database structure:`,
-      JSON.stringify(cityBasedRates, null, 2),
-    );
   }
 
   // Variable rates: calculate from prime rate with stored adjustments

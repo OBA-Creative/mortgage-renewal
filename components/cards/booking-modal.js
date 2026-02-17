@@ -228,10 +228,6 @@ export default function BookingModal({
       // Remove legacy 'name' field if present
       delete userData.name;
 
-      console.log("[BookingModal] Store formData:", storeData);
-      console.log("[BookingModal] Lead data:", leadData);
-      console.log("[BookingModal] Combined userData:", userData);
-
       // Save user to database and send email in parallel
       const [userResponse, emailResponse] = await Promise.all([
         fetch("/api/users", {
@@ -260,23 +256,16 @@ export default function BookingModal({
 
       const userResult = await userResponse.json();
       if (!userResponse.ok) {
-        console.error(
-          `Failed to save user to database — Status: ${userResponse.status} — Body: ${JSON.stringify(userResult)} — Sent data: ${JSON.stringify(userData)}`,
-        );
-      } else {
-        console.log("User saved to database successfully:", userResult);
+        // Failed to save — continue anyway
       }
 
       if (!emailResponse.ok) {
-        console.error("Failed to send email notification");
-      } else {
-        console.log("Email notification sent successfully");
+        // Failed to send email — continue anyway
       }
 
       // Proceed to step 2 regardless of email status
       setStep(2);
     } catch (error) {
-      console.error("Error in onLeadSubmit:", error);
       // Proceed to step 2 even if there's an error
       setStep(2);
     }

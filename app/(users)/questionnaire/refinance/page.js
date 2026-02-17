@@ -45,7 +45,6 @@ export default function PropertyPage() {
   const onSubmit = useCallback(
     (data) => {
       setFormData({ ...formData, ...data });
-      console.log("Property data:", data);
       router.push("/questionnaire/refinance/mortgage");
     },
     [formData, router, setFormData],

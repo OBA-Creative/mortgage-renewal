@@ -37,15 +37,11 @@ export default function ContactInfoPage() {
   const router = useRouter();
 
   const onSubmit = async (data) => {
-    console.log("Contact info:", data);
-
     // Merge contact info into store
     setFormData(data);
 
     // Combine existing store data with the contact info just entered
     const userData = { ...formData, ...data };
-
-    console.log("Saving user data:", userData);
 
     try {
       setSaving(true);
@@ -56,13 +52,12 @@ export default function ContactInfoPage() {
       });
 
       const result = await res.json();
-      console.log("Save user response:", result);
 
       if (!result.success) {
-        console.error("Failed to save user:", result.message);
+        // Silently handle — user still proceeds
       }
     } catch (err) {
-      console.error("Error saving user to database:", err);
+      // Silently handle — user still proceeds
     } finally {
       setSaving(false);
       router.push("/questionnaire/rates");

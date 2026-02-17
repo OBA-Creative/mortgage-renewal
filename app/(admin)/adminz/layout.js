@@ -4,14 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Building2Icon,
-  ChartAreaIcon,
-  LandmarkIcon,
-  LogOut,
-  TableIcon,
-  UsersIcon,
-} from "lucide-react";
+import { ChartAreaIcon, LandmarkIcon, LogOut, UsersIcon } from "lucide-react";
 
 export default function AdminLayout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

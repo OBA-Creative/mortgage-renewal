@@ -37,26 +37,14 @@ export default function UpdateRateForm({
     fetchLenders(true);
   }, [fetchLenders, clearPersistedLenderData]);
 
-  // Debug lender data changes
-  useEffect(() => {
-    console.log("Lender data updated:", {
-      allNames: lenderData.allNames,
-      rentalNames: lenderData.rentalNames,
-      availableLenders,
-      lastFetched: lenderData.lastFetched,
-    });
-  }, [lenderData, availableLenders]);
-
   // Handle when a new lender is added
   const handleLenderAdded = async (newLender) => {
-    console.log("New lender added:", newLender);
     // Refresh lenders from server to get updated list
     await fetchLenders();
   };
 
   // Handle when a lender is deleted
   const handleLenderDeleted = async (lenderId, lenderName) => {
-    console.log("Lender deleted:", lenderName);
     // Refresh lenders from server to get updated list
     await fetchLenders();
     // Clear the selected lender if it was the one that got deleted
@@ -96,7 +84,6 @@ export default function UpdateRateForm({
       // Close the modal on success
       onClose();
     } catch (error) {
-      console.error("Error updating rate:", error);
       setError(error.message || "Failed to update rate");
     } finally {
       setIsLoading(false);
