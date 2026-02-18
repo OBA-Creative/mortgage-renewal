@@ -81,7 +81,7 @@ export default function BorrowAdditionalFunds({
         <DollarInput
           id="borrowAdditionalAmount"
           setValue={setValue}
-          label={`Up to ${formattedMaxBorrow}, how much do you want to borrow?`}
+          label={`Up to $${formattedMaxBorrow}, how much do you want to borrow?`}
           valueState={borrowInput}
           setValueState={(value) => {
             const numericValue = parseNumber(value);
