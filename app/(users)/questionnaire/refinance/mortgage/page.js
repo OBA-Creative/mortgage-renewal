@@ -100,7 +100,7 @@ export default function MortgagePage() {
     borrowAdditionalAmount:
       "Enter the amount you'd like to borrow. The maximum is calculated based on 80% of your property value minus your current mortgage and HELOC balances.",
     amortizationPeriod:
-      "Enter the number of years remaining on your amortization (between 0 and 30). This affects your payment amount and available rates.",
+      "Enter the number of years remaining on your amortization (between 1 and 30). This affects your payment amount and available rates.",
     maturityDate:
       "This is the date your current mortgage term expires and you’ll need to renew. You can find it on your mortgage documents or statement.",
   };
@@ -350,15 +350,15 @@ export default function MortgagePage() {
           id="amortizationPeriod"
           label="How long should your new mortgage amortization be?"
           type="number"
-          min={0}
+          min={1}
           max={30}
           step="1"
           register={register}
           requiredText="Please enter remaining amortization"
           validationRules={{
             min: {
-              value: 0,
-              message: "Amortization must be at least 0 years",
+              value: 1,
+              message: "Amortization must be at least 1 years",
             },
             max: {
               value: 30,

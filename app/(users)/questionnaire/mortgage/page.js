@@ -113,7 +113,7 @@ export default function MortgagePage() {
     otherLender:
       "Enter the name of your mortgage lender if it wasn't listed in the dropdown menu above.",
     amortizationPeriod:
-      "Enter the number of years remaining on your amortization (between 0 and 30). This affects your payment amount and available rates.",
+      "Enter the number of years remaining on your amortization (between 1 and 30). This affects your payment amount and available rates.",
     maturityDate:
       "This is the date your current mortgage term expires and you’ll need to renew. You can find it on your mortgage documents or statement.",
   };
@@ -232,7 +232,7 @@ export default function MortgagePage() {
         {/* Property Value */}
         <DollarInput
           id="propertyValue"
-          label="Property Value"
+          label="Current property value?"
           setValue={setValue}
           valueState={propertyValue}
           setValueState={(value) => {
@@ -347,17 +347,17 @@ export default function MortgagePage() {
         {/* Amortization Remaining */}
         <TextInput
           id="amortizationPeriod"
-          label="What's the amortization remaining in years?"
+          label="What is the remaining amortization (in years)?"
           type="number"
-          min={0}
+          min={1}
           max={30}
           step="1"
           register={register}
           requiredText="Please enter remaining amortization"
           validationRules={{
             min: {
-              value: 0,
-              message: "Amortization must be at least 0 years",
+              value: 1,
+              message: "Amortization must be at least 1 year",
             },
             max: {
               value: 30,

@@ -10,7 +10,7 @@ import PlacesAutocompleteInput from "@/components/form-elements/places-autocompl
 
 const helpTexts = {
   propertyUsage:
-    "Select how you currently use your property. This affects the rates and terms available to you.",
+    "Select how you currently use your property. This affects the mortgage rates and terms available to you.",
   city: "Enter your city to help us provide accurate local mortgage rates and connect you with lenders in your area. We'll auto-detect your location, but you can change it as needed.",
 };
 
@@ -66,7 +66,7 @@ export default function PropertyPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* City & Province */}
         <PlacesAutocompleteInput
-          label="What city is your property in?"
+          label="Which city is your property in?"
           id="city"
           register={register}
           requiredText="City is required"
