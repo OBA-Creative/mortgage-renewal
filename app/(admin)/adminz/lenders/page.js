@@ -1,7 +1,7 @@
 "use client";
 
-import { LandmarkIcon, PencilIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { LandmarkIcon, PencilIcon, GripVerticalIcon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useMortgageStore } from "../../../../stores/useMortgageStore";
 
 export default function LendersPage() {
@@ -17,6 +17,10 @@ export default function LendersPage() {
   const [editingLender, setEditingLender] = useState(null);
   const [editLenderName, setEditLenderName] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const dragCounter = useRef(0);
 
   // Get cache clearing function from store
   const { clearLenderCache } = useMortgageStore();
@@ -67,11 +71,7 @@ export default function LendersPage() {
       const data = await response.json();
 
       if (data.success) {
-        setLenders((prev) =>
-          [...prev, data.lender].sort((a, b) =>
-            a.lenderName.localeCompare(b.lenderName),
-          ),
-        );
+        setLenders((prev) => [...prev, data.lender]);
         setNewLenderName("");
         setIsAddModalOpen(false);
         // Clear lender cache so dropdowns get updated data
@@ -160,17 +160,15 @@ export default function LendersPage() {
 
       if (data.success) {
         setLenders((prev) =>
-          prev
-            .map((lender) =>
-              lender._id === editingLender._id
-                ? {
-                    ...lender,
-                    lenderName: data.lender.lenderName,
-                    updatedAt: data.lender.updatedAt,
-                  }
-                : lender,
-            )
-            .sort((a, b) => a.lenderName.localeCompare(b.lenderName)),
+          prev.map((lender) =>
+            lender._id === editingLender._id
+              ? {
+                  ...lender,
+                  lenderName: data.lender.lenderName,
+                  updatedAt: data.lender.updatedAt,
+                }
+              : lender,
+          ),
         );
         setIsEditModalOpen(false);
         setEditingLender(null);
@@ -221,6 +219,90 @@ export default function LendersPage() {
         newSet.delete(lenderId);
         return newSet;
       });
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index);
+    // Make the drag image slightly transparent
+    e.currentTarget.style.opacity = "0.5";
+  };
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.style.opacity = "1";
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    dragCounter.current = 0;
+  };
+
+  const handleDragEnter = (e, index) => {
+    e.preventDefault();
+    dragCounter.current++;
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = (e) => {
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setDragOverIndex(null);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = async (e, dropIndex) => {
+    e.preventDefault();
+    dragCounter.current = 0;
+    const fromIndex = draggedIndex;
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+
+    if (fromIndex === null || fromIndex === dropIndex) return;
+
+    // Reorder locally
+    const reordered = [...lenders];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(dropIndex, 0, moved);
+    setLenders(reordered);
+
+    // Save new order to API
+    await saveOrder(reordered);
+  };
+
+  const saveOrder = async (orderedLenders) => {
+    setIsSavingOrder(true);
+    try {
+      const order = orderedLenders.map((lender, index) => ({
+        id: lender._id,
+        displayOrder: index + 1,
+      }));
+
+      const response = await fetch("/api/admin/lenders", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        clearLenderCache();
+      } else {
+        alert("Error saving order: " + data.message);
+        fetchLenders(); // Revert to server order
+      }
+    } catch (error) {
+      console.error("Error saving order:", error);
+      alert("Network error saving order. Please try again.");
+      fetchLenders();
+    } finally {
+      setIsSavingOrder(false);
     }
   };
 
@@ -316,9 +398,29 @@ export default function LendersPage() {
           ) : (
             <ul className="divide-y divide-gray-200">
               {lenders.map((lender, index) => (
-                <li key={lender._id} className="px-6 py-4 hover:bg-gray-50">
+                <li
+                  key={lender._id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragEnd={handleDragEnd}
+                  onDragEnter={(e) => handleDragEnter(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, index)}
+                  className={`px-6 py-4 transition-colors duration-150 ${
+                    draggedIndex === index
+                      ? "opacity-50"
+                      : dragOverIndex === index
+                        ? "bg-blue-50 border-t-2 border-blue-400"
+                        : "hover:bg-gray-50"
+                  }`}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
+                      {/* Drag Handle */}
+                      <div className="flex items-center mr-2 text-gray-300 cursor-grab active:cursor-grabbing hover:text-gray-500">
+                        <GripVerticalIcon className="w-5 h-5" />
+                      </div>
                       <div className="flex w-10 h-10 shrink-0">
                         <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
                           <LandmarkIcon className="w-6 h-6 text-blue-600" />
@@ -460,9 +562,35 @@ export default function LendersPage() {
 
           {lenders.length > 0 && (
             <div className="px-6 py-3 bg-gray-50">
-              <div className="text-sm text-gray-500">
-                Total: {lenders.length} lender
-                {lenders.length !== 1 ? "s" : ""}
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span>
+                  Total: {lenders.length} lender
+                  {lenders.length !== 1 ? "s" : ""}
+                </span>
+                {isSavingOrder && (
+                  <span className="flex items-center text-blue-600">
+                    <svg
+                      className="w-4 h-4 mr-1 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Saving order...
+                  </span>
+                )}
               </div>
             </div>
           )}

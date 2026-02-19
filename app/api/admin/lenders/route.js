@@ -266,3 +266,43 @@ export async function DELETE(request) {
     );
   }
 }
+
+// Reorder lenders - accepts an array of { id, displayOrder }
+export async function PUT(request) {
+  try {
+    await connectToDatabase();
+
+    const { order } = await request.json();
+
+    if (!Array.isArray(order) || order.length === 0) {
+      return NextResponse.json(
+        { success: false, message: "Order array is required" },
+        { status: 400 },
+      );
+    }
+
+    // Bulk update displayOrder for each lender
+    const bulkOps = order.map(({ id, displayOrder }) => ({
+      updateOne: {
+        filter: { _id: id },
+        update: { $set: { displayOrder } },
+      },
+    }));
+
+    await Lender.bulkWrite(bulkOps);
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Lender order updated successfully",
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("Error reordering lenders:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
