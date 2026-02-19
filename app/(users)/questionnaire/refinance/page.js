@@ -58,12 +58,12 @@ export default function PropertyPage() {
   ];
 
   return (
-    <div className="">
-      <h1 className="max-w-2xl mb-8 text-4xl font-semibold text-center">
+    <div className="w-full">
+      <h1 className="max-w-xl mb-8 text-4xl font-semibold text-center">
         {"Let's learn about your property"}
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
         {/* City & Province */}
         <PlacesAutocompleteInput
           label="Which city is your property in?"

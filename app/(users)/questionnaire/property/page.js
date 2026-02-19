@@ -81,12 +81,12 @@ export default function PropertyPage() {
   const downpaymentOptions = ["20% or more", "Less than 20%"];
 
   return (
-    <div className="">
+    <div className="w-full">
       <h1 className="mb-8 text-4xl font-semibold text-center ">
         {"Let's learn about your property"}
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
         {/* City Question */}
         <PlacesAutocompleteInput
           id="city"

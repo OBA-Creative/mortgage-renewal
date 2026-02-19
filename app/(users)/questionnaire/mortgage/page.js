@@ -223,12 +223,12 @@ export default function MortgagePage() {
       : false;
 
   return (
-    <div className="">
+    <div className="w-full">
       <h1 className="mb-8 text-4xl font-semibold text-center">
         {"Now let's learn about your mortgage"}
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-8">
         {/* Property Value */}
         <DollarInput
           id="propertyValue"

@@ -65,12 +65,12 @@ export default function ContactInfoPage() {
   };
 
   return (
-    <div className="">
-      <h1 className="max-w-2xl my-8 text-4xl font-semibold text-center">
+    <div className="w-full">
+      <h1 className="max-w-xl my-8 text-4xl font-semibold text-center">
         {"Your rates are ready! Tell us how to reach you"}
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-8">
         {/* First Name */}
         <TextInput
           type="text"
