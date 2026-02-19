@@ -423,7 +423,7 @@ export default function PlacesAutocompleteInput({
         onHelpClick={helpTexts ? () => toggleHelp(id) : undefined}
       />
       {activeHelp === id && helpTexts && (
-        <div className="mt-2 p-3 bg-blue-100 border border-gray-300 rounded-md">
+        <div className="p-3 mt-2 bg-blue-100 border border-gray-300 rounded-md">
           {helpTexts}
         </div>
       )}
@@ -434,7 +434,7 @@ export default function PlacesAutocompleteInput({
         type="text"
         {...registerRest}
         ref={mergedRef}
-        className="w-full rounded-md border border-gray-300 bg-white py-4 px-4 text-lg"
+        className="w-full px-4 py-4 text-lg bg-white border border-gray-300 rounded-md"
         autoComplete="off"
         value={query || ""} // Ensure value is always a string
         disabled={!isGoogleMapsReady || isLoadingLocation}
@@ -443,7 +443,7 @@ export default function PlacesAutocompleteInput({
             ? "Getting your location..."
             : !isGoogleMapsReady
               ? "Loading..."
-              : ""
+              : "Enter city"
         }
         onChange={(e) => {
           const v = e.target.value;
@@ -491,10 +491,10 @@ export default function PlacesAutocompleteInput({
         <div className="relative">
           <ul
             role="listbox"
-            className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-md border border-gray-300 bg-white shadow-lg"
+            className="absolute z-50 w-full mt-1 overflow-auto bg-white border border-gray-300 rounded-md shadow-lg max-h-72"
           >
             {loading && (
-              <li className="px-4 py-3 text-gray-500 text-sm">Searching…</li>
+              <li className="px-4 py-3 text-sm text-gray-500">Searching…</li>
             )}
             {!loading &&
               predictions.map((p, i) => (
@@ -524,7 +524,7 @@ export default function PlacesAutocompleteInput({
         </div>
       )}
 
-      {error && <p className="text-red-600 mt-1">{error.message}</p>}
+      {error && <p className="mt-1 text-red-600">{error.message}</p>}
     </div>
   );
 }
