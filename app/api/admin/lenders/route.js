@@ -31,7 +31,7 @@ export async function GET(request) {
     const lenders = await Lender.find(query)
       .sort({ displayOrder: 1, lenderName: 1 })
       .select(
-        "lenderName category supportsRental displayOrder description isActive createdAt updatedAt"
+        "lenderName category supportsRental displayOrder description isActive createdAt updatedAt",
       )
       .lean();
 
@@ -44,13 +44,13 @@ export async function GET(request) {
             "No lenders found matching the criteria. Run the initialization script to add initial lenders.",
           query,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
     console.log(
       `API Debug - Found ${lenders.length} lenders with query:`,
-      query
+      query,
     );
 
     return NextResponse.json(
@@ -60,13 +60,13 @@ export async function GET(request) {
         count: lenders.length,
         query,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error fetching lenders:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -87,7 +87,7 @@ export async function POST(request) {
     if (!lenderName || !lenderName.trim()) {
       return NextResponse.json(
         { success: false, message: "Lender name is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -99,7 +99,7 @@ export async function POST(request) {
     if (existingLender) {
       return NextResponse.json(
         { success: false, message: "Lender already exists" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -128,13 +128,13 @@ export async function POST(request) {
         lender: newLender,
         message: "Lender created successfully",
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error creating lender:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -143,33 +143,67 @@ export async function PATCH(request) {
   try {
     await connectToDatabase();
 
-    const { id, isActive } = await request.json();
+    const { id, isActive, lenderName } = await request.json();
 
     if (!id) {
       return NextResponse.json(
         { success: false, message: "Lender ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    if (typeof isActive !== "boolean") {
+    // Build update object based on provided fields
+    const updateFields = {};
+
+    if (typeof isActive === "boolean") {
+      updateFields.isActive = isActive;
+    }
+
+    if (lenderName !== undefined) {
+      const trimmedName = lenderName.trim();
+      if (!trimmedName) {
+        return NextResponse.json(
+          { success: false, message: "Lender name cannot be empty" },
+          { status: 400 },
+        );
+      }
+
+      // Check if another lender already has this name (case-insensitive)
+      const existingLender = await Lender.findOne({
+        _id: { $ne: id },
+        lenderName: { $regex: new RegExp(`^${trimmedName}$`, "i") },
+      });
+
+      if (existingLender) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Another lender with this name already exists",
+          },
+          { status: 409 },
+        );
+      }
+
+      updateFields.lenderName = trimmedName;
+    }
+
+    if (Object.keys(updateFields).length === 0) {
       return NextResponse.json(
-        { success: false, message: "isActive must be a boolean value" },
-        { status: 400 }
+        { success: false, message: "No valid fields to update" },
+        { status: 400 },
       );
     }
 
     // Find and update the lender
-    const updatedLender = await Lender.findByIdAndUpdate(
-      id,
-      { isActive },
-      { new: true, runValidators: true }
-    );
+    const updatedLender = await Lender.findByIdAndUpdate(id, updateFields, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!updatedLender) {
       return NextResponse.json(
         { success: false, message: "Lender not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -177,17 +211,15 @@ export async function PATCH(request) {
       {
         success: true,
         lender: updatedLender,
-        message: `Lender ${
-          isActive ? "activated" : "deactivated"
-        } successfully`,
+        message: "Lender updated successfully",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error updating lender:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -202,7 +234,7 @@ export async function DELETE(request) {
     if (!id) {
       return NextResponse.json(
         { success: false, message: "Lender ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -212,7 +244,7 @@ export async function DELETE(request) {
     if (!lenderToDelete) {
       return NextResponse.json(
         { success: false, message: "Lender not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -224,13 +256,13 @@ export async function DELETE(request) {
         success: true,
         message: `Lender "${lenderToDelete.lenderName}" deleted successfully`,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error deleting lender:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

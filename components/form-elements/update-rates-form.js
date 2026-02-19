@@ -116,6 +116,7 @@ const VariableRateInputField = ({
           className="text-xs [&>input]:px-2 [&>input]:py-1 [&>input]:text-xs [&>input]:border-gray-300 [&>input]:rounded [&>input]:focus:ring-2 [&>input]:focus:ring-blue-700 [&>input]:focus:border-blue-700 [&>input]:shadow-none [&>div]:shadow-none [&>div]:border-gray-300"
           dropdownWidth="w-64"
           alignDropdown={ltv === "rental" ? "right" : "left"}
+          showDelete={false}
         />
       </div>
     </div>
@@ -363,6 +364,7 @@ const RateInputField = ({
           className="text-xs [&>input]:px-2 [&>input]:py-1 [&>input]:text-xs [&>input]:border-gray-300 [&>input]:rounded [&>input]:focus:ring-2 [&>input]:focus:ring-blue-500 [&>input]:focus:border-blue-500 [&>input]:shadow-none [&>div]:shadow-none [&>div]:border-gray-300"
           dropdownWidth="w-64"
           alignDropdown={ltv === "rental" ? "right" : "left"}
+          showDelete={false}
         />
       </div>
     </div>

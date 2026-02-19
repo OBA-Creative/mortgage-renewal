@@ -1,6 +1,6 @@
 "use client";
 
-import { LandmarkIcon } from "lucide-react";
+import { LandmarkIcon, PencilIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useMortgageStore } from "../../../../stores/useMortgageStore";
 
@@ -13,6 +13,10 @@ export default function LendersPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [togglingLenders, setTogglingLenders] = useState(new Set());
   const [deletingLenders, setDeletingLenders] = useState(new Set());
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingLender, setEditingLender] = useState(null);
+  const [editLenderName, setEditLenderName] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
   // Get cache clearing function from store
   const { clearLenderCache } = useMortgageStore();
@@ -126,6 +130,60 @@ export default function LendersPage() {
         newSet.delete(lenderId);
         return newSet;
       });
+    }
+  };
+
+  const openEditModal = (lender) => {
+    setEditingLender(lender);
+    setEditLenderName(lender.lenderName);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditLender = async (e) => {
+    e.preventDefault();
+    if (!editLenderName.trim() || !editingLender) return;
+
+    setIsEditing(true);
+    try {
+      const response = await fetch("/api/admin/lenders", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: editingLender._id,
+          lenderName: editLenderName.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setLenders((prev) =>
+          prev
+            .map((lender) =>
+              lender._id === editingLender._id
+                ? {
+                    ...lender,
+                    lenderName: data.lender.lenderName,
+                    updatedAt: data.lender.updatedAt,
+                  }
+                : lender,
+            )
+            .sort((a, b) => a.lenderName.localeCompare(b.lenderName)),
+        );
+        setIsEditModalOpen(false);
+        setEditingLender(null);
+        setEditLenderName("");
+        clearLenderCache();
+      } else {
+        alert("Error: " + data.message);
+      }
+    } catch (error) {
+      console.error("Error editing lender:", error);
+      alert("Network error. Please try again.");
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -300,6 +358,15 @@ export default function LendersPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
+                      {/* Edit Button */}
+                      <button
+                        onClick={() => openEditModal(lender)}
+                        className="p-2 text-gray-400 transition-colors duration-200 rounded-full cursor-pointer hover:text-blue-600 hover:bg-blue-50"
+                        title="Edit lender name"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </button>
+
                       {/* Toggle Switch */}
                       <div className="flex items-center">
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -401,6 +468,87 @@ export default function LendersPage() {
           )}
         </div>
       )}
+      {/* Edit Lender Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 bg-black/60 backdrop-blur-md">
+          <div className="w-full max-w-md bg-white rounded-lg shadow-xl">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Edit Lender
+                </h3>
+                <button
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingLender(null);
+                    setEditLenderName("");
+                  }}
+                  className="p-2 text-gray-400 rounded-md cursor-pointer hover:text-gray-600 hover:bg-gray-100"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="px-6 py-4">
+              <form onSubmit={handleEditLender}>
+                <div className="mb-4">
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    Lender Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editLenderName}
+                    onChange={(e) => setEditLenderName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter lender name"
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditingLender(null);
+                      setEditLenderName("");
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-full cursor-pointer hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      isEditing ||
+                      !editLenderName.trim() ||
+                      editLenderName.trim() === editingLender?.lenderName
+                    }
+                    className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isEditing ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Lender Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-opacity-50 bg-black/60 backdrop-blur-md">

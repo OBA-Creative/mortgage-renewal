@@ -224,6 +224,7 @@ export default function UpdateRateForm({
             onLenderDeleted={handleLenderDeleted}
             placeholder="Search for a lender..."
             required
+            showDelete={false}
           />
 
           {/* Action Buttons */}
