@@ -295,8 +295,8 @@ export default function BookingModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 z-100 bg-black/55 backdrop-blur-md">
-      <div className="w-full max-w-3xl overflow-hidden bg-white shadow-xl rounded-xl">
+    <div className="fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-100 bg-black/55 backdrop-blur-md">
+      <div className="w-full max-w-3xl overflow-hidden overflow-y-auto bg-white shadow-xl rounded-xl max-h-[95vh]">
         {/* Header */}
         <div className="flex items-center justify-between py-3 pl-6 pr-4 bg-blue-600 shadow-md">
           <div className="flex items-center gap-3">
@@ -336,10 +336,13 @@ export default function BookingModal({
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {step === 1 && (
-            <form className="space-y-4" onSubmit={handleSubmit(onLeadSubmit)}>
-              <div className="grid grid-cols-2 gap-4">
+            <form
+              className="space-y-3 sm:space-y-4"
+              onSubmit={handleSubmit(onLeadSubmit)}
+            >
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <BookingInput
                   id="firstName"
                   label="First name"
@@ -385,21 +388,21 @@ export default function BookingModal({
                 watch={watch}
               />
 
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex flex-col items-center justify-between gap-3 pt-2 sm:flex-row">
                 <button
                   type="button"
                   onClick={() => {
                     onClose();
                     setStep(1);
                   }}
-                  className="px-10 py-3 font-semibold transition-all duration-200 border border-gray-300 rounded-full cursor-pointer hover:border-gray-200 hover:bg-gray-200 hover:scale-110 hover:shadow-lg "
+                  className="w-full px-10 py-3 font-semibold transition-all duration-200 border border-gray-300 rounded-full cursor-pointer sm:w-auto hover:border-gray-200 hover:bg-gray-200 hover:scale-110 hover:shadow-lg "
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-10 py-3 font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-500 hover:scale-110 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="w-full px-10 py-3 font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer sm:w-auto hover:bg-blue-500 hover:scale-110 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {isSubmitting ? "Sending..." : "Continue"}
                 </button>
@@ -415,7 +418,7 @@ export default function BookingModal({
               </p>
 
               <InlineWidget
-                styles={{ height: "640px", width: "100%" }}
+                styles={{ height: "min(640px, 70vh)", width: "100%" }}
                 url={url}
                 pageSettings={{
                   hideEventTypeDetails: true,

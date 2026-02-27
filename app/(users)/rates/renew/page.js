@@ -420,9 +420,9 @@ export default function RatesPage() {
         })}`;
 
   return (
-    <div className="flex flex-col items-center ">
-      <div className="px-4 py-8 mx-auto space-y-4 text-center">
-        <h1 className="text-2xl font-semibold sm:text-3xl lg:text-4xl ">
+    <div className="flex flex-col items-center w-full">
+      <div className="px-4 py-6 mx-auto space-y-3 text-center sm:py-8 sm:space-y-4">
+        <h1 className="text-xl font-semibold sm:text-2xl md:text-3xl lg:text-4xl ">
           Here are the best{" "}
           <span className="text-blue-500 ">
             {formData?.borrowAdditionalFunds === "yes"
@@ -431,14 +431,14 @@ export default function RatesPage() {
           </span>{" "}
           rates that match your profile
         </h1>
-        <p className="px-4 text-base sm:text-lg lg:text-xl">
+        <p className="px-2 text-sm sm:px-4 sm:text-base lg:text-xl">
           If we lock in your rate today, you will be protected from future rate
           increases until{" "}
           <span className="font-semibold">{rateLockExpiryDate}</span>
         </p>
       </div>
 
-      <div className="flex flex-col-reverse w-full px-4 space-y-8 space-y-reverse lg:flex-row lg:space-x-20 lg:space-y-0 max-w-7xl">
+      <div className="flex flex-col-reverse w-full px-3 space-y-6 space-y-reverse sm:px-4 sm:space-y-8 lg:flex-row lg:space-x-20 lg:space-y-0 max-w-7xl">
         {/* Current Mortgage Balance */}
         <form className="w-full lg:w-auto">
           <div className="w-full lg:w-92">
@@ -459,13 +459,13 @@ export default function RatesPage() {
             )}
 
             {/* Total Mortgage Required */}
-            <div className="flex flex-col mt-8 space-y-2">
-              <div className="flex flex-col space-y-2 align-baseline ">
-                <p className="text-2xl font-semibold">
+            <div className="flex flex-col mt-6 space-y-2 sm:mt-8">
+              <div className="flex flex-col space-y-1 align-baseline sm:space-y-2">
+                <p className="text-xl font-semibold sm:text-2xl">
                   Total Mortgage Required
                 </p>
                 <p
-                  className={`text-2xl font-semibold ${shouldBlockRates ? "text-red-400" : "text-blue-500"}`}
+                  className={`text-xl sm:text-2xl font-semibold ${shouldBlockRates ? "text-red-400" : "text-blue-500"}`}
                 >
                   $
                   {totalMortgageRequired.toLocaleString("en-CA", {
@@ -474,7 +474,7 @@ export default function RatesPage() {
                   })}
                 </p>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-xs text-gray-400 sm:text-sm">
                 This is the total amount calculated from your mortgage balance
                 {formData.borrowAdditionalFunds === "yes"
                   ? " and additional borrowing"
@@ -487,11 +487,11 @@ export default function RatesPage() {
 
         {/* Rate Cards */}
         {shouldBlockRates ? (
-          <p className="w-full mt-8 text-xl text-center text-gray-500 max-w-72 lg:w-auto">
+          <p className="w-full mt-6 text-base text-center text-gray-500 sm:mt-8 sm:text-xl max-w-72 lg:w-auto">
             Lower the total mortgage required to see available rates.
           </p>
         ) : (
-          <div className="w-full p-4 space-y-4 bg-white border border-gray-300 rounded-lg lg:w-auto">
+          <div className="w-full p-3 space-y-3 bg-white border border-gray-300 rounded-lg sm:p-4 sm:space-y-4 lg:w-auto">
             <UpsellRateCard monthlyPayment={fmtMoney(upsellPayment)} />
             <RateCard
               percentage={fmtRate(r3F)}
