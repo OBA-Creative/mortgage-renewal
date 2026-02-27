@@ -43,7 +43,7 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/uzv7jan.css" />
       </head>
-      <body>{children}</body>
+      <body className="bg-blue-50">{children}</body>
     </html>
   );
 }
