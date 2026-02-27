@@ -14,11 +14,11 @@ export default function Home() {
 
   return (
     <div className="flex flex-col justify-center min-h-screen lg:flex-row bg-blue-1000">
-      <div className="flex flex-col items-center justify-center w-full min-h-[50vh] py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-100 hover:bg-blue-200">
-        <p className="text-3xl font-bold lg:mb-6 sm:text-4xl lg:text-5xl">
+      <div className="flex flex-col items-center justify-center w-full min-h-[40vh] py-10 sm:min-h-[50vh] sm:py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-100 hover:bg-blue-200">
+        <p className="text-2xl font-bold sm:text-3xl lg:mb-6 lg:text-5xl">
           {"I'm renewing"}
         </p>
-        <p className="px-4 text-lg font-light text-center sm:text-lg lg:text-xl">
+        <p className="px-4 text-base font-light text-center sm:text-lg lg:text-xl">
           (Keeping my existing mortgage, no new borrowing)
         </p>
         <PathExplainerCard
@@ -30,11 +30,11 @@ export default function Home() {
           link="/questionnaire/renew"
         />
       </div>
-      <div className="flex flex-col items-center justify-center w-full min-h-[50vh] py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-50 hover:bg-blue-200">
-        <p className="text-3xl font-bold lg:mb-6 sm:text-4xl lg:text-5xl">
+      <div className="flex flex-col items-center justify-center w-full min-h-[40vh] py-10 sm:min-h-[50vh] sm:py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-50 hover:bg-blue-200">
+        <p className="text-2xl font-bold sm:text-3xl lg:mb-6 lg:text-5xl">
           {"I'm refinancing"}
         </p>
-        <p className="px-4 text-lg font-light text-center sm:text-lg lg:text-xl">
+        <p className="px-4 text-base font-light text-center sm:text-lg lg:text-xl">
           (Changing my mortgage to improve cash flow and lower my payments)
         </p>
         <PathExplainerCard
