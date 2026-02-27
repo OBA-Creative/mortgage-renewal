@@ -74,7 +74,7 @@ export default function PathExplainerCard({
         {btnLabel}
       </Link>
 
-      <p className="mt-4 text-xs text-gray-400 sm:mt-6 sm:text-base">
+      <p className="hidden mt-4 text-xs text-gray-400 sm:mt-6 sm:text-base">
         Not sure? No worries - you can explore both paths and see which one fits
         your needs best.
       </p>

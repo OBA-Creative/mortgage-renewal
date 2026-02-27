@@ -14,7 +14,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col justify-center min-h-screen lg:flex-row bg-blue-1000">
-      <div className="flex flex-col items-center justify-center w-full min-h-[40vh] py-10 sm:min-h-[50vh] sm:py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-100 hover:bg-blue-200">
+      <div className="flex flex-col items-center justify-center w-full min-h-[40vh] pt-20 pb-10 sm:min-h-[50vh] sm:py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-100 hover:bg-blue-200">
         <p className="text-2xl font-bold sm:text-3xl lg:mb-6 lg:text-5xl">
           {"I'm renewing"}
         </p>
@@ -25,7 +25,7 @@ export default function Home() {
           title="Explore renewal options if you’re:"
           item1="Staying with the same balance"
           item2="Not changing your amortization"
-          item3="Just comparing renewal terms"
+          item3="Maturing within next 4 months"
           btnLabel="Explore renewal options"
           link="/questionnaire/renew"
         />
