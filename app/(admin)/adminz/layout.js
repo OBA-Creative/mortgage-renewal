@@ -58,7 +58,7 @@ export default function AdminLayout({ children }) {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-dvh bg-gray-50">
         <div className="text-center">
           <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
           <p className="text-gray-600">Checking authentication...</p>
@@ -98,7 +98,7 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-dvh bg-blue-50">
       {/* Horizontal Navigation Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="px-6 py-4">

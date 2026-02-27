@@ -13,7 +13,7 @@ export default function Home() {
   }, [fetchLenders]);
 
   return (
-    <div className="flex flex-col justify-center min-h-screen lg:flex-row bg-blue-50">
+    <div className="flex flex-col justify-center min-h-dvh lg:flex-row bg-blue-50">
       <div className="flex flex-col items-center justify-center w-full min-h-[40vh] pt-24 pb-10 sm:min-h-[50vh] sm:py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-100 hover:bg-blue-200">
         <p className="text-2xl font-bold sm:text-3xl lg:mb-6 lg:text-5xl">
           {"I'm renewing"}

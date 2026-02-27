@@ -44,7 +44,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex flex-col justify-center min-h-screen py-12 bg-blue-50 sm:px-6 lg:px-8">
+    <div className="flex flex-col justify-center min-h-dvh py-12 bg-blue-50 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
           <div className="flex items-center justify-center w-20 h-20 mx-auto bg-blue-600 rounded-full">
