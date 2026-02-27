@@ -18,7 +18,7 @@ export default function Home() {
         <p className="text-2xl font-bold sm:text-3xl lg:mb-6 lg:text-5xl">
           {"I'm renewing"}
         </p>
-        <p className="px-4 text-base font-light text-center sm:text-lg lg:text-xl">
+        <p className="hidden px-4 text-base font-light text-center sm:block sm:text-lg lg:text-xl">
           (Keeping my existing mortgage, no new borrowing)
         </p>
         <PathExplainerCard
@@ -34,7 +34,7 @@ export default function Home() {
         <p className="text-2xl font-bold sm:text-3xl lg:mb-6 lg:text-5xl">
           {"I'm refinancing"}
         </p>
-        <p className="px-4 text-base font-light text-center sm:text-lg lg:text-xl">
+        <p className="hidden px-4 text-base font-light text-center sm:block sm:text-lg lg:text-xl">
           (Changing my mortgage to improve cash flow and lower my payments)
         </p>
         <PathExplainerCard
