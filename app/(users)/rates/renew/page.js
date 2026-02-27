@@ -101,6 +101,8 @@ export default function RatesPage() {
         formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0,
       ),
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
+      helocBalance: Number(formData?.helocBalance ?? 0),
+      amortizationPeriod: Number(formData?.amortizationPeriod ?? 25),
       city: formData?.city ?? "",
     }),
     [formData],
@@ -108,6 +110,7 @@ export default function RatesPage() {
 
   const {
     reset,
+    register,
     control,
     formState: { errors },
     setError: setFormError,
@@ -321,12 +324,40 @@ export default function RatesPage() {
     }
   }
 
+  // Use slider amortization period (watched), fallback to store value, then 25
+  const maxAmortization = Number(formData?.amortizationPeriod) || 25;
+  const yearsNum = Number(watched?.amortizationPeriod) || maxAmortization;
+
   // Get renewal rates for the LTV category
   let r3F, r4F, r5F, r3VAdjustment, r5VAdjustment;
   let r3FLender, r4FLender, r5FLender, r3VLender, r5VLender;
 
-  // Always use standard renewal rates (no refinance logic)
-  if (useRentalRates) {
+  if (yearsNum > 25) {
+    // Amortization over 25 years — use refinance over25 rates
+    r3F = cityBasedRates.threeYrFixed.refinance?.over25?.rate || 0;
+    r3FLender =
+      cityBasedRates.threeYrFixed.refinance?.over25?.lender || "Default Lender";
+
+    r4F = cityBasedRates.fourYrFixed.refinance?.over25?.rate || 0;
+    r4FLender =
+      cityBasedRates.fourYrFixed.refinance?.over25?.lender || "Default Lender";
+
+    r5F = cityBasedRates.fiveYrFixed.refinance?.over25?.rate || 0;
+    r5FLender =
+      cityBasedRates.fiveYrFixed.refinance?.over25?.lender || "Default Lender";
+
+    r3VAdjustment =
+      cityBasedRates.threeYrVariable.refinance?.over25?.adjustment || 0;
+    r3VLender =
+      cityBasedRates.threeYrVariable.refinance?.over25?.lender ||
+      "Default Lender";
+
+    r5VAdjustment =
+      cityBasedRates.fiveYrVariable.refinance?.over25?.adjustment || 0;
+    r5VLender =
+      cityBasedRates.fiveYrVariable.refinance?.over25?.lender ||
+      "Default Lender";
+  } else if (useRentalRates) {
     // Use rental rates for investment properties
     // Pick under25 or over25 based on amortization period
     const amortPeriod = formData?.amortizationPeriod || 25;
@@ -389,9 +420,6 @@ export default function RatesPage() {
   const r3V = Math.max(0, globalPrimeRate + r3VAdjustment);
   const r5V = Math.max(0, globalPrimeRate + r5VAdjustment);
 
-  // Use actual amortization period from form data, fallback to 25 years
-  const yearsNum = formData?.amortizationPeriod || 25;
-
   // Calculate monthly payments
   const pay3F = calcMonthlyPayment(totalMortgageRequired, r3F, yearsNum);
   const pay4F = calcMonthlyPayment(totalMortgageRequired, r4F, yearsNum);
@@ -425,7 +453,7 @@ export default function RatesPage() {
         <h1 className="text-xl font-semibold sm:text-2xl md:text-3xl lg:text-4xl ">
           Here are the best{" "}
           <span className="text-blue-500 ">
-            {formData?.borrowAdditionalFunds === "yes"
+            {formData?.borrowAdditionalFunds === "yes" || helocBalance > 0
               ? "refinance"
               : "renewal"}
           </span>{" "}
@@ -438,31 +466,49 @@ export default function RatesPage() {
         </p>
       </div>
 
-      <div className="flex flex-col-reverse w-full px-3 space-y-6 space-y-reverse sm:px-4 sm:space-y-8 lg:flex-row lg:space-x-20 lg:space-y-0 max-w-7xl">
+      <div className="flex flex-col-reverse items-center w-full px-3 space-y-6 space-y-reverse sm:px-4 sm:space-y-8 lg:flex-row lg:items-start lg:justify-center lg:space-x-20 lg:space-y-0 max-w-7xl">
         {/* Current Mortgage Balance */}
         <form className="w-full lg:w-auto">
           <div className="w-full lg:w-92">
-            <CurrencyField
-              name="currentMortgageBalance"
-              label="Current Mortgage Balance"
-              control={control}
-              error={errors.currentMortgageBalance}
-            />
-            {/* Additional Borrowing Amount */}
-            {formData.borrowAdditionalFunds === "yes" && (
-              <CurrencyField
-                name="borrowAdditionalAmount"
-                label="Additional Amount to Borrow"
-                control={control}
-                error={errors.borrowAdditionalAmount}
-              />
+            {/* Only show input fields if there's HELOC or additional borrowing */}
+            {(formData.heloc === "yes" ||
+              formData.borrowAdditionalFunds === "yes") && (
+              <>
+                <CurrencyField
+                  name="currentMortgageBalance"
+                  label="Current Mortgage Balance"
+                  control={control}
+                  error={errors.currentMortgageBalance}
+                />
+                {/* HELOC Balance */}
+                {formData.heloc === "yes" && (
+                  <CurrencyField
+                    name="helocBalance"
+                    label="Your HELOC Balance"
+                    control={control}
+                    error={errors.helocBalance}
+                  />
+                )}
+                {/* Additional Borrowing Amount */}
+                {formData.borrowAdditionalFunds === "yes" && (
+                  <CurrencyField
+                    name="borrowAdditionalAmount"
+                    label="Additional Amount to Borrow"
+                    control={control}
+                    error={errors.borrowAdditionalAmount}
+                  />
+                )}
+              </>
             )}
 
-            {/* Total Mortgage Required */}
+            {/* Total Mortgage Required / Mortgage Renewal Amount */}
             <div className="flex flex-col mt-6 space-y-2 sm:mt-8">
               <div className="flex flex-col space-y-1 align-baseline sm:space-y-2">
                 <p className="text-xl font-semibold sm:text-2xl">
-                  Total Mortgage Required
+                  {formData.heloc === "yes" ||
+                  formData.borrowAdditionalFunds === "yes"
+                    ? "Total Mortgage Required"
+                    : "Mortgage Renewal Amount"}
                 </p>
                 <p
                   className={`text-xl sm:text-2xl font-semibold ${shouldBlockRates ? "text-red-400" : "text-blue-500"}`}
@@ -474,13 +520,62 @@ export default function RatesPage() {
                   })}
                 </p>
               </div>
-              <p className="text-xs text-gray-400 sm:text-sm">
-                This is the total amount calculated from your mortgage balance
-                {formData.borrowAdditionalFunds === "yes"
-                  ? " and additional borrowing"
-                  : ""}
-                {helocBalance > 0 ? " plus HELOC balance" : ""}.
-              </p>
+              {(formData.heloc === "yes" ||
+                formData.borrowAdditionalFunds === "yes") && (
+                <p className="text-xs text-gray-400 sm:text-sm">
+                  This is the total amount calculated from your mortgage balance
+                  {formData.borrowAdditionalFunds === "yes"
+                    ? " and additional borrowing"
+                    : ""}
+                  {helocBalance > 0 ? " plus HELOC balance" : ""}.
+                </p>
+              )}
+            </div>
+
+            {/* Amortization Period */}
+            <div className="mt-8 sm:mt-10">
+              <label
+                htmlFor="amortizationPeriod"
+                className="block mb-2 text-sm font-semibold sm:text-md"
+              >
+                Amortization Period:{" "}
+                <span className="font-normal">
+                  {watched?.amortizationPeriod ||
+                    formData?.amortizationPeriod ||
+                    25}{" "}
+                  years
+                </span>
+              </label>
+              <input
+                type="range"
+                min="1"
+                max={maxAmortization}
+                {...register("amortizationPeriod")}
+                className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
+              />
+              <div className="flex justify-between mt-1 text-sm text-gray-400">
+                <span>1 yr</span>
+                <span>{maxAmortization} yrs</span>
+              </div>
+              <style jsx>{`
+                .slider::-webkit-slider-thumb {
+                  appearance: none;
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  background: #3b82f6;
+                  cursor: pointer;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
+                .slider::-moz-range-thumb {
+                  height: 20px;
+                  width: 20px;
+                  border-radius: 50%;
+                  background: #3b82f6;
+                  cursor: pointer;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
+              `}</style>
             </div>
           </div>
         </form>

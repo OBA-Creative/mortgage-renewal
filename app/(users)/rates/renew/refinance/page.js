@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import RateCard from "@/components/cards/rate-card";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import CurrencyField from "@/components/form-elements/currency-element";
 import BookingModal from "@/components/cards/booking-modal";

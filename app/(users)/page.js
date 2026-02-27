@@ -18,8 +18,8 @@ export default function Home() {
         <p className="text-2xl font-bold sm:text-3xl lg:mb-6 lg:text-5xl">
           {"I'm renewing"}
         </p>
-        <p className="hidden px-4 text-base font-light text-center sm:block sm:text-lg lg:text-xl">
-          (Keeping my existing mortgage, no new borrowing)
+        <p className="hidden px-4 text-base text-center sm:block sm:text-lg lg:text-xl">
+          I'm keeping my existing mortgage, no new borrowing
         </p>
         <PathExplainerCard
           title="Explore renewal options if you’re:"
@@ -27,15 +27,15 @@ export default function Home() {
           item2="Not changing your amortization"
           item3="Maturing within next 4 months"
           btnLabel="Explore renewal options"
-          link="/questionnaire/renew"
+          link="/questionnaire/property"
         />
       </div>
       <div className="flex flex-col items-center justify-center w-full min-h-[40vh] py-10 sm:min-h-[50vh] sm:py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-50 hover:bg-blue-200">
         <p className="text-2xl font-bold sm:text-3xl lg:mb-6 lg:text-5xl">
           {"I'm refinancing"}
         </p>
-        <p className="hidden px-4 text-base font-light text-center sm:block sm:text-lg lg:text-xl">
-          (Changing my mortgage to improve cash flow and lower my payments)
+        <p className="hidden px-4 text-base text-center sm:block sm:text-lg lg:text-xl">
+          I'm changing my mortgage to improve cash flow and lower my payments
         </p>
         <PathExplainerCard
           title="Explore refinance options if you’re:"

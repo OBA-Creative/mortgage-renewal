@@ -124,6 +124,28 @@ export default function MortgagePage() {
   const borrowSelection = watch("borrowAdditionalFunds");
   const watchedPropertyValue = watch("propertyValue");
   const watchedHelocBalance = watch("helocBalance");
+  const watchedMaturityDate = watch("maturityDate");
+
+  // Check if maturity date is more than 120 days from today
+  const isDateBeyond120Days = (() => {
+    if (!watchedMaturityDate) return false;
+    const selected = new Date(watchedMaturityDate);
+    if (isNaN(selected)) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffMs = selected.getTime() - today.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    return diffDays > 120;
+  })();
+
+  const [earlyRenewalAcknowledged, setEarlyRenewalAcknowledged] = useState(false);
+
+  // Reset acknowledgement when date changes to within 120 days
+  useEffect(() => {
+    if (!isDateBeyond120Days) {
+      setEarlyRenewalAcknowledged(false);
+    }
+  }, [isDateBeyond120Days]);
 
   // Function to check and update belowOneMillion visibility
   const checkBelowOneMillionVisibility = (value) => {
@@ -384,6 +406,30 @@ export default function MortgagePage() {
           error={errors.maturityDate}
           helpTexts={helpTexts.maturityDate}
         />
+
+        {/* Early renewal warning — maturity date > 120 days out */}
+        {isDateBeyond120Days && (
+          <div className="p-4 border rounded-lg border-amber-300 bg-amber-50">
+            <p className="text-sm font-medium text-amber-800 sm:text-base">
+              Your renewal date is more than 120 days away. We cannot guarantee
+              that the rates shown will still be available at that time, and
+              breaking your current mortgage early may result in prepayment
+              penalties from your lender.
+            </p>
+            <label className="flex items-start gap-3 mt-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={earlyRenewalAcknowledged}
+                onChange={(e) => setEarlyRenewalAcknowledged(e.target.checked)}
+                className="w-5 h-5 mt-1 cursor-pointer accent-blue-600 shrink-0"
+              />
+              <span className="text-sm text-amber-900 sm:text-base">
+                I understand — still show me the current renewal rates.
+              </span>
+            </label>
+          </div>
+        )}
+
         {/* Submit */}
         <div className="space-y-2">
           {!isValid && Object.keys(errors).length > 0 && (
@@ -392,7 +438,15 @@ export default function MortgagePage() {
               {errors.maturityDate && " (including maturity date)"}
             </p>
           )}
-          <NextButton label="Show me rates" />
+          {isDateBeyond120Days && !earlyRenewalAcknowledged && (
+            <p className="text-center text-amber-600">
+              Please acknowledge the early renewal notice above to continue
+            </p>
+          )}
+          <NextButton
+            label="Show me rates"
+            disabled={isDateBeyond120Days && !earlyRenewalAcknowledged}
+          />
         </div>
       </form>
     </div>
