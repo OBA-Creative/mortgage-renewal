@@ -328,34 +328,48 @@ export default function RatesPage() {
   const maxAmortization = Number(formData?.amortizationPeriod) || 25;
   const yearsNum = Number(watched?.amortizationPeriod) || maxAmortization;
 
+  // Determine if both current value and value at purchase are over $1M
+  // belowOneMillion === "yes" means it was under $1M at purchase
+  const bothOverOneMillion =
+    propVal >= 1_000_000 && formData?.belowOneMillion !== "yes";
+
   // Get renewal rates for the LTV category
   let r3F, r4F, r5F, r3VAdjustment, r5VAdjustment;
   let r3FLender, r4FLender, r5FLender, r3VLender, r5VLender;
 
-  if (yearsNum > 25) {
-    // Amortization over 25 years — use refinance over25 rates
-    r3F = cityBasedRates.threeYrFixed.refinance?.over25?.rate || 0;
+  if (yearsNum > 25 || bothOverOneMillion) {
+    // Use refinance rates when:
+    // - Amortization over 25 years, OR
+    // - Both current value and value at purchase are over $1M
+    const refinanceCategory = yearsNum <= 25 ? "under25" : "over25";
+
+    r3F = cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.rate || 0;
     r3FLender =
-      cityBasedRates.threeYrFixed.refinance?.over25?.lender || "Default Lender";
+      cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.lender ||
+      "Default Lender";
 
-    r4F = cityBasedRates.fourYrFixed.refinance?.over25?.rate || 0;
+    r4F = cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.rate || 0;
     r4FLender =
-      cityBasedRates.fourYrFixed.refinance?.over25?.lender || "Default Lender";
+      cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.lender ||
+      "Default Lender";
 
-    r5F = cityBasedRates.fiveYrFixed.refinance?.over25?.rate || 0;
+    r5F = cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.rate || 0;
     r5FLender =
-      cityBasedRates.fiveYrFixed.refinance?.over25?.lender || "Default Lender";
+      cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.lender ||
+      "Default Lender";
 
     r3VAdjustment =
-      cityBasedRates.threeYrVariable.refinance?.over25?.adjustment || 0;
+      cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]
+        ?.adjustment || 0;
     r3VLender =
-      cityBasedRates.threeYrVariable.refinance?.over25?.lender ||
+      cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]?.lender ||
       "Default Lender";
 
     r5VAdjustment =
-      cityBasedRates.fiveYrVariable.refinance?.over25?.adjustment || 0;
+      cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]
+        ?.adjustment || 0;
     r5VLender =
-      cityBasedRates.fiveYrVariable.refinance?.over25?.lender ||
+      cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]?.lender ||
       "Default Lender";
   } else if (useRentalRates) {
     // Use rental rates for investment properties
