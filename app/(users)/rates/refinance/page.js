@@ -545,6 +545,7 @@ export default function RatesPage() {
               monthlyPayment={fmtMoney(pay3V)}
               term="3-yr variable"
               lender={r3VLender}
+              adjustment={r3VAdjustment}
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
@@ -553,6 +554,7 @@ export default function RatesPage() {
               monthlyPayment={fmtMoney(pay5V)}
               term="5-yr variable"
               lender={r5VLender}
+              adjustment={r5VAdjustment}
               onInquire={handleInquire}
             />
           </div>

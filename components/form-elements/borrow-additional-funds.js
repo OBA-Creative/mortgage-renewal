@@ -114,13 +114,14 @@ export default function BorrowAdditionalFunds({
             },
             max: {
               value: parseNumber(maxBorrow),
-              message: "You can only borrow up to 80% of your property value.",
+              message:
+                "Mortgages in Canada generally cannot be refinanced for more than 80% of the property’s current value. The requested amount appears to exceed this limit.",
             },
             validate: (value) => {
               const numericValue = parseNumber(value);
               const maxNumeric = parseNumber(maxBorrow);
               if (numericValue > maxNumeric) {
-                return "You can only borrow up to 80% of your property value.";
+                return "Mortgages in Canada generally cannot be refinanced for more than 80% of the property’s current value. The requested amount appears to exceed this limit.";
               }
               return true;
             },

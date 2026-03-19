@@ -92,7 +92,8 @@ export default function MortgagePage() {
       "Enter your current HELOC balance. This is the amount you currently owe on your HELOC.",
     lender:
       "Select your current mortgage lender from the list. This helps us understand your mortgage terms and available renewal options.",
-    propertyValue: "Enter the estimated current market value of your property.",
+    propertyValue:
+      "Enter your estimate of the current market value. Lenders may require an appraisal to verify the value. If the appraised value is lower than your estimate, your refinance options may change.",
     mortgageBalance:
       "Enter the remaining balance on your mortgage. You can find this on your most recent statement or by contacting your lender.",
     borrowAdditionalFunds:
@@ -234,7 +235,7 @@ export default function MortgagePage() {
   return (
     <div className="w-full">
       <h1 className="mb-8 text-4xl font-semibold text-center">
-        {"Now let's learn about your mortgage"}
+        Tell us about your current mortgage
       </h1>
       <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-8">
         {/* Property & Balance */}
@@ -251,7 +252,6 @@ export default function MortgagePage() {
             requiredText="Property value is required"
             error={errors.propertyValue}
             defaultValue={formData?.propertyValue}
-            placeholder="Enter the estimated current market value"
           />
 
           {/* Mortgage Balance */}
@@ -348,7 +348,7 @@ export default function MortgagePage() {
         {/* Amortization Remaining */}
         <TextInput
           id="amortizationPeriod"
-          label="How long should your new mortgage amortization be?"
+          label="What amortization would you like for your new mortgage?"
           type="number"
           min={1}
           max={30}

@@ -59,6 +59,8 @@ export default function AdminDashboard() {
   const [effectiveDate, setEffectiveDate] = useState(null);
   const [lastUpdatedDate, setLastUpdatedDate] = useState(null);
   const [isPrimeUpdating, setIsPrimeUpdating] = useState(false);
+  const [showCalculatedVariableRates, setShowCalculatedVariableRates] =
+    useState(false);
 
   // Single rate update modal state
   const [singleRateModal, setSingleRateModal] = useState({
@@ -686,10 +688,12 @@ export default function AdminDashboard() {
                                 );
                                 if (!value && value !== 0) return "-";
                                 const numValue = parseFloat(value);
-                                return isNaN(numValue)
-                                  ? "-"
-                                  : numValue.toFixed(2) +
-                                      (category.type === "fixed" ? "%" : "");
+                                if (isNaN(numValue)) return "-";
+                                if (category.type === "fixed")
+                                  return numValue.toFixed(2) + "%";
+                                if (showCalculatedVariableRates)
+                                  return (prime + numValue).toFixed(2) + "%";
+                                return numValue.toFixed(2);
                               })()}
                             </div>
                             <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
@@ -731,10 +735,12 @@ export default function AdminDashboard() {
                                 );
                                 if (!value && value !== 0) return "-";
                                 const numValue = parseFloat(value);
-                                return isNaN(numValue)
-                                  ? "-"
-                                  : numValue.toFixed(2) +
-                                      (category.type === "fixed" ? "%" : "");
+                                if (isNaN(numValue)) return "-";
+                                if (category.type === "fixed")
+                                  return numValue.toFixed(2) + "%";
+                                if (showCalculatedVariableRates)
+                                  return (prime + numValue).toFixed(2) + "%";
+                                return numValue.toFixed(2);
                               })()}
                             </div>
                             <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
@@ -776,10 +782,12 @@ export default function AdminDashboard() {
                                 );
                                 if (!value && value !== 0) return "-";
                                 const numValue = parseFloat(value);
-                                return isNaN(numValue)
-                                  ? "-"
-                                  : numValue.toFixed(2) +
-                                      (category.type === "fixed" ? "%" : "");
+                                if (isNaN(numValue)) return "-";
+                                if (category.type === "fixed")
+                                  return numValue.toFixed(2) + "%";
+                                if (showCalculatedVariableRates)
+                                  return (prime + numValue).toFixed(2) + "%";
+                                return numValue.toFixed(2);
                               })()}
                             </div>
                             <div className="text-[8px] text-center text-gray-400 truncate -mt-1">
@@ -800,6 +808,24 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Toggle for calculated variable rates */}
+      <div className="flex items-center mt-4 space-x-3">
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={showCalculatedVariableRates}
+            onChange={() =>
+              setShowCalculatedVariableRates(!showCalculatedVariableRates)
+            }
+          />
+          <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-300 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+          <span className="ml-2 text-sm font-medium text-gray-700">
+            Show calculated variable rates
+          </span>
+        </label>
       </div>
 
       {/* Legend */}

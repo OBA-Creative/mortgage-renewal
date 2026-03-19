@@ -13,9 +13,9 @@ export default function PropertyPage() {
   const helpTexts = {
     city: "Enter the city where your property is located.",
     usage:
-      "Select how you currently use your property. This affects the mortgage rates and terms available to you.",
+      "Select how the property is currently used. This helps determine available mortgage rates and options.",
     downpaymentOption:
-      "Tell us about your original downpayment. This helps us understand your current loan-to-value ratio and determines available refinancing options.",
+      "Your original down payment helps us determine which renewal options may be available.",
   };
 
   const {
@@ -83,7 +83,7 @@ export default function PropertyPage() {
   return (
     <div className="w-full">
       <h1 className="mb-8 text-4xl font-semibold text-center ">
-        {"Let's learn about your property"}
+        Tell us about your property
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
@@ -122,7 +122,7 @@ export default function PropertyPage() {
             id="downpaymentOption"
             register={register}
             requiredText="Select down payment option"
-            label="How much was your downpayment?"
+            label="How much was your down payment when you bought?"
             options={downpaymentOptions}
             helpTexts={helpTexts.downpaymentOption}
             error={errors.downpaymentOption}
