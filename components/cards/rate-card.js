@@ -32,18 +32,18 @@ export default function RateCard({
     <div className="flex items-center px-2 space-x-4 sm:px-4 sm:space-x-10">
       <div className="flex flex-col items-center min-w-0 grow">
         <p className="text-sm sm:text-base">{term}</p>
-        <p className="text-3xl font-bold sm:text-4xl lg:text-6xl">
-          {percentage}
-        </p>
         {term?.toLowerCase().includes("variable") && adjustment != null && (
-          <p className="text-xs text-gray-400">
-            Prime{" "}
+          <p className="text-xs ">
+            (Prime{" "}
             {adjustment < 0
               ? `- ${Math.abs(adjustment).toFixed(2)}`
               : `+ ${adjustment.toFixed(2)}`}
-            %
+            %)
           </p>
         )}
+        <p className="text-3xl font-bold sm:text-4xl lg:text-6xl">
+          {percentage}
+        </p>
       </div>
       <div className="flex flex-col space-y-2 text-center shrink-0">
         <div>
