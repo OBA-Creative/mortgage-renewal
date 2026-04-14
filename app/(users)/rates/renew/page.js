@@ -12,6 +12,7 @@ export default function RatesPage() {
   const { formData } = useMortgageStore();
   const [rates, setRates] = useState(null);
   const [prime, setPrime] = useState(0);
+  const [ratesUpdatedAt, setRatesUpdatedAt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -38,6 +39,7 @@ export default function RatesPage() {
         const ratesData = await ratesResponse.json();
         setRates(ratesData.rates);
         setPrime(ratesData.prime);
+        setRatesUpdatedAt(ratesData.updatedAt);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -663,6 +665,22 @@ export default function RatesPage() {
           calendlyUrl="https://calendly.com/obacreative/mortgage-discusion"
           selectedRate={selectedRate}
         />
+      )}
+
+      {/* Rates disclaimer */}
+      {ratesUpdatedAt && (
+        <p className="mt-8 mb-2 text-sm italic text-center text-gray-400">
+          Rates verified as of{" "}
+          {new Date(ratesUpdatedAt).toLocaleString("en-CA", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZoneName: "short",
+          })}{" "}
+          and subject to change at any time.
+        </p>
       )}
     </div>
   );
