@@ -460,13 +460,13 @@ export default function RatesPage() {
                   Amortization Period
                 </p>
                 <p className="text-xs text-gray-400 sm:text-sm">
-                  Your current term is{" "}
+                  Your current amortization is{" "}
                   <span className="font-normal">
                     {userAmortization || 1} years.
                   </span>
                 </p>
                 <p className="text-xs text-gray-400 sm:text-sm">
-                  Extend your current amortization for a lower payment.
+                  Extend your amortization for a lower payment.
                 </p>
               </div>
               <div htmlFor="amortizationPeriod" className="block mt-2 mb-2">

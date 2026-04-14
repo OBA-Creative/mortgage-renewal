@@ -337,10 +337,15 @@ export default function RatesPage() {
   let r3F, r4F, r5F, r3VAdjustment, r5VAdjustment;
   let r3FLender, r4FLender, r5FLender, r3VLender, r5VLender;
 
-  if (yearsNum > 25 || bothOverOneMillion) {
+  if (
+    yearsNum > 25 ||
+    bothOverOneMillion ||
+    (formData.borrowAdditionalFunds === "yes" && watchedBorrowAmt > 0)
+  ) {
     // Use refinance rates when:
     // - Amortization over 25 years, OR
-    // - Both current value and value at purchase are over $1M
+    // - Both current value and value at purchase are over $1M, OR
+    // - User has selected to borrow additional funds
     const refinanceCategory = yearsNum <= 25 ? "under25" : "over25";
 
     r3F = cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.rate || 0;
