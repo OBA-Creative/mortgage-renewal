@@ -1,4 +1,5 @@
 import "./globals.css";
+import GeoPrefetch from "@/components/geo-prefetch";
 
 export const metadata = {
   title: {
@@ -43,7 +44,10 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/uzv7jan.css" />
       </head>
-      <body className="bg-blue-50">{children}</body>
+      <body className="bg-blue-50">
+        <GeoPrefetch />
+        {children}
+      </body>
     </html>
   );
 }

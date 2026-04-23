@@ -7,31 +7,13 @@ import { useRouter } from "next/navigation";
 import DollarInput from "@/components/form-elements/dollar-input";
 import MapRadio from "@/components/form-elements/map-radio";
 import TextInput from "@/components/form-elements/text-input";
+import AmortizationInput from "@/components/form-elements/amortization-input";
 import FormDatePicker from "@/components/form-elements/form-date-picker";
 import NextButton from "@/components/form-elements/next-button";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import Dropdown from "@/components/form-elements/dropdown";
 import BorrowAdditionalFunds from "@/components/form-elements/borrow-additional-funds";
-
-// Safe number formatting that handles both strings and numbers
-const formatNumber = (value) => {
-  if (!value && value !== 0) return "";
-
-  // Convert to string and remove all non-digits
-  const raw = String(value).replace(/\D/g, "");
-  if (!raw) return "";
-
-  // Add commas for thousands separator
-  return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
-
-const parseNumber = (formattedValue) => {
-  // Remove commas and convert to number
-  const raw = String(formattedValue).replace(/,/g, "");
-  const parsed = parseFloat(raw);
-  // Return 0 for invalid numbers instead of empty string, or the parsed number
-  return isNaN(parsed) ? 0 : parsed;
-};
+import { formatNumber, parseNumber } from "@/lib/number-utils";
 
 export default function MortgagePage() {
   const [activeHelp, setActiveHelp] = useState(null);
@@ -101,7 +83,9 @@ export default function MortgagePage() {
     borrowAdditionalAmount:
       "Enter the amount you'd like to borrow. The maximum is calculated based on 80% of your property value minus your current mortgage and HELOC balances.",
     amortizationPeriod:
-      "Enter the number of years remaining on your amortization (between 1 and 30). This affects your payment amount and available rates.",
+      formData?.province === "BC"
+        ? "Enter the number of years for your new amortization (between 1 and 40). In BC, select areas allow up to 40-year amortization on refinances."
+        : "Enter the number of years remaining on your amortization (between 1 and 30). This affects your payment amount and available rates.",
     maturityDate:
       "This is the date your current mortgage term expires and you’ll need to renew. You can find it on your mortgage documents or statement.",
   };
@@ -175,6 +159,8 @@ export default function MortgagePage() {
   const heloc = watch("heloc");
   const helocBalance = watch("helocBalance");
 
+  const isBC = formData?.province === "BC";
+
   // Borrow options for styled radios
   const helocOptions = ["yes", "no"];
 
@@ -227,7 +213,7 @@ export default function MortgagePage() {
         helocBalance: parseNumber(data.helocBalance),
       };
       setFormData({ ...formData, ...payload });
-      router.push("/rates/refinance");
+      router.push("/refinance/property/mortgage/rates");
     },
     [formData, router, setFormData],
   );
@@ -346,34 +332,14 @@ export default function MortgagePage() {
         />
 
         {/* Amortization Remaining */}
-        <TextInput
+        <AmortizationInput
           id="amortizationPeriod"
           label="What amortization would you like for your new mortgage?"
-          type="number"
-          min={1}
-          max={30}
-          step="1"
           register={register}
-          requiredText="Please enter remaining amortization"
-          validationRules={{
-            min: {
-              value: 1,
-              message: "Amortization must be at least 1 years",
-            },
-            max: {
-              value: 30,
-              message: "Amortization cannot exceed 30 years",
-            },
-            pattern: {
-              value: /^\d+$/,
-              message: "Please enter a whole number only",
-            },
-          }}
-          helpTexts={helpTexts.amortizationPeriod}
           error={errors.amortizationPeriod}
-          inputMode="numeric"
-          realTimeValidation={true}
-          onWheel={(e) => e.target.blur()}
+          helpTexts={helpTexts.amortizationPeriod}
+          isBC={isBC}
+          defaultValue={formData?.amortizationPeriod}
           placeholder="Enter years"
         />
 

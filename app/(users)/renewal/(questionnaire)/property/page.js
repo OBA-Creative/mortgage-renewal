@@ -68,7 +68,7 @@ export default function PropertyPage() {
       downpaymentValue: data.downpaymentOption,
     });
 
-    router.push("/questionnaire/mortgage");
+    router.push("/renewal/property/mortgage");
   };
 
   const usageOptions = [

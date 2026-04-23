@@ -27,7 +27,7 @@ export default function Home() {
           item2="Not changing your amortization"
           item3="Maturing within next 4 months"
           btnLabel="Explore renewal options"
-          link="/questionnaire/property"
+          link="/renewal/property"
         />
       </div>
       <div className="flex flex-col items-center justify-center w-full min-h-[40vh] py-10 sm:min-h-[50vh] sm:py-12 lg:py-0 space-y-4 lg:space-y-8 transition-colors duration-200 bg-blue-50 hover:bg-blue-200">
@@ -43,7 +43,7 @@ export default function Home() {
           item2="Facing higher payments at renewal"
           item3="Wanting to extend amortization"
           btnLabel="Explore refinance options"
-          link="/questionnaire/refinance"
+          link="/refinance/property"
         />
       </div>
     </div>

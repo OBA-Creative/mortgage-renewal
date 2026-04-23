@@ -2,47 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import LabelWithHelper from "./label-with-helper";
-
-// Helper function to get user location from IP
-const getLocationFromIP = async () => {
-  try {
-    // Using ipapi.co service (free tier allows 30,000 requests/month)
-    const response = await fetch("https://ipapi.co/json/");
-    const data = await response.json();
-
-    if (data.city && data.region) {
-      // Format to match Canadian province codes
-      const provinceMap = {
-        Alberta: "AB",
-        "British Columbia": "BC",
-        Manitoba: "MB",
-        "New Brunswick": "NB",
-        "Newfoundland and Labrador": "NL",
-        "Northwest Territories": "NT",
-        "Nova Scotia": "NS",
-        Nunavut: "NU",
-        Ontario: "ON",
-        "Prince Edward Island": "PE",
-        Quebec: "QC",
-        Saskatchewan: "SK",
-        Yukon: "YT",
-      };
-
-      const province = provinceMap[data.region] || data.region_code;
-      const formattedLocation = `${data.city}, ${province}`;
-
-      return {
-        city: data.city,
-        province: province,
-        formatted: formattedLocation,
-        country: data.country_code,
-      };
-    }
-  } catch (error) {
-    // Silently handle — IP geolocation is best-effort
-  }
-  return null;
-};
+import { getCachedLocation, prefetchLocation } from "@/lib/geoip";
 
 export default function PlacesAutocompleteInput({
   label,
@@ -68,7 +28,12 @@ export default function PlacesAutocompleteInput({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
   const [isGoogleMapsReady, setIsGoogleMapsReady] = useState(false);
-  const [ipLocation, setIpLocation] = useState(null);
+  // Read cached IP location synchronously so there's zero perceived wait.
+  const [ipLocation, setIpLocation] = useState(() => {
+    if (defaultValue) return null;
+    const cached = getCachedLocation();
+    return cached && cached.country === "CA" ? cached : null;
+  });
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [activeHelp, setActiveHelp] = useState(null);
 
@@ -104,7 +69,7 @@ export default function PlacesAutocompleteInput({
   // Check if Google Maps API is ready
   useEffect(() => {
     const checkGoogleMapsReady = () => {
-      if (window?.google?.maps?.places?.AutocompleteService) {
+      if (window?.google?.maps?.places?.AutocompleteSuggestion) {
         setIsGoogleMapsReady(true);
         return true;
       }
@@ -125,20 +90,16 @@ export default function PlacesAutocompleteInput({
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch IP-based location on component mount
+  // Fallback: if cache was empty (prefetch hadn't completed), kick off the
+  // shared in-flight fetch. Usually a no-op because the root layout already prefetched.
   useEffect(() => {
-    // Only fetch IP location if no default value is provided (meaning no store value)
-    if (!defaultValue) {
-      setIsLoadingLocation(true);
-      getLocationFromIP().then((location) => {
-        if (location && location.country === "CA") {
-          // Only use Canadian locations
-          setIpLocation(location);
-        }
-        setIsLoadingLocation(false);
-      });
-    }
-  }, [defaultValue]);
+    if (defaultValue || ipLocation) return;
+    setIsLoadingLocation(true);
+    prefetchLocation().then((loc) => {
+      if (loc && loc.country === "CA") setIpLocation(loc);
+      setIsLoadingLocation(false);
+    });
+  }, [defaultValue, ipLocation]);
 
   // Initialize with default value or IP location
   useEffect(() => {
@@ -219,7 +180,7 @@ export default function PlacesAutocompleteInput({
     // Check if Google Maps API is available
     if (
       !isGoogleMapsReady ||
-      !window?.google?.maps?.places?.AutocompleteService
+      !window?.google?.maps?.places?.AutocompleteSuggestion
     ) {
       return;
     }
@@ -235,34 +196,46 @@ export default function PlacesAutocompleteInput({
       return;
     }
 
-    const service = new window.google.maps.places.AutocompleteService();
     ensureSessionToken();
-
     setLoading(true);
-    timeoutIdRef.current = setTimeout(() => {
-      service.getPlacePredictions(
-        {
-          input: query,
-          sessionToken: sessionTokenRef.current,
-          types: ["(cities)"], // only cities
-          componentRestrictions: { country }, // Canada only
-        },
-        (res, status) => {
-          setLoading(false);
-          if (
-            status === window.google?.maps?.places?.PlacesServiceStatus?.OK &&
-            Array.isArray(res)
-          ) {
-            setPredictions(res);
-            setOpen(true);
-            setActiveIndex(res.length ? 0 : -1);
-          } else {
-            setPredictions([]);
-            setOpen(false);
-            setActiveIndex(-1);
-          }
-        },
-      );
+
+    timeoutIdRef.current = setTimeout(async () => {
+      try {
+        const { suggestions } =
+          await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+            {
+              input: query,
+              sessionToken: sessionTokenRef.current,
+              includedPrimaryTypes: [
+                "locality",
+                "postal_town",
+                "administrative_area_level_3",
+                "administrative_area_level_2",
+              ],
+              includedRegionCodes: [country],
+            },
+          );
+
+        setLoading(false);
+        const placePredictions = suggestions
+          .filter((s) => s.placePrediction)
+          .map((s) => s.placePrediction);
+
+        if (placePredictions.length > 0) {
+          setPredictions(placePredictions);
+          setOpen(true);
+          setActiveIndex(0);
+        } else {
+          setPredictions([]);
+          setOpen(false);
+          setActiveIndex(-1);
+        }
+      } catch {
+        setLoading(false);
+        setPredictions([]);
+        setOpen(false);
+        setActiveIndex(-1);
+      }
     }, 150);
 
     return () => {
@@ -273,57 +246,54 @@ export default function PlacesAutocompleteInput({
     };
   }, [query, country, isGoogleMapsReady]);
 
-  const fetchDetails = (placeId) =>
-    new Promise((resolve) => {
-      if (!window?.google?.maps?.places?.PlacesService) return resolve(null);
-      const svc = new window.google.maps.places.PlacesService(
-        document.createElement("div"),
-      );
-      const fields = [
-        "address_components",
-        "geometry",
-        "place_id",
-        "formatted_address",
-        "name",
-        "types",
-      ];
-      svc.getDetails(
-        { placeId, fields, sessionToken: sessionTokenRef.current },
-        (details, status) => {
-          if (status === window.google?.maps?.places?.PlacesServiceStatus?.OK)
-            resolve(details);
-          else resolve(null);
-        },
-      );
-    });
+  const fetchDetails = async (placeId) => {
+    if (!window?.google?.maps?.places?.Place) return null;
+    try {
+      const place = new window.google.maps.places.Place({ id: placeId });
+      await place.fetchFields({
+        fields: [
+          "addressComponents",
+          "location",
+          "id",
+          "formattedAddress",
+          "displayName",
+          "types",
+        ],
+        sessionToken: sessionTokenRef.current,
+      });
+      return place;
+    } catch {
+      return null;
+    }
+  };
 
-  const getComp = (components, type, key = "long_name") =>
+  const getComp = (components, type, key = "longText") =>
     components?.find((c) => c.types.includes(type))?.[key] || "";
 
-  const parseCityProvince = (details) => {
+  const parseCityProvince = (place) => {
     const city =
-      getComp(details.address_components, "locality") ||
-      getComp(details.address_components, "postal_town") ||
-      getComp(details.address_components, "administrative_area_level_3") ||
-      getComp(details.address_components, "administrative_area_level_2");
+      getComp(place.addressComponents, "locality") ||
+      getComp(place.addressComponents, "postal_town") ||
+      getComp(place.addressComponents, "administrative_area_level_3") ||
+      getComp(place.addressComponents, "administrative_area_level_2");
 
     const province = getComp(
-      details.address_components,
+      place.addressComponents,
       "administrative_area_level_1",
-      "short_name", // BC, ON...
+      "shortText", // BC, ON...
     );
 
-    const lat = details.geometry?.location?.lat?.();
-    const lng = details.geometry?.location?.lng?.();
+    const lat = place.location?.lat?.();
+    const lng = place.location?.lng?.();
 
     return { city, province, lat, lng };
   };
 
   const displayFromPrediction = (p) => {
-    const city = p.structured_formatting?.main_text || "";
-    const sec = p.structured_formatting?.secondary_text || ""; // "BC, Canada"
+    const city = p.mainText?.text || "";
+    const sec = p.secondaryText?.text || ""; // "BC, Canada"
     const prov = sec.replace(/,\s*Canada$/, "");
-    return prov ? `${city}, ${prov}` : p.description || city;
+    return prov ? `${city}, ${prov}` : p.text?.text || city;
   };
 
   const handleSelect = async (prediction) => {
@@ -335,7 +305,7 @@ export default function PlacesAutocompleteInput({
 
     const display = displayFromPrediction(prediction);
 
-    setSelectedPlaceId(prediction.place_id);
+    setSelectedPlaceId(prediction.placeId);
     setLastSelectedLabel(display);
     clearErrors?.(id);
 
@@ -346,7 +316,7 @@ export default function PlacesAutocompleteInput({
     setPredictions([]);
     setActiveIndex(-1);
 
-    const details = await fetchDetails(prediction.place_id);
+    const details = await fetchDetails(prediction.placeId);
     if (details) {
       const { city, province, lat, lng } = parseCityProvince(details);
 
@@ -362,7 +332,7 @@ export default function PlacesAutocompleteInput({
       onCityProvince?.({
         city,
         province,
-        placeId: prediction.place_id,
+        placeId: prediction.placeId,
         lat,
         lng,
       });
@@ -499,7 +469,7 @@ export default function PlacesAutocompleteInput({
             {!loading &&
               predictions.map((p, i) => (
                 <li
-                  key={p.place_id}
+                  key={p.placeId}
                   role="option"
                   aria-selected={i === activeIndex}
                   className={`px-4 py-3 cursor-pointer ${
@@ -510,12 +480,9 @@ export default function PlacesAutocompleteInput({
                   onClick={() => handleSelect(p)}
                 >
                   <span className="font-medium">
-                    {p.structured_formatting?.main_text}
-                    {p.structured_formatting?.secondary_text
-                      ? `, ${p.structured_formatting.secondary_text.replace(
-                          /,\s*Canada$/,
-                          "",
-                        )}`
+                    {p.mainText?.text}
+                    {p.secondaryText?.text
+                      ? `, ${p.secondaryText.text.replace(/,\s*Canada$/, "")}`
                       : ""}
                   </span>
                 </li>

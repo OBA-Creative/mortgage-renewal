@@ -1,7 +1,10 @@
 import { TrendingDown } from "lucide-react";
 import Link from "next/link";
 
-export default function UpsellRateCard({ monthlyPayment }) {
+export default function UpsellRateCard({
+  monthlyPayment,
+  href = "/renewal/property/mortgage/rates/refinance",
+}) {
   return (
     <div className="p-3 pt-2 space-y-2 border border-blue-300 rounded-lg sm:p-4 bg-blue-50">
       <div className="flex flex-col space-y-2 text-center">
@@ -22,7 +25,7 @@ export default function UpsellRateCard({ monthlyPayment }) {
             </p>
           </div>
         </div>
-        <Link href="renew/refinance" className="w-full">
+        <Link href={href} className="w-full">
           <div className="flex items-center justify-center h-10 px-6 mx-auto text-sm font-semibold text-white transition-all duration-200 bg-blue-600 rounded-full cursor-pointer sm:px-10 sm:text-base w-fit hover:bg-blue-500 hover:scale-110 hover:shadow-lg">
             see refinance rates
           </div>

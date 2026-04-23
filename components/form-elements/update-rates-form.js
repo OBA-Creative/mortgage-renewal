@@ -56,7 +56,9 @@ const VariableRateInputField = ({
       : isRefinance
         ? refinanceType === "under25"
           ? "Refi ≤25 yrs"
-          : "Refi >25 yrs"
+          : refinanceType === "over30"
+            ? "Refi >30 yrs"
+            : "Refi ≤30 yrs"
         : ltv === "over80"
           ? "Insured"
           : `≤${ltv.slice(-2)}%`;
@@ -179,7 +181,7 @@ const VariableRateFormSection = ({
 
         {/* Refinance rates */}
         <div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="flex items-start space-x-2">
               <input
                 type="checkbox"
@@ -222,6 +224,29 @@ const VariableRateFormSection = ({
                   onLenderChange={handleLenderChange}
                   isRefinance={true}
                   refinanceType="over25"
+                  isRental={isRental}
+                />
+              </div>
+            </div>
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-refinanceOver30`}
+                checked={selectedRates[rateType].refinanceOver30}
+                onChange={() =>
+                  toggleRateSelection(rateType, "refinanceOver30")
+                }
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <VariableRateInputField
+                  ltv="refinance"
+                  rateType={rateType}
+                  value={formRates[rateType].refinance?.over30}
+                  onAdjustmentChange={handleAdjustmentChange}
+                  onLenderChange={handleLenderChange}
+                  isRefinance={true}
+                  refinanceType="over30"
                   isRental={isRental}
                 />
               </div>
@@ -304,7 +329,9 @@ const RateInputField = ({
       : isRefinance
         ? refinanceType === "under25"
           ? "Refi ≤25 yrs"
-          : "Refi >25 yrs"
+          : refinanceType === "over30"
+            ? "Refi >30 yrs"
+            : "Refi ≤30 yrs"
         : ltv === "over80"
           ? "Insured"
           : `≤${ltv.slice(-2)}%`;
@@ -427,7 +454,7 @@ const FixedRateSection = ({
 
         {/* Refinance rates */}
         <div className="">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="flex items-start space-x-2">
               <input
                 type="checkbox"
@@ -470,6 +497,29 @@ const FixedRateSection = ({
                   onLenderChange={handleLenderChange}
                   isRefinance={true}
                   refinanceType="over25"
+                  isRental={isRental}
+                />
+              </div>
+            </div>
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-refinanceOver30`}
+                checked={selectedRates[rateType].refinanceOver30}
+                onChange={() =>
+                  toggleRateSelection(rateType, "refinanceOver30")
+                }
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <RateInputField
+                  ltv="refinance"
+                  rateType={rateType}
+                  value={formRates[rateType].refinance?.over30}
+                  onRateChange={handleRateChange}
+                  onLenderChange={handleLenderChange}
+                  isRefinance={true}
+                  refinanceType="over30"
                   isRental={isRental}
                 />
               </div>
@@ -627,6 +677,10 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           rate: rates.threeYrFixed?.refinance?.over25?.rate || 0,
           lender: rates.threeYrFixed?.refinance?.over25?.lender || "",
         },
+        over30: {
+          rate: rates.threeYrFixed?.refinance?.over30?.rate || 0,
+          lender: rates.threeYrFixed?.refinance?.over30?.lender || "",
+        },
       },
       rental: normalizeRental(rates.threeYrFixed?.rental, true), // Fixed rates
     },
@@ -660,6 +714,10 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           rate: rates.fourYrFixed?.refinance?.over25?.rate || 0,
           lender: rates.fourYrFixed?.refinance?.over25?.lender || "",
         },
+        over30: {
+          rate: rates.fourYrFixed?.refinance?.over30?.rate || 0,
+          lender: rates.fourYrFixed?.refinance?.over30?.lender || "",
+        },
       },
       rental: normalizeRental(rates.fourYrFixed?.rental, true), // Fixed rates
     },
@@ -692,6 +750,10 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
         over25: {
           rate: rates.fiveYrFixed?.refinance?.over25?.rate || 0,
           lender: rates.fiveYrFixed?.refinance?.over25?.lender || "",
+        },
+        over30: {
+          rate: rates.fiveYrFixed?.refinance?.over30?.rate || 0,
+          lender: rates.fiveYrFixed?.refinance?.over30?.lender || "",
         },
       },
       rental: normalizeRental(rates.fiveYrFixed?.rental, true), // Fixed rates
@@ -727,6 +789,10 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           adjustment: rates.threeYrVariable?.refinance?.over25?.adjustment || 0,
           lender: rates.threeYrVariable?.refinance?.over25?.lender || "",
         },
+        over30: {
+          adjustment: rates.threeYrVariable?.refinance?.over30?.adjustment || 0,
+          lender: rates.threeYrVariable?.refinance?.over30?.lender || "",
+        },
       },
       rental: normalizeRental(rates.threeYrVariable?.rental, false), // Variable rates
     },
@@ -760,6 +826,10 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           adjustment: rates.fiveYrVariable?.refinance?.over25?.adjustment || 0,
           lender: rates.fiveYrVariable?.refinance?.over25?.lender || "",
         },
+        over30: {
+          adjustment: rates.fiveYrVariable?.refinance?.over30?.adjustment || 0,
+          lender: rates.fiveYrVariable?.refinance?.over30?.lender || "",
+        },
       },
       rental: normalizeRental(rates.fiveYrVariable?.rental, false), // Variable rates
     },
@@ -785,6 +855,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
     },
@@ -797,6 +868,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
     },
@@ -809,6 +881,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
     },
@@ -821,6 +894,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
     },
@@ -833,6 +907,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       over80: false,
       refinanceUnder25: false,
       refinanceOver25: false,
+      refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
     },
@@ -1068,7 +1143,11 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           );
 
           // Add selected refinance rates
-          if (rateCategory.refinanceUnder25 || rateCategory.refinanceOver25) {
+          if (
+            rateCategory.refinanceUnder25 ||
+            rateCategory.refinanceOver25 ||
+            rateCategory.refinanceOver30
+          ) {
             filteredRateData[rateType].refinance = {};
 
             if (rateCategory.refinanceUnder25) {
@@ -1079,6 +1158,11 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
             if (rateCategory.refinanceOver25) {
               filteredRateData[rateType].refinance.over25 =
                 formRates[rateType].refinance?.over25;
+            }
+
+            if (rateCategory.refinanceOver30) {
+              filteredRateData[rateType].refinance.over30 =
+                formRates[rateType].refinance?.over30;
             }
           }
 
@@ -1170,6 +1254,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
         "over80",
         "refinanceUnder25",
         "refinanceOver25",
+        "refinanceOver30",
         "rentalUnder25",
         "rentalOver25",
       ];
@@ -1201,6 +1286,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           over80: categorySelected,
           refinanceUnder25: categorySelected,
           refinanceOver25: categorySelected,
+          refinanceOver30: categorySelected,
           rentalUnder25: categorySelected,
           rentalOver25: categorySelected,
         },
@@ -1219,6 +1305,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
         "over80",
         "refinanceUnder25",
         "refinanceOver25",
+        "refinanceOver30",
         "rentalUnder25",
         "rentalOver25",
       ];
@@ -1242,6 +1329,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           over80: true,
           refinanceUnder25: true,
           refinanceOver25: true,
+          refinanceOver30: true,
           rentalUnder25: true,
           rentalOver25: true,
         };
@@ -1263,6 +1351,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           over80: false,
           refinanceUnder25: false,
           refinanceOver25: false,
+          refinanceOver30: false,
           rentalUnder25: false,
           rentalOver25: false,
         };

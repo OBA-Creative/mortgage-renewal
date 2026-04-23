@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import RateCard from "@/components/cards/rate-card";
 import { useMortgageStore } from "@/stores/useMortgageStore";
 import CurrencyField from "@/components/form-elements/currency-element";
 import BookingModal from "@/components/cards/booking-modal";
+import RateCardAlt from "@/components/cards/rate-card-alt";
+import { sanitizeMoney } from "@/lib/number-utils";
+import { calcMonthlyPayment } from "@/lib/mortgage-calculations";
 
 export default function RatesPage() {
   const { formData } = useMortgageStore();
@@ -74,63 +76,11 @@ export default function RatesPage() {
     });
   }, []);
 
-  // Safe number formatting that handles both strings and numbers
-  const formatNumber = (value) => {
-    if (!value && value !== 0) return "";
-
-    // Convert to string and remove all non-digits
-    const raw = String(value).replace(/\D/g, "");
-    if (!raw) return "";
-
-    // Add commas for thousands separator
-    return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
-
-  const parseNumber = (formattedValue) => {
-    // Remove commas and convert to number
-    const raw = String(formattedValue).replace(/,/g, "");
-    const parsed = parseFloat(raw);
-    // Return 0 for invalid numbers instead of empty string, or the parsed number
-    return isNaN(parsed) ? 0 : parsed;
-  };
-
-  function sanitizeMoney(str) {
-    if (str == null) return NaN;
-    const cleaned = String(str).replace(/[^0-9.]/g, "");
-    const parts = cleaned.split(".");
-    const normalized =
-      parts.length > 2 ? `${parts[0]}.${parts.slice(1).join("")}` : cleaned;
-    return normalized ? Number(normalized) : NaN;
-  }
-
-  // Convert Canadian nominal annual rate (compounded semi-annually)
-  // to the effective monthly rate used in Excel PMT:
-  // r_m = (1 + (rate/100)/2)^(2/12) - 1
-  const monthlyRateFromSemiAnnual = (annualPct) => {
-    const j2 = Number(annualPct) / 100 / 2; // semi-annual period rate
-    if (!isFinite(j2)) return NaN;
-    return Math.pow(1 + j2, 1 / 6) - 1; // 2/12 = 1/6
-  };
-
-  function calcMonthlyPayment(balance, annualNominalRatePct, years) {
-    const P = Number(balance);
-    const n = Math.round(Number(years) * 12);
-    if (!isFinite(P) || !isFinite(n) || P <= 0 || n <= 0) return NaN;
-
-    const r = monthlyRateFromSemiAnnual(annualNominalRatePct);
-    if (!isFinite(r)) return NaN;
-
-    // PMT(rate=r, nper=n, pv=P, fv=0, type=0) -> payment at period end
-    if (Math.abs(r) < 1e-12) return P / n; // zero-rate edge case
-
-    const payment = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-
-    return payment;
-  }
-
   const defaultMortgageBalance =
     formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? "";
   const defaultBorrowAmount = formData?.borrowAdditionalAmount ?? 0;
+
+  const userAmortization = Number(formData?.amortizationPeriod ?? 25);
 
   const defaultValues = useMemo(
     () => ({
@@ -138,8 +88,7 @@ export default function RatesPage() {
         formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0,
       ),
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
-      helocBalance: Number(formData?.helocBalance ?? 0),
-      amortizationPeriod: Number(formData?.amortizationPeriod ?? 25),
+      amortizationPeriod: 30,
       city: formData?.city ?? "",
     }),
     [formData],
@@ -147,6 +96,7 @@ export default function RatesPage() {
 
   const {
     register,
+    handleSubmit,
     reset,
     control,
     formState: { errors },
@@ -169,8 +119,7 @@ export default function RatesPage() {
   const watchedBorrowAmt = sanitizeMoney(
     watched?.borrowAdditionalAmount ?? defaultBorrowAmount,
   );
-  const helocBalance =
-    sanitizeMoney(watched?.helocBalance ?? formData?.helocBalance) || 0;
+  const helocBalance = sanitizeMoney(formData?.helocBalance) || 0;
   const yearsNum =
     Number(watched?.amortizationPeriod ?? formData?.amortizationPeriod ?? 0) ||
     0;
@@ -393,8 +342,8 @@ export default function RatesPage() {
     isNaN(p)
       ? "N/A"
       : `$${p.toLocaleString("en-CA", {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
         })}`;
 
   return (
@@ -420,15 +369,6 @@ export default function RatesPage() {
               control={control}
               error={errors.currentMortgageBalance}
             />
-            {/* HELOC Balance */}
-            {formData.heloc === "yes" && (
-              <CurrencyField
-                name="helocBalance"
-                label="Your HELOC Balance"
-                control={control}
-                error={errors.helocBalance}
-              />
-            )}
             {/* Additional Borrowing Amount */}
             {formData.borrowAdditionalFunds === "yes" && (
               <CurrencyField
@@ -464,30 +404,41 @@ export default function RatesPage() {
             </div>
 
             {/* Amortization Period */}
-            <div className="mt-8 sm:mt-10">
-              <label
-                htmlFor="amortizationPeriod"
-                className="block mb-2 text-sm font-semibold sm:text-md"
-              >
-                Amortization Period:{" "}
-                <span className="font-normal">
-                  {watched?.amortizationPeriod ||
-                    formData?.amortizationPeriod ||
-                    25}{" "}
-                  years
-                </span>
-              </label>
+            <div className="mt-4 sm:mt-6">
+              <div htmlFor="amortizationPeriod" className="block mb-2 ">
+                <p className="text-xl font-semibold sm:text-2xl">
+                  Amortization Period
+                </p>
+                <p className="text-xs text-gray-400 sm:text-sm">
+                  Your current amortization is{" "}
+                  <span className="font-normal">
+                    {userAmortization || 1} years.
+                  </span>
+                </p>
+                <p className="text-xs text-gray-400 sm:text-sm">
+                  Extend your amortization for a lower payment.
+                </p>
+              </div>
+              <div htmlFor="amortizationPeriod" className="block mt-2 mb-2">
+                <p className="text-base font-semibold sm:text-lg">
+                  New Term:{" "}
+                  <span className="text-blue-500 ">
+                    {watched?.amortizationPeriod || 30} years
+                  </span>
+                </p>
+              </div>
               <input
                 type="range"
-                min="1"
+                min={userAmortization + 1}
                 max="30"
                 {...register("amortizationPeriod")}
                 className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
               />
               <div className="flex justify-between mt-1 text-sm text-gray-400">
-                <span>1 yr</span>
+                <span>{userAmortization + 1} yrs</span>
                 <span>30 yrs</span>
               </div>
+
               <style jsx>{`
                 .slider::-webkit-slider-thumb {
                   appearance: none;
@@ -518,7 +469,7 @@ export default function RatesPage() {
           </p>
         ) : (
           <div className="w-full p-3 space-y-3 bg-white border border-gray-300 rounded-lg sm:p-4 sm:space-y-4 lg:w-auto">
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r3F)}
               monthlyPayment={fmtMoney(pay3F)}
               term="3-yr fixed"
@@ -526,7 +477,7 @@ export default function RatesPage() {
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r4F)}
               monthlyPayment={fmtMoney(pay4F)}
               term="4-yr fixed"
@@ -534,7 +485,7 @@ export default function RatesPage() {
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r5F)}
               monthlyPayment={fmtMoney(pay5F)}
               term="5-yr fixed"
@@ -542,21 +493,19 @@ export default function RatesPage() {
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r3V)}
               monthlyPayment={fmtMoney(pay3V)}
               term="3-yr variable"
               lender={r3VLender}
-              adjustment={r3VAdjustment}
               onInquire={handleInquire}
             />
             <div className="border-b border-gray-300"></div>
-            <RateCard
+            <RateCardAlt
               percentage={fmtRate(r5V)}
               monthlyPayment={fmtMoney(pay5V)}
               term="5-yr variable"
               lender={r5VLender}
-              adjustment={r5VAdjustment}
               onInquire={handleInquire}
             />
           </div>

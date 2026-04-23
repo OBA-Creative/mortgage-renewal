@@ -2,26 +2,7 @@ import MapRadio from "@/components/form-elements/map-radio";
 import DollarInput from "@/components/form-elements/dollar-input";
 import AvailableEquityCard from "@/components/cards/available-equity-card";
 import YourTotalMortgageCard from "@/components/cards/your-total-mortgage-card";
-
-// Safe number formatting that handles both strings and numbers
-const formatNumber = (value) => {
-  if (!value && value !== 0) return "";
-
-  // Convert to string and remove all non-digits
-  const raw = String(value).replace(/\D/g, "");
-  if (!raw) return "";
-
-  // Add commas for thousands separator
-  return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
-
-const parseNumber = (formattedValue) => {
-  // Remove commas and convert to number
-  const raw = String(formattedValue).replace(/,/g, "");
-  const parsed = parseFloat(raw);
-  // Return 0 for invalid numbers instead of empty string, or the parsed number
-  return isNaN(parsed) ? 0 : parsed;
-};
+import { formatNumber, parseNumber } from "@/lib/number-utils";
 
 export default function BorrowAdditionalFunds({
   // Form props

@@ -11,15 +11,10 @@ import TextInput from "@/components/form-elements/text-input";
 import NextButton from "@/components/form-elements/next-button";
 import BorrowAdditionalFunds from "@/components/form-elements/borrow-additional-funds";
 import { useMortgageStore } from "@/stores/useMortgageStore";
+import { formatNumber, parseNumber } from "@/lib/number-utils";
 
 export default function MortgagePage() {
   const { formData, setFormData } = useMortgageStore();
-
-  // Parse numeric values for calculations
-  const parseNumber = (value) => {
-    if (!value) return 0;
-    return parseFloat(String(value).replace(/,/g, "")) || 0;
-  };
 
   // Initialize state variables from store if they exist
   const [mortgageBalance, setMortgageBalance] = useState(
@@ -116,7 +111,7 @@ export default function MortgagePage() {
     amortizationPeriod:
       "Enter the number of years remaining on your amortization (between 1 and 30). This affects your payment amount and available rates.",
     maturityDate:
-      "This is the date your current mortgage term expires and you’ll need to renew. You can find it on your mortgage documents or statement.",
+      "This is the date your current mortgage term expires and you'll need to renew. You can find it on your mortgage documents or statement.",
   };
 
   const router = useRouter();
@@ -166,13 +161,6 @@ export default function MortgagePage() {
       return parseFloat(cleaned) || null;
     }
     return null;
-  };
-
-  const formatNumber = (value) => {
-    if (!value && value !== 0) return "";
-    const raw = String(value).replace(/\D/g, "");
-    if (!raw) return "";
-    return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   // Calculate values for BorrowAdditionalFunds component
@@ -254,7 +242,7 @@ export default function MortgagePage() {
     };
 
     setFormData(updatedFormData);
-    router.push("/rates/renew");
+    router.push("/renewal/property/mortgage/rates");
   };
 
   const yesNoOptions = ["yes", "no"];
@@ -467,7 +455,7 @@ export default function MortgagePage() {
           )}
           {isLtvTooHigh && (
             <p className="text-center text-red-600">
-              Your mortgage balance exceeds 80% of your home’s value. If
+              Your mortgage balance exceeds 80% of your home's value. If
               accurate, switching lenders is not available. Please proceed with
               renewal through your current lender.
             </p>

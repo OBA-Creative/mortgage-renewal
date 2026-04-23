@@ -4,18 +4,7 @@
 import { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { HelpCircle } from "lucide-react";
-
-const formatNumber = (value) => {
-  const raw = String(value ?? "").replace(/\D/g, "");
-  if (!raw) return "";
-  return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
-
-const parseNumber = (formattedValue) => {
-  const raw = String(formattedValue ?? "").replace(/,/g, "");
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : 0;
-};
+import { formatNumber, parseNumber } from "@/lib/number-utils";
 
 export default function CurrencyField({
   name,
@@ -45,7 +34,7 @@ export default function CurrencyField({
 function CurrencyInputInner({ field, label, helpText, error }) {
   // Initialize display from the RHF numeric value once
   const [display, setDisplay] = useState(() =>
-    field.value === 0 || field.value ? formatNumber(field.value) : ""
+    field.value === 0 || field.value ? formatNumber(field.value) : "",
   );
 
   // Sync when RHF value changes externally (e.g., reset/defaultValues)

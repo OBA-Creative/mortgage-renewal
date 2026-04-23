@@ -1,17 +1,4 @@
-const formatNumber = (value) => {
-  return new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency: "CAD",
-  }).format(value);
-};
-
-const parseNumber = (formattedValue) => {
-  // Remove commas and convert to number
-  const raw = String(formattedValue).replace(/,/g, "");
-  const parsed = parseFloat(raw);
-  // Return 0 for invalid numbers instead of empty string, or the parsed number
-  return isNaN(parsed) ? 0 : parsed;
-};
+import { formatCurrency, parseNumber } from "@/lib/number-utils";
 
 export default function YourTotalMortgageCard({
   mortgageBalance,
@@ -34,24 +21,24 @@ export default function YourTotalMortgageCard({
       <div className="px-12 py-8 space-y-2 text-xl font-light text-gray-700">
         <div className="flex justify-between">
           <p>Current mortgage balance</p>
-          <p>{formatNumber(mortgageBalanceNumber)}</p>
+          <p>{formatCurrency(mortgageBalanceNumber)}</p>
         </div>
 
         {hasHeloc && (
           <div className="flex justify-between">
             <p>+ HELOC balance</p>
-            <p>{formatNumber(helocBalanceNumber)}</p>
+            <p>{formatCurrency(helocBalanceNumber)}</p>
           </div>
         )}
 
         <div className="flex justify-between">
           <p>+ Additional equity</p>
-          <p>{formatNumber(borrowAdditionalAmountNumber)}</p>
+          <p>{formatCurrency(borrowAdditionalAmountNumber)}</p>
         </div>
       </div>
       <div className="flex justify-between px-12 py-4 text-xl font-semibold bg-blue-100 border-t border-blue-600 rounded-b-md">
         <p>Total mortgage required</p>
-        <p>{formatNumber(totalMortgageAmount)}</p>
+        <p>{formatCurrency(totalMortgageAmount)}</p>
       </div>
     </div>
   );

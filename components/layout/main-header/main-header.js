@@ -19,7 +19,7 @@ export default function MainHeader() {
             alt="Mortgage Renewals Logo"
             width={420}
             height={24}
-            className="hidden md:w-[340px] md:block lg:w-[420px]"
+            className="hidden md:w-85 md:block lg:w-105"
           />
           <Image
             src={mobileLogo}
@@ -56,7 +56,7 @@ export default function MainHeader() {
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:block">
-          <ul className="flex space-x-[12px] items-center">
+          <ul className="flex items-center space-x-3">
             <NavLink
               href="https://mortgage-renewals.webflow.io/"
               label="Home"

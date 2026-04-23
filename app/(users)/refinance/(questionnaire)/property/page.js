@@ -33,19 +33,22 @@ export default function PropertyPage() {
     },
   });
 
-  // Update form values when formData changes (e.g., when navigating back)
+  // Update form values when formData changes (e.g., when navigating back).
+  // Only set city/province when a stored value exists — if empty, the
+  // PlacesAutocompleteInput's IP-geolocation init may have already set them
+  // and overwriting with "" would break the auto-detected city.
   useEffect(() => {
     if (formData && Object.keys(formData).length > 0) {
       setValue("propertyUsage", formData.propertyUsage || "");
-      setValue("city", formData.city || "");
-      setValue("province", formData.province || "");
+      if (formData.city) setValue("city", formData.city);
+      if (formData.province) setValue("province", formData.province);
     }
   }, [formData, setValue]);
 
   const onSubmit = useCallback(
     (data) => {
       setFormData({ ...formData, ...data });
-      router.push("/questionnaire/refinance/mortgage");
+      router.push("/refinance/property/mortgage");
     },
     [formData, router, setFormData],
   );

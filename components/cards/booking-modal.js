@@ -342,6 +342,13 @@ export default function BookingModal({
               className="space-y-3 sm:space-y-4"
               onSubmit={handleSubmit(onLeadSubmit)}
             >
+              <div className="text-base text-center text-gray-700 sm:text-lg">
+                <p>
+                  Share your contact info and we&apos;ll book a quick call to
+                  walk you through the process, verify your details, and lock in
+                  this rate for you.
+                </p>
+              </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <BookingInput
                   id="firstName"

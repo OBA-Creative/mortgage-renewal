@@ -41,7 +41,8 @@ const ltvCategories = [
 
 const refinanceCategories = [
   { id: "under25", label: "≤25 yr" },
-  { id: "over25", label: ">25 yr" },
+  { id: "over25", label: "≤30 yr" },
+  { id: "over30", label: ">30 yr" },
 ];
 
 const rentalCategories = [

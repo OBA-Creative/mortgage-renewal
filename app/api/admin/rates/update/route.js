@@ -34,13 +34,18 @@ export async function POST(request) {
               (ltvKey === "refinance" || ltvKey === "rental") &&
               rates[rateType][ltvKey]
             ) {
-              // Handle refinance/rental nested structure (under25/over25)
+              // Handle refinance/rental nested structure (under25/over25/over30)
               Object.keys(rates[rateType][ltvKey]).forEach((subKey) => {
+                const subValue = rates[rateType][ltvKey][subKey];
+                // Skip over30 if lender is empty — admin hasn't filled it in yet
+                if (subKey === "over30" && !subValue?.lender) {
+                  return;
+                }
                 updateObj[`${provinceCode}.${rateType}.${ltvKey}.${subKey}`] =
-                  rates[rateType][ltvKey][subKey];
+                  subValue;
                 console.log(
                   `Setting ${provinceCode}.${rateType}.${ltvKey}.${subKey}:`,
-                  rates[rateType][ltvKey][subKey],
+                  subValue,
                 );
               });
             } else if (rates[rateType][ltvKey]) {

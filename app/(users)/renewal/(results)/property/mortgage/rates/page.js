@@ -7,6 +7,8 @@ import { useMortgageStore } from "@/stores/useMortgageStore";
 import CurrencyField from "@/components/form-elements/currency-element";
 import BookingModal from "@/components/cards/booking-modal";
 import UpsellRateCard from "@/components/cards/upsell-rate-card";
+import { sanitizeMoney } from "@/lib/number-utils";
+import { calcMonthlyPayment } from "@/lib/mortgage-calculations";
 
 export default function RatesPage() {
   const { formData } = useMortgageStore();
@@ -62,40 +64,6 @@ export default function RatesPage() {
       day: "numeric",
     });
   }, []);
-
-  function sanitizeMoney(str) {
-    if (str == null) return NaN;
-    const cleaned = String(str).replace(/[^0-9.]/g, "");
-    const parts = cleaned.split(".");
-    const normalized =
-      parts.length > 2 ? `${parts[0]}.${parts.slice(1).join("")}` : cleaned;
-    return normalized ? Number(normalized) : NaN;
-  }
-
-  // Convert Canadian nominal annual rate (compounded semi-annually)
-  // to the effective monthly rate used in Excel PMT:
-  // r_m = (1 + (rate/100)/2)^(2/12) - 1
-  const monthlyRateFromSemiAnnual = (annualPct) => {
-    const j2 = Number(annualPct) / 100 / 2; // semi-annual period rate
-    if (!isFinite(j2)) return NaN;
-    return Math.pow(1 + j2, 1 / 6) - 1; // 2/12 = 1/6
-  };
-
-  function calcMonthlyPayment(balance, annualNominalRatePct, years) {
-    const P = Number(balance);
-    const n = Math.round(Number(years) * 12);
-    if (!isFinite(P) || !isFinite(n) || P <= 0 || n <= 0) return NaN;
-
-    const r = monthlyRateFromSemiAnnual(annualNominalRatePct);
-    if (!isFinite(r)) return NaN;
-
-    // PMT(rate=r, nper=n, pv=P, fv=0, type=0) -> payment at period end
-    if (Math.abs(r) < 1e-12) return P / n; // zero-rate edge case
-
-    const payment = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-
-    return payment;
-  }
 
   const defaultValues = useMemo(
     () => ({
@@ -464,8 +432,8 @@ export default function RatesPage() {
     isNaN(p)
       ? "N/A"
       : `$${p.toLocaleString("en-CA", {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
         })}`;
 
   return (

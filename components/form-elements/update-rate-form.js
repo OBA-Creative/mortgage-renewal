@@ -99,7 +99,9 @@ export default function UpdateRateForm({
   const getTypeLabel = () => {
     if (type?.includes("refinance-")) {
       const refType = type.replace("refinance-", "");
-      return refType === "under25" ? "Refinance ≤25yr" : "Refinance >25yr";
+      if (refType === "under25") return "Refinance ≤25yr";
+      if (refType === "over25") return "Refinance ≤30yr";
+      if (refType === "over30") return "Refinance >30yr";
     }
     if (type?.includes("rental-")) {
       const rentType = type.replace("rental-", "");
