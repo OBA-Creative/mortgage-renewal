@@ -82,15 +82,20 @@ export default function RatesPage() {
 
   const userAmortization = Number(formData?.amortizationPeriod ?? 25);
 
+  // Determine province / BC eligibility early so defaultValues can use it
+  const prov = formData?.province ?? "ON";
+  const isBC = prov === "BC";
+
   const defaultValues = useMemo(
     () => ({
       currentMortgageBalance: Number(
         formData?.currentMortgageBalance ?? formData?.mortgageBalance ?? 0,
       ),
       borrowAdditionalAmount: Number(formData?.borrowAdditionalAmount ?? 0),
-      amortizationPeriod: 30,
+      amortizationPeriod: isBC ? 40 : 30,
       city: formData?.city ?? "",
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [formData],
   );
 
@@ -234,9 +239,6 @@ export default function RatesPage() {
     hasUserMadeChanges, // Added this dependency
   ]);
 
-  // Get rates for the user's province/city
-  const prov = formData?.province ?? "ON"; // Default to ON if no province
-
   // Get appropriate rates based on property usage (set in previous step)
   const selectedRatesCollection =
     useRentalRates && rentalRates ? rentalRates : rates;
@@ -287,10 +289,10 @@ export default function RatesPage() {
     );
   }
 
-  // For refinance page, always use refinance rates based on amortization period
-  // under25 = amortization period under and equal to 25 years (more than 25% equity remaining)
-  // over25 = amortization period over 25 years (less than 25% equity remaining)
-  const refinanceCategory = yearsNum <= 25 ? "under25" : "over25";
+  // For refinance page, use refinance rates based on amortization period.
+  // under25 = ≤25 yrs | over25 = 26–30 yrs | over30 = 31–40 yrs (BC only)
+  const refinanceCategory =
+    yearsNum <= 25 ? "under25" : yearsNum <= 30 || !isBC ? "over25" : "over30";
 
   // Get refinance rates for the user's province
   const r3F =
@@ -423,21 +425,28 @@ export default function RatesPage() {
                 <p className="text-base font-semibold sm:text-lg">
                   New Term:{" "}
                   <span className="text-blue-500 ">
-                    {watched?.amortizationPeriod || 30} years
+                    {watched?.amortizationPeriod || (isBC ? 40 : 30)} years
                   </span>
                 </p>
               </div>
               <input
                 type="range"
                 min={userAmortization + 1}
-                max="30"
+                max={isBC ? 40 : 30}
                 {...register("amortizationPeriod")}
                 className="w-full h-2 bg-white border border-gray-300 rounded-full appearance-none cursor-pointer slider"
               />
               <div className="flex justify-between mt-1 text-sm text-gray-400">
                 <span>{userAmortization + 1} yrs</span>
-                <span>30 yrs</span>
+                <span>{isBC ? "40 yrs" : "30 yrs"}</span>
               </div>
+              {isBC && yearsNum > 30 && (
+                <p className="mt-1 text-xs text-gray-400">
+                  Not all properties in BC are eligible for amortizations beyond
+                  30 years. We&apos;ll confirm your eligibility before locking
+                  in your rate.
+                </p>
+              )}
 
               <style jsx>{`
                 .slider::-webkit-slider-thumb {

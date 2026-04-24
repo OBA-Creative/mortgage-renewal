@@ -220,6 +220,7 @@ export default function RatesPage() {
 
   // Get rates for the user's province/city
   const prov = formData?.province ?? "ON"; // Default to ON if no province
+  const isBC = prov === "BC";
 
   // Get city-based rates for the user's province
   const cityBasedRates = useMemo(() => {
@@ -416,14 +417,17 @@ export default function RatesPage() {
   const pay3V = calcMonthlyPayment(totalMortgageRequired, r3V, yearsNum);
   const pay5V = calcMonthlyPayment(totalMortgageRequired, r5V, yearsNum);
 
-  // Get refinance rate for over25 category (3-yr fixed) for upsell
-
+  // Get refinance rate for upsell card — BC users get 40yr / over30 tier
+  const upsellAmortization = isBC ? 40 : 30;
+  const upsellRateCategory = isBC ? "over30" : "over25";
   const upsellRate =
-    cityBasedRates.threeYrFixed?.refinance?.over25?.rate || 3.4; // fallback to 3.3 if not available
+    cityBasedRates.threeYrFixed?.refinance?.[upsellRateCategory]?.rate ||
+    cityBasedRates.threeYrFixed?.refinance?.over25?.rate ||
+    3.4;
   const upsellPayment = calcMonthlyPayment(
     totalMortgageRequired,
     upsellRate,
-    30,
+    upsellAmortization,
   );
 
   // Format for display
