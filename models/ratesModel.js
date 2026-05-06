@@ -69,6 +69,7 @@ const rentalSchema = new mongoose.Schema(
   {
     under25: rateLenderSchema,
     over25: rateLenderSchema,
+    over30: rateLenderSchema, // BC only: 31–40yr amortization
   },
   { _id: false },
 );
@@ -78,6 +79,7 @@ const variableRentalSchema = new mongoose.Schema(
   {
     under25: variableRateSchema,
     over25: variableRateSchema,
+    over30: variableRateSchema, // BC only: 31–40yr amortization
   },
   { _id: false },
 );

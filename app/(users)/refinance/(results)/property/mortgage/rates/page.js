@@ -127,9 +127,7 @@ export default function RatesPage() {
   const currentPropertyUsage = formData?.propertyUsage || "";
 
   // Determine if we should use rental rates based on stored property usage
-  const useRentalRates =
-    currentPropertyUsage === "Rental / Investment " ||
-    currentPropertyUsage === "Second home";
+  const useRentalRates = currentPropertyUsage === "Rental / Investment";
 
   // Calculate initial total mortgage required (from store values)
   const initialTotalMortgage = useMemo(() => {
@@ -237,10 +235,11 @@ export default function RatesPage() {
   const prov = formData?.province ?? "ON"; // Default to ON if no province
   const isBC = prov === "BC";
 
-  // Get appropriate rates based on property usage (set in previous step)
-  const selectedRatesCollection =
-    useRentalRates && rentalRates ? rentalRates : rates;
-  const cityBasedRates = selectedRatesCollection?.[prov];
+  // Get appropriate rates based on property usage (set in previous step).
+  // For Rental, read from the rental sub-bucket of the standard rates document
+  // (same per-term structure as refinance: under25/over25/over30).
+  const cityBasedRates = rates?.[prov];
+  const rateBucket = useRentalRates ? "rental" : "refinance";
 
   // Show loading or error states
   if (loading)
@@ -294,35 +293,35 @@ export default function RatesPage() {
   const refinanceCategory =
     yearsNum <= 25 ? "under25" : yearsNum <= 30 || !isBC ? "over25" : "over30";
 
-  // Get refinance rates for the user's province
+  // Get refinance/rental rates for the user's province
   const r3F =
-    cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.rate || 0;
+    cityBasedRates.threeYrFixed[rateBucket]?.[refinanceCategory]?.rate || 0;
   const r3FLender =
-    cityBasedRates.threeYrFixed.refinance?.[refinanceCategory]?.lender ||
+    cityBasedRates.threeYrFixed[rateBucket]?.[refinanceCategory]?.lender ||
     "Default Lender";
   const r4F =
-    cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.rate || 0;
+    cityBasedRates.fourYrFixed[rateBucket]?.[refinanceCategory]?.rate || 0;
   const r4FLender =
-    cityBasedRates.fourYrFixed.refinance?.[refinanceCategory]?.lender ||
+    cityBasedRates.fourYrFixed[rateBucket]?.[refinanceCategory]?.lender ||
     "Default Lender";
   const r5F =
-    cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.rate || 0;
+    cityBasedRates.fiveYrFixed[rateBucket]?.[refinanceCategory]?.rate || 0;
   const r5FLender =
-    cityBasedRates.fiveYrFixed.refinance?.[refinanceCategory]?.lender ||
+    cityBasedRates.fiveYrFixed[rateBucket]?.[refinanceCategory]?.lender ||
     "Default Lender";
 
-  // Get refinance variable rate adjustments
+  // Get refinance/rental variable rate adjustments
   const r3VAdjustment =
-    cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]?.adjustment ||
-    0;
+    cityBasedRates.threeYrVariable[rateBucket]?.[refinanceCategory]
+      ?.adjustment || 0;
   const r3VLender =
-    cityBasedRates.threeYrVariable.refinance?.[refinanceCategory]?.lender ||
+    cityBasedRates.threeYrVariable[rateBucket]?.[refinanceCategory]?.lender ||
     "Default Lender";
   const r5VAdjustment =
-    cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]?.adjustment ||
-    0;
+    cityBasedRates.fiveYrVariable[rateBucket]?.[refinanceCategory]
+      ?.adjustment || 0;
   const r5VLender =
-    cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]?.lender ||
+    cityBasedRates.fiveYrVariable[rateBucket]?.[refinanceCategory]?.lender ||
     "Default Lender";
 
   // Variable rates: calculate from prime rate with stored refinance adjustments

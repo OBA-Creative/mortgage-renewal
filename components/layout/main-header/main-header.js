@@ -66,6 +66,10 @@ export default function MainHeader() {
               label="FAQs"
             />
             <NavLink
+              href="https://mortgage-renewals.webflow.io/education"
+              label="Education"
+            />
+            <NavLink
               href="https://mortgage-renewals.webflow.io/contact"
               label="Contact"
             />

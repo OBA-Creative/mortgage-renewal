@@ -127,9 +127,9 @@ export async function POST(request) {
           });
         }
 
-        // Handle rental rates (nested under25/over25 structure, like refinance)
+        // Handle rental rates (nested under25/over25/over30 structure, like refinance)
         if (sourceData[rateType].rental) {
-          ["under25", "over25"].forEach((rentalKey) => {
+          ["under25", "over25", "over30"].forEach((rentalKey) => {
             if (sourceData[rateType].rental[rentalKey]) {
               if (rateType.includes("Variable")) {
                 updateObj[
@@ -228,9 +228,9 @@ export async function POST(request) {
             });
           }
 
-          // Handle rental rates (nested under25/over25 structure, like refinance)
+          // Handle rental rates (nested under25/over25/over30 structure, like refinance)
           if (sourceData[rateType].rental) {
-            ["under25", "over25"].forEach((rentalKey) => {
+            ["under25", "over25", "over30"].forEach((rentalKey) => {
               if (sourceData[rateType].rental[rentalKey]) {
                 if (rateType.includes("Variable")) {
                   updateObj[

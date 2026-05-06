@@ -46,8 +46,9 @@ const refinanceCategories = [
 ];
 
 const rentalCategories = [
-  { id: "under25", label: "R ≤25" },
-  { id: "over25", label: "R >25" },
+  { id: "under25", label: "≤25 yr" },
+  { id: "over25", label: "≤30 yr" },
+  { id: "over30", label: ">30 yr" },
 ];
 
 export default function AdminDashboard() {
@@ -586,7 +587,7 @@ export default function AdminDashboard() {
               {/* Main Category Headers */}
               <tr>
                 <th
-                  rowSpan={2}
+                  rowSpan={3}
                   className="sticky left-0 z-10 px-1 py-1 text-xs font-medium tracking-wider text-left text-gray-500 uppercase border-r border-gray-200 bg-gray-50"
                 ></th>
                 {rateCategories.map((category) => (
@@ -601,6 +602,32 @@ export default function AdminDashboard() {
                   >
                     {category.label}
                   </th>
+                ))}
+              </tr>
+
+              {/* Group Headers (Renewal / Refinance / Rental) */}
+              <tr>
+                {rateCategories.map((category) => (
+                  <React.Fragment key={`group-${category.id}`}>
+                    <th
+                      colSpan={ltvCategories.length}
+                      className="px-1 py-1 text-xs font-semibold tracking-wider text-center text-blue-600 uppercase border-t border-b border-r border-gray-200"
+                    >
+                      Renewal
+                    </th>
+                    <th
+                      colSpan={refinanceCategories.length}
+                      className="px-1 py-1 text-xs font-semibold tracking-wider text-center text-green-600 uppercase border-t border-b border-r border-gray-200 bg-green-50"
+                    >
+                      Refinance
+                    </th>
+                    <th
+                      colSpan={rentalCategories.length}
+                      className="px-1 py-1 text-xs font-semibold tracking-wider text-center text-purple-600 uppercase border-t border-b border-r-2 border-gray-200 bg-purple-50"
+                    >
+                      Rental
+                    </th>
+                  </React.Fragment>
                 ))}
               </tr>
 
@@ -838,22 +865,6 @@ export default function AdminDashboard() {
         <div>
           • Variable rates: Enter adjustment to prime (e.g., -0.8 for Prime -
           0.8%)
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center">
-            <div className="w-3 h-3 mr-1 bg-blue-100 border border-blue-200 rounded"></div>
-            <span>
-              LTV Categories: ≤65%, ≤70%, ≤75%, ≤80%, Insured (&gt;80%)
-            </span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 mr-1 border border-green-200 rounded bg-green-50"></div>
-            <span>Refinance: ≤25yr, &gt;25yr amortization</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 mr-1 border border-purple-200 rounded bg-purple-50"></div>
-            <span>Rental/Investment: ≤25yr, &gt;25yr amortization</span>
-          </div>
         </div>
       </div>
 

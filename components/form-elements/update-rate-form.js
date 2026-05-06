@@ -105,7 +105,9 @@ export default function UpdateRateForm({
     }
     if (type?.includes("rental-")) {
       const rentType = type.replace("rental-", "");
-      return rentType === "under25" ? "Rental ≤25yr" : "Rental >25yr";
+      if (rentType === "under25") return "Rental ≤25yr";
+      if (rentType === "over25") return "Rental ≤30yr";
+      if (rentType === "over30") return "Rental >30yr";
     }
     if (type === "rental") return "Rental";
 

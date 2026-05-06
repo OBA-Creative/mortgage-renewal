@@ -47,24 +47,18 @@ const VariableRateInputField = ({
     useLenders(isRental);
   const displayLtv = !ltv
     ? ""
-    : ltv === "rental"
-      ? isRefinance
-        ? refinanceType === "under25"
-          ? "Rental ≤25 yr"
-          : "Rental >25 yr"
-        : "Rental"
-      : isRefinance
-        ? refinanceType === "under25"
-          ? "Refi ≤25 yrs"
-          : refinanceType === "over30"
-            ? "Refi >30 yrs"
-            : "Refi ≤30 yrs"
-        : ltv === "over80"
-          ? "Insured"
-          : `≤${ltv.slice(-2)}%`;
+    : ltv === "rental" || isRefinance
+      ? refinanceType === "under25"
+        ? "≤25 yrs"
+        : refinanceType === "over30"
+          ? ">30 yrs"
+          : "≤30 yrs"
+      : ltv === "over80"
+        ? "Insured"
+        : `≤${ltv.slice(-2)}%`;
 
-  const isRentalLabel = displayLtv.startsWith("Rental");
-  const isRefiLabel = displayLtv.startsWith("Refi");
+  const isRentalLabel = ltv === "rental";
+  const isRefiLabel = !isRentalLabel && isRefinance;
   const displayLtvColor = isRentalLabel
     ? "text-purple-600"
     : isRefiLabel
@@ -254,8 +248,8 @@ const VariableRateFormSection = ({
           </div>
         </div>
         {/* Rental rates */}
-        <div className="">
-          <div className="grid grid-cols-2 gap-3">
+        <div>
+          <div className="grid grid-cols-3 gap-3">
             <div className="flex items-start space-x-2">
               <input
                 type="checkbox"
@@ -298,6 +292,27 @@ const VariableRateFormSection = ({
                 />
               </div>
             </div>
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-rentalOver30`}
+                checked={selectedRates[rateType].rentalOver30}
+                onChange={() => toggleRateSelection(rateType, "rentalOver30")}
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <VariableRateInputField
+                  ltv="rental"
+                  rateType={rateType}
+                  value={formRates[rateType].rental?.over30}
+                  onAdjustmentChange={handleAdjustmentChange}
+                  onLenderChange={handleLenderChange}
+                  isRefinance={true}
+                  refinanceType="over30"
+                  isRental={isRental}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -320,24 +335,18 @@ const RateInputField = ({
     useLenders(isRental);
   const displayLtv = !ltv
     ? ""
-    : ltv === "rental"
-      ? isRefinance
-        ? refinanceType === "under25"
-          ? "Rental ≤25 yr"
-          : "Rental >25 yr"
-        : "Rental"
-      : isRefinance
-        ? refinanceType === "under25"
-          ? "Refi ≤25 yrs"
-          : refinanceType === "over30"
-            ? "Refi >30 yrs"
-            : "Refi ≤30 yrs"
-        : ltv === "over80"
-          ? "Insured"
-          : `≤${ltv.slice(-2)}%`;
+    : ltv === "rental" || isRefinance
+      ? refinanceType === "under25"
+        ? "≤25 yrs"
+        : refinanceType === "over30"
+          ? ">30 yrs"
+          : "≤30 yrs"
+      : ltv === "over80"
+        ? "Insured"
+        : `≤${ltv.slice(-2)}%`;
 
-  const isRentalLabel = displayLtv.startsWith("Rental");
-  const isRefiLabel = displayLtv.startsWith("Refi");
+  const isRentalLabel = ltv === "rental";
+  const isRefiLabel = !isRentalLabel && isRefinance;
   const displayLtvColor = isRentalLabel
     ? "text-purple-600"
     : isRefiLabel
@@ -453,7 +462,7 @@ const FixedRateSection = ({
         ))}
 
         {/* Refinance rates */}
-        <div className="">
+        <div>
           <div className="grid grid-cols-3 gap-3">
             <div className="flex items-start space-x-2">
               <input
@@ -527,8 +536,8 @@ const FixedRateSection = ({
           </div>
         </div>
         {/* Rental rates */}
-        <div className="">
-          <div className="grid grid-cols-2 gap-3">
+        <div>
+          <div className="grid grid-cols-3 gap-3">
             <div className="flex items-start space-x-2">
               <input
                 type="checkbox"
@@ -571,6 +580,27 @@ const FixedRateSection = ({
                 />
               </div>
             </div>
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id={`${rateType}-rentalOver30`}
+                checked={selectedRates[rateType].rentalOver30}
+                onChange={() => toggleRateSelection(rateType, "rentalOver30")}
+                className="mt-6 text-blue-600 border-gray-300 rounded shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <div className="flex-1">
+                <RateInputField
+                  ltv="rental"
+                  rateType={rateType}
+                  value={formRates[rateType].rental?.over30}
+                  onRateChange={handleRateChange}
+                  onLenderChange={handleLenderChange}
+                  isRefinance={true}
+                  refinanceType="over30"
+                  isRental={isRental}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -579,26 +609,25 @@ const FixedRateSection = ({
 );
 
 const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
-  // Helper function to normalize rental data to nested under25/over25 structure
+  // Helper function to normalize rental data to nested under25/over25/over30 structure
   const normalizeRental = (rentalData, isFixed = true) => {
-    const defaultValue = isFixed
-      ? { under25: { rate: 0, lender: "" }, over25: { rate: 0, lender: "" } }
-      : {
-          under25: { adjustment: 0, lender: "" },
-          over25: { adjustment: 0, lender: "" },
-        };
+    const emptyPair = isFixed
+      ? { rate: 0, lender: "" }
+      : { adjustment: 0, lender: "" };
+    const defaultValue = {
+      under25: { ...emptyPair },
+      over25: { ...emptyPair },
+      over30: { ...emptyPair },
+    };
 
     if (!rentalData) return defaultValue;
 
     // Already in correct nested structure
-    if (rentalData.under25 || rentalData.over25) {
+    if (rentalData.under25 || rentalData.over25 || rentalData.over30) {
       return {
-        under25:
-          rentalData.under25 ||
-          (isFixed ? { rate: 0, lender: "" } : { adjustment: 0, lender: "" }),
-        over25:
-          rentalData.over25 ||
-          (isFixed ? { rate: 0, lender: "" } : { adjustment: 0, lender: "" }),
+        under25: rentalData.under25 || { ...emptyPair },
+        over25: rentalData.over25 || { ...emptyPair },
+        over30: rentalData.over30 || { ...emptyPair },
       };
     }
 
@@ -610,6 +639,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           lender: rentalData.lender || "",
         },
         over25: { rate: rentalData.rate || 0, lender: rentalData.lender || "" },
+        over30: { ...emptyPair },
       };
     }
     if (!isFixed && rentalData.adjustment !== undefined) {
@@ -622,6 +652,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           adjustment: rentalData.adjustment || 0,
           lender: rentalData.lender || "",
         },
+        over30: { ...emptyPair },
       };
     }
 
@@ -858,6 +889,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
+      rentalOver30: false,
     },
     fourYrFixed: {
       categorySelected: false,
@@ -871,6 +903,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
+      rentalOver30: false,
     },
     fiveYrFixed: {
       categorySelected: false,
@@ -884,6 +917,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
+      rentalOver30: false,
     },
     threeYrVariable: {
       categorySelected: false,
@@ -897,6 +931,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
+      rentalOver30: false,
     },
     fiveYrVariable: {
       categorySelected: false,
@@ -910,6 +945,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
       refinanceOver30: false,
       rentalUnder25: false,
       rentalOver25: false,
+      rentalOver30: false,
     },
   });
 
@@ -1167,7 +1203,11 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           }
 
           // Add selected rental rates
-          if (rateCategory.rentalUnder25 || rateCategory.rentalOver25) {
+          if (
+            rateCategory.rentalUnder25 ||
+            rateCategory.rentalOver25 ||
+            rateCategory.rentalOver30
+          ) {
             filteredRateData[rateType].rental = {};
 
             if (rateCategory.rentalUnder25) {
@@ -1178,6 +1218,11 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
             if (rateCategory.rentalOver25) {
               filteredRateData[rateType].rental.over25 =
                 formRates[rateType].rental?.over25;
+            }
+
+            if (rateCategory.rentalOver30) {
+              filteredRateData[rateType].rental.over30 =
+                formRates[rateType].rental?.over30;
             }
           }
         }
@@ -1257,6 +1302,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
         "refinanceOver30",
         "rentalUnder25",
         "rentalOver25",
+        "rentalOver30",
       ];
       const allCategoryRatesSelected = categoryKeys.every(
         (key) => newSelectedRates[rateType][key],
@@ -1289,6 +1335,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           refinanceOver30: categorySelected,
           rentalUnder25: categorySelected,
           rentalOver25: categorySelected,
+          rentalOver30: categorySelected,
         },
       };
     });
@@ -1308,6 +1355,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
         "refinanceOver30",
         "rentalUnder25",
         "rentalOver25",
+        "rentalOver30",
       ];
       categoryKeys.forEach((key) => {
         if (selectedRates[rateType][key]) count++;
@@ -1332,6 +1380,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           refinanceOver30: true,
           rentalUnder25: true,
           rentalOver25: true,
+          rentalOver30: true,
         };
       });
       return newSelectedRates;
@@ -1354,6 +1403,7 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
           refinanceOver30: false,
           rentalUnder25: false,
           rentalOver25: false,
+          rentalOver30: false,
         };
       });
       return newSelectedRates;
@@ -1391,6 +1441,25 @@ const UpdateRatesForm = ({ province, rates, onClose, isRental = false }) => {
 
         <div className="px-6 py-4">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Group headings */}
+            <div className="flex pb-2 mb-4 space-x-3 border-b border-gray-300">
+              <div className="invisible flex items-start pr-3 mr-3 border-r border-gray-300">
+                <input type="checkbox" className="mr-2" />
+                <span className="font-semibold">3yr FX</span>
+              </div>
+              <div className="flex flex-1 space-x-4">
+                <div className="flex-5 text-center text-sm font-bold tracking-wider text-blue-600 uppercase">
+                  Renewal
+                </div>
+                <div className="flex-3 text-center text-sm font-bold tracking-wider text-green-600 uppercase">
+                  Refinance
+                </div>
+                <div className="flex-3 text-center text-sm font-bold tracking-wider text-purple-600 uppercase">
+                  Rental
+                </div>
+              </div>
+            </div>
+
             {/* Fixed Rate Sections */}
             <FixedRateSection
               title="3yr FX"

@@ -36,9 +36,9 @@ const validateAndFormatRateStructure = (rateStructure, isVariable = false) => {
   for (const ltv of ltvCategories) {
     if (rateStructure[ltv] !== undefined && rateStructure[ltv] !== null) {
       if (ltv === "refinance" || ltv === "rental") {
-        // Handle refinance and rental subcategories (both have under25/over25)
+        // Handle refinance and rental subcategories (both have under25/over25/over30)
         formatted[ltv] = {};
-        const subCategories = ["under25", "over25"];
+        const subCategories = ["under25", "over25", "over30"];
         for (const subCat of subCategories) {
           if (
             rateStructure[ltv][subCat] !== undefined &&
