@@ -145,9 +145,7 @@ export default function RatesPage() {
 
   // Determine if we should use rental rates (trim to handle any whitespace issues)
   const trimmedPropertyUsage = currentPropertyUsage.trim();
-  const useRentalRates =
-    trimmedPropertyUsage === "Owner-occupied and Rental" ||
-    trimmedPropertyUsage === "Rental / Investment";
+  const useRentalRates = trimmedPropertyUsage === "Rental / Investment";
 
   const totalMortgageRequired =
     (isNaN(watchedMortgageBal) ? 0 : watchedMortgageBal) +
@@ -308,7 +306,38 @@ export default function RatesPage() {
   let r3F, r4F, r5F, r3VAdjustment, r5VAdjustment;
   let r3FLender, r4FLender, r5FLender, r3VLender, r5VLender;
 
-  if (
+  if (useRentalRates) {
+    // Use rental rates for investment properties (takes priority over refinance).
+    // Pick under25 or over25 based on amortization period (slider value).
+    const rentalKey = yearsNum <= 25 ? "under25" : "over25";
+
+    r3F = cityBasedRates.threeYrFixed.rental?.[rentalKey]?.rate || 0;
+    r3FLender =
+      cityBasedRates.threeYrFixed.rental?.[rentalKey]?.lender ||
+      "Default Lender";
+
+    r4F = cityBasedRates.fourYrFixed.rental?.[rentalKey]?.rate || 0;
+    r4FLender =
+      cityBasedRates.fourYrFixed.rental?.[rentalKey]?.lender ||
+      "Default Lender";
+
+    r5F = cityBasedRates.fiveYrFixed.rental?.[rentalKey]?.rate || 0;
+    r5FLender =
+      cityBasedRates.fiveYrFixed.rental?.[rentalKey]?.lender ||
+      "Default Lender";
+
+    r3VAdjustment =
+      cityBasedRates.threeYrVariable.rental?.[rentalKey]?.adjustment || 0;
+    r3VLender =
+      cityBasedRates.threeYrVariable.rental?.[rentalKey]?.lender ||
+      "Default Lender";
+
+    r5VAdjustment =
+      cityBasedRates.fiveYrVariable.rental?.[rentalKey]?.adjustment || 0;
+    r5VLender =
+      cityBasedRates.fiveYrVariable.rental?.[rentalKey]?.lender ||
+      "Default Lender";
+  } else if (
     yearsNum > 25 ||
     bothOverOneMillion ||
     (formData.borrowAdditionalFunds === "yes" && watchedBorrowAmt > 0)
@@ -346,38 +375,6 @@ export default function RatesPage() {
         ?.adjustment || 0;
     r5VLender =
       cityBasedRates.fiveYrVariable.refinance?.[refinanceCategory]?.lender ||
-      "Default Lender";
-  } else if (useRentalRates) {
-    // Use rental rates for investment properties
-    // Pick under25 or over25 based on amortization period
-    const amortPeriod = formData?.amortizationPeriod || 25;
-    const rentalKey = amortPeriod <= 25 ? "under25" : "over25";
-
-    r3F = cityBasedRates.threeYrFixed.rental?.[rentalKey]?.rate || 0;
-    r3FLender =
-      cityBasedRates.threeYrFixed.rental?.[rentalKey]?.lender ||
-      "Default Lender";
-
-    r4F = cityBasedRates.fourYrFixed.rental?.[rentalKey]?.rate || 0;
-    r4FLender =
-      cityBasedRates.fourYrFixed.rental?.[rentalKey]?.lender ||
-      "Default Lender";
-
-    r5F = cityBasedRates.fiveYrFixed.rental?.[rentalKey]?.rate || 0;
-    r5FLender =
-      cityBasedRates.fiveYrFixed.rental?.[rentalKey]?.lender ||
-      "Default Lender";
-
-    r3VAdjustment =
-      cityBasedRates.threeYrVariable.rental?.[rentalKey]?.adjustment || 0;
-    r3VLender =
-      cityBasedRates.threeYrVariable.rental?.[rentalKey]?.lender ||
-      "Default Lender";
-
-    r5VAdjustment =
-      cityBasedRates.fiveYrVariable.rental?.[rentalKey]?.adjustment || 0;
-    r5VLender =
-      cityBasedRates.fiveYrVariable.rental?.[rentalKey]?.lender ||
       "Default Lender";
   } else {
     // Use regular LTV-based rates for owner-occupied properties
@@ -446,9 +443,11 @@ export default function RatesPage() {
         <h1 className="text-xl font-semibold sm:text-2xl md:text-3xl lg:text-4xl ">
           Here are the best{" "}
           <span className="text-blue-500 ">
-            {formData?.borrowAdditionalFunds === "yes" || helocBalance > 0
-              ? "refinance"
-              : "renewal"}
+            {useRentalRates
+              ? "rental"
+              : formData?.borrowAdditionalFunds === "yes" || helocBalance > 0
+                ? "refinance"
+                : "renewal"}
           </span>{" "}
           rates that match your profile
         </h1>

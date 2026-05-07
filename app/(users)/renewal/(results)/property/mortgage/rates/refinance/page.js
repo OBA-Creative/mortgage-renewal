@@ -130,7 +130,7 @@ export default function RatesPage() {
     0;
 
   // Get property usage from store (entered in previous step)
-  const currentPropertyUsage = formData?.propertyUsage || "";
+  const currentPropertyUsage = (formData?.propertyUsage || "").trim();
 
   // Determine if we should use rental rates based on stored property usage
   const useRentalRates = currentPropertyUsage === "Rental / Investment";
@@ -351,7 +351,10 @@ export default function RatesPage() {
     <div className="flex flex-col items-center w-full mx-auto">
       <div className="px-4 py-6 mx-auto space-y-3 text-center sm:py-8 sm:space-y-4">
         <h1 className="text-xl font-semibold sm:text-2xl md:text-3xl lg:text-4xl ">
-          Here are the best <span className="text-blue-500 ">refinance</span>{" "}
+          Here are the best{" "}
+          <span className="text-blue-500 ">
+            {useRentalRates ? "rental" : "refinance"}
+          </span>{" "}
           rates that match your profile
         </h1>
         <p className="px-2 text-sm sm:px-4 sm:text-base lg:text-xl">
